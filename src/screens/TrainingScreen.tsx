@@ -1,0 +1,100 @@
+import React from 'react';
+import { View, Text, FlatList, StyleSheet, SafeAreaView, StatusBar, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useGame } from '../hooks/useGame';
+import { theme } from '../theme';
+import { getRecruitCost } from '../utils/math';
+import { GoldDisplay } from '../components/GoldDisplay';
+import { HeroCard } from '../components/HeroCard';
+import { RecruitButton } from '../components/RecruitButton';
+import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
+import { Hero, HeroTask } from '../types';
+
+export function TrainingScreen() {
+  const { state, setHeroTask, recruitHero, isLoaded, offlineSummary, clearOfflineSummary, applyOfflineSummary } = useGame();
+
+  if (!isLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.loadingText}>Carregando guilda...</Text>
+      </View>
+    );
+  }
+
+  const nextRecruitCost = getRecruitCost(state.heroesRecruited);
+  const canAfford = state.gold >= nextRecruitCost;
+
+  const renderHero = ({ item }: { item: Hero }) => (
+    <HeroCard hero={item} onSetTask={setHeroTask} />
+  );
+
+  const keyExtractor = (item: Hero) => item.id;
+
+  const setAll = (task: HeroTask) => {
+    state.heroes.forEach(h => setHeroTask(h.id, task));
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>Treinamento</Text>
+            <Text style={styles.subtitle}>
+              {state.heroes.length} herói{state.heroes.length !== 1 ? 's' : ''}
+            </Text>
+          </View>
+          <GoldDisplay gold={state.gold} />
+        </View>
+
+        <View style={styles.recruitSection}>
+          <RecruitButton cost={nextRecruitCost} canAfford={canAfford} onPress={recruitHero} />
+        </View>
+
+        <View style={styles.batchRow}>
+          <TouchableOpacity style={styles.batchButton} onPress={() => setAll(HeroTask.TRAIN_HP)}>
+            <Text style={styles.batchText}>Treinar HP (Todos)</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.batchButton} onPress={() => setAll(HeroTask.TRAIN_ATK)}>
+            <Text style={styles.batchText}>Treinar ATK (Todos)</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.batchButton} onPress={() => setAll(HeroTask.TRAIN_MP)}>
+            <Text style={styles.batchText}>Treinar MP (Todos)</Text>
+          </TouchableOpacity>
+        </View>
+
+        {state.heroes.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>🏰</Text>
+            <Text style={styles.emptyTitle}>Sua guilda está vazia</Text>
+            <Text style={styles.emptySubtitle}>Recrute seu primeiro herói para começar a aventura!</Text>
+          </View>
+        ) : (
+          <FlatList data={state.heroes} renderItem={renderHero} keyExtractor={keyExtractor} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false} />
+        )}
+      </View>
+      <OfflineSummaryModal visible={!!offlineSummary} summary={offlineSummary} onApply={applyOfflineSummary} onDismiss={clearOfflineSummary} />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.colors.background },
+  container: { flex: 1, paddingHorizontal: theme.spacing.md },
+  loadingContainer: { flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center', gap: theme.spacing.md },
+  loadingText: { color: theme.colors.textSecondary, fontSize: theme.fontSize.md },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: theme.spacing.lg, paddingBottom: theme.spacing.md },
+  title: { fontSize: theme.fontSize.xxl, fontWeight: theme.fontWeight.bold, color: theme.colors.textPrimary },
+  subtitle: { fontSize: theme.fontSize.sm, color: theme.colors.textSecondary, marginTop: 2 },
+  recruitSection: { marginBottom: theme.spacing.md },
+  batchRow: { flexDirection: 'row', justifyContent: 'space-between', gap: theme.spacing.sm, marginBottom: theme.spacing.md },
+  batchButton: { flex: 1, backgroundColor: theme.colors.surfaceLight, padding: theme.spacing.sm, borderRadius: theme.borderRadius.sm, alignItems: 'center' },
+  batchText: { color: theme.colors.textPrimary, fontWeight: theme.fontWeight.semibold, fontSize: theme.fontSize.sm },
+  listContent: { paddingBottom: theme.spacing.xl },
+  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 100 },
+  emptyIcon: { fontSize: 64, marginBottom: theme.spacing.md },
+  emptyTitle: { fontSize: theme.fontSize.xl, fontWeight: theme.fontWeight.bold, color: theme.colors.textPrimary, marginBottom: theme.spacing.sm },
+  emptySubtitle: { fontSize: theme.fontSize.md, color: theme.colors.textSecondary, textAlign: 'center', paddingHorizontal: theme.spacing.xl },
+});
+

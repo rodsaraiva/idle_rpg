@@ -14,6 +14,7 @@ import {
   AUTO_SAVE_INTERVAL_MS,
   HP_TRAIN_PER_TICK,
   ATK_TRAIN_PER_TICK,
+  MP_TRAIN_PER_TICK,
 } from '../constants/game';
 import { getMissionGoldPerTick } from '../utils/math';
 
@@ -23,7 +24,7 @@ interface GameContextValue {
   setHeroTask: (heroId: string, task: HeroTask) => void;
   recruitHero: () => void;
   isLoaded: boolean;
-  offlineSummary: OfflineSummary | null;
+  offlineSummary: OfflineSummaryFull | null;
   clearOfflineSummary: () => void;
   applyOfflineSummary: () => Promise<void>;
 }
@@ -74,8 +75,10 @@ export function GameProvider({ children }: GameProviderProps) {
             const newHeroes = savedState.heroes.map((h) => {
               const beforeHp = h.hp;
               const beforeAtk = h.atk;
+              const beforeMp = h.mp;
               let afterHp = beforeHp;
               let afterAtk = beforeAtk;
+              let afterMp = beforeMp;
 
               switch (h.currentTask) {
                 case HeroTask.TRAIN_HP:
@@ -92,6 +95,10 @@ export function GameProvider({ children }: GameProviderProps) {
                   offlineGold += ticks * getMissionGoldPerTick(h.atk);
                   heroesAffected += 1;
                   break;
+                case HeroTask.TRAIN_MP:
+                  afterMp = beforeMp + MP_TRAIN_PER_TICK * ticks;
+                  heroesAffected += 1;
+                  break;
 
                 default:
                   break;
@@ -104,9 +111,11 @@ export function GameProvider({ children }: GameProviderProps) {
                 hpAfter: afterHp,
                 atkBefore: beforeAtk,
                 atkAfter: afterAtk,
+                mpBefore: beforeMp,
+                mpAfter: afterMp,
               });
 
-              return { ...h, hp: afterHp, atk: afterAtk };
+              return { ...h, hp: afterHp, atk: afterAtk, mp: afterMp };
             });
 
             const newState: GameState = {

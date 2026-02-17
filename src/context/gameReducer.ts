@@ -1,5 +1,5 @@
 import { GameState, GameAction, HeroTask } from '../types';
-import { HP_TRAIN_PER_TICK, ATK_TRAIN_PER_TICK } from '../constants/game';
+import { HP_TRAIN_PER_TICK, ATK_TRAIN_PER_TICK, MP_TRAIN_PER_TICK } from '../constants/game';
 import { getMissionGoldPerTick, getRecruitCost } from '../utils/math';
 import { createHero } from '../utils/heroFactory';
 
@@ -24,6 +24,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
           case HeroTask.TRAIN_ATK:
             return { ...hero, atk: hero.atk + ATK_TRAIN_PER_TICK };
+
+          case HeroTask.TRAIN_MP:
+            return { ...hero, mp: hero.mp + MP_TRAIN_PER_TICK };
 
           case HeroTask.MISSION:
             goldEarned += getMissionGoldPerTick(hero.atk);

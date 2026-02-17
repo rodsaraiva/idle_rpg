@@ -29,6 +29,14 @@ describe('gameReducer', () => {
     expect(next.heroes[0].atk).toBeCloseTo(2.5 + ATK_TRAIN_PER_TICK);
   });
 
+  test('TRAIN_MP increases mp by MP_TRAIN_PER_TICK (float handling)', () => {
+    const { MP_TRAIN_PER_TICK } = require('../../constants/game');
+    const hero = createHero({ currentTask: HeroTask.TRAIN_MP, mp: 1.5 });
+    const state = { ...initialGameState, heroes: [hero] };
+    const next = gameReducer(state, { type: 'TICK' });
+    expect(next.heroes[0].mp).toBeCloseTo(1.5 + MP_TRAIN_PER_TICK);
+  });
+
   test('MISSION generates gold based on atk', () => {
     const hero = createHero({ currentTask: HeroTask.MISSION, atk: 8 });
     const state = { ...initialGameState, heroes: [hero], gold: 0 };

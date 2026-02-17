@@ -3,6 +3,7 @@ export enum HeroTask {
   IDLE = 'IDLE',
   TRAIN_HP = 'TRAIN_HP',
   TRAIN_ATK = 'TRAIN_ATK',
+  TRAIN_MP = 'TRAIN_MP',
   MISSION = 'MISSION',
 }
 
@@ -46,6 +47,8 @@ export interface PerHeroChange {
   hpAfter: number;
   atkBefore: number;
   atkAfter: number;
+  mpBefore: number;
+  mpAfter: number;
 }
 
 export interface OfflineSummaryFull extends OfflineSummary {

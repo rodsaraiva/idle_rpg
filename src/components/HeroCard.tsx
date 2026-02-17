@@ -14,6 +14,7 @@ const TASK_LABEL_MAP: Record<HeroTask, string> = {
   [HeroTask.IDLE]: '💤 Ocioso',
   [HeroTask.TRAIN_HP]: '❤️ Treinando HP',
   [HeroTask.TRAIN_ATK]: '⚔️ Treinando ATK',
+  [HeroTask.TRAIN_MP]: '🔮 Treinando MP',
   [HeroTask.MISSION]: '🪙 Em Missão',
 };
 
@@ -48,10 +49,10 @@ export function HeroCard({ hero, onSetTask }: HeroCardProps) {
           onPress={() => onSetTask(hero.id, HeroTask.TRAIN_ATK)}
         />
         <TaskButton
-          label="Missão"
-          isActive={hero.currentTask === HeroTask.MISSION}
-          color={theme.colors.gold}
-          onPress={() => onSetTask(hero.id, HeroTask.MISSION)}
+          label="Treinar MP"
+          isActive={hero.currentTask === HeroTask.TRAIN_MP}
+          color={theme.colors.mp}
+          onPress={() => onSetTask(hero.id, HeroTask.TRAIN_MP)}
         />
         <TaskButton
           label="Descansar"

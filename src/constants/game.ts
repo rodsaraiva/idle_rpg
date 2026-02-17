@@ -9,6 +9,8 @@ export const HP_TRAIN_PER_TICK = 1;
 
 /** Ganho de ATK por segundo ao treinar ATK */
 export const ATK_TRAIN_PER_TICK = 0.5;
+/** Ganho de MP por segundo ao treinar MP */
+export const MP_TRAIN_PER_TICK = 0.3;
 
 /** Multiplicador base de ouro por ponto de ATK em missão */
 export const GOLD_PER_ATK = 0.3;
