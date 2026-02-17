@@ -38,3 +38,18 @@ export interface OfflineSummary {
   heroesAffected: number;
   cappedHours: number; // horas de cap aplicadas (se houver)
 }
+
+export interface PerHeroChange {
+  id: string;
+  name: string;
+  hpBefore: number;
+  hpAfter: number;
+  atkBefore: number;
+  atkAfter: number;
+}
+
+export interface OfflineSummaryFull extends OfflineSummary {
+  perHeroChanges: PerHeroChange[];
+  previousState?: GameState;
+  newState?: GameState;
+}

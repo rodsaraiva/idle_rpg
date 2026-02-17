@@ -6,7 +6,7 @@ import React, {
   useRef,
   ReactNode,
 } from 'react';
-import { GameState, GameAction, HeroTask, OfflineSummary } from '../types';
+import { GameState, GameAction, HeroTask, OfflineSummaryFull, PerHeroChange } from '../types';
 import { gameReducer, initialGameState } from './gameReducer';
 import { saveGameState, loadGameState } from '../services/storage';
 import {
@@ -25,6 +25,7 @@ interface GameContextValue {
   isLoaded: boolean;
   offlineSummary: OfflineSummary | null;
   clearOfflineSummary: () => void;
+  applyOfflineSummary: () => Promise<void>;
 }
 
 export const GameContext = createContext<GameContextValue>({
@@ -35,6 +36,7 @@ export const GameContext = createContext<GameContextValue>({
   isLoaded: false,
   offlineSummary: null,
   clearOfflineSummary: () => {},
+  applyOfflineSummary: async () => {},
 });
 
 interface GameProviderProps {
@@ -44,7 +46,7 @@ interface GameProviderProps {
 export function GameProvider({ children }: GameProviderProps) {
   const [state, dispatch] = useReducer(gameReducer, initialGameState);
   const [isLoaded, setIsLoaded] = React.useState(false);
-  const [offlineSummary, setOfflineSummary] = React.useState<OfflineSummary | null>(null);
+  const [offlineSummary, setOfflineSummary] = React.useState<OfflineSummaryFull | null>(null);
   const stateRef = useRef(state);
 
   // Mantém a ref sincronizada para o auto-save não usar estado stale
@@ -67,48 +69,74 @@ export function GameProvider({ children }: GameProviderProps) {
           if (ticks > 0) {
             let offlineGold = 0;
             let heroesAffected = 0;
+            const perHeroChanges: PerHeroChange[] = [];
 
-            const heroes = savedState.heroes.map((h) => {
+            const newHeroes = savedState.heroes.map((h) => {
+              const beforeHp = h.hp;
+              const beforeAtk = h.atk;
+              let afterHp = beforeHp;
+              let afterAtk = beforeAtk;
+
               switch (h.currentTask) {
                 case HeroTask.TRAIN_HP:
+                  afterHp = beforeHp + HP_TRAIN_PER_TICK * ticks;
                   heroesAffected += 1;
-                  return { ...h, hp: h.hp + HP_TRAIN_PER_TICK * ticks };
+                  break;
 
                 case HeroTask.TRAIN_ATK:
+                  afterAtk = beforeAtk + ATK_TRAIN_PER_TICK * ticks;
                   heroesAffected += 1;
-                  return { ...h, atk: h.atk + ATK_TRAIN_PER_TICK * ticks };
+                  break;
 
                 case HeroTask.MISSION:
-                  heroesAffected += 1;
                   offlineGold += ticks * getMissionGoldPerTick(h.atk);
-                  return h;
+                  heroesAffected += 1;
+                  break;
 
                 default:
-                  return h;
+                  break;
               }
+
+              perHeroChanges.push({
+                id: h.id,
+                name: h.name,
+                hpBefore: beforeHp,
+                hpAfter: afterHp,
+                atkBefore: beforeAtk,
+                atkAfter: afterAtk,
+              });
+
+              return { ...h, hp: afterHp, atk: afterAtk };
             });
 
-            savedState.heroes = heroes;
-            savedState.gold = (savedState.gold || 0) + offlineGold;
+            const newState: GameState = {
+              ...savedState,
+              heroes: newHeroes,
+              gold: (savedState.gold || 0) + offlineGold,
+            };
 
             const cappedHours =
               elapsedMs > MAX_OFFLINE_MS ? Math.floor(MAX_OFFLINE_MS / (1000 * 60 * 60)) : 0;
 
-            const summary: OfflineSummary = {
+            const summary: OfflineSummaryFull = {
               ticks,
               goldGained: Math.floor(offlineGold),
               heroesAffected,
               cappedHours,
+              perHeroChanges,
+              previousState: savedState,
+              newState,
             };
 
-            // salva resumo temporariamente para exibir no modal
+            // salva resumo temporariamente para exibir no modal (aguarda confirmação do usuário)
             setOfflineSummary(summary);
             console.log(
-              `Offline progress applied: ${ticks} ticks (capped), gold +${offlineGold}`
+              `Offline progress calculated: ${ticks} ticks (capped), gold +${offlineGold}`
             );
+          } else {
+            // nenhum progresso offline - carrega normalmente
+            dispatch({ type: 'LOAD_STATE', state: savedState });
           }
-
-          dispatch({ type: 'LOAD_STATE', state: savedState });
         } catch (err) {
           console.error('Erro ao aplicar progresso offline:', err);
           dispatch({ type: 'LOAD_STATE', state: savedState });
@@ -156,6 +184,18 @@ export function GameProvider({ children }: GameProviderProps) {
     setOfflineSummary(null);
   }, []);
 
+  const applyOfflineSummary = useCallback(async () => {
+    if (!offlineSummary || !offlineSummary.newState) return;
+    try {
+      dispatch({ type: 'LOAD_STATE', state: offlineSummary.newState });
+      await saveGameState(offlineSummary.newState);
+    } catch (err) {
+      console.error('Erro ao aplicar offlineSummary:', err);
+    } finally {
+      setOfflineSummary(null);
+    }
+  }, [offlineSummary, dispatch]);
+
   return (
     <GameContext.Provider
       value={{
@@ -166,6 +206,7 @@ export function GameProvider({ children }: GameProviderProps) {
         isLoaded,
         offlineSummary,
         clearOfflineSummary,
+        applyOfflineSummary,
       }}
     >
       {children}

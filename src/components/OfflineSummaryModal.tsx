@@ -1,16 +1,17 @@
 import React from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { theme } from '../theme';
-import { OfflineSummary } from '../types';
+import { OfflineSummaryFull } from '../types';
 import { formatNumber } from '../utils/math';
 
 interface Props {
   visible: boolean;
-  summary: OfflineSummary | null;
-  onClose: () => void;
+  summary: OfflineSummaryFull | null;
+  onApply: () => void;
+  onDismiss: () => void;
 }
 
-export function OfflineSummaryModal({ visible, summary, onClose }: Props) {
+export function OfflineSummaryModal({ visible, summary, onApply, onDismiss }: Props) {
   if (!summary) return null;
 
   const hours = Math.floor(summary.ticks / 3600);
@@ -34,6 +35,19 @@ export function OfflineSummaryModal({ visible, summary, onClose }: Props) {
             <Text style={styles.value}>💰 {formatNumber(summary.goldGained)}</Text>
           </View>
 
+          <View style={{ height: 8 }} />
+          <Text style={[styles.label, { marginBottom: 8 }]}>Mudanças por herói:</Text>
+          <View style={{ maxHeight: 160 }}>
+            {summary.perHeroChanges.map((p) => (
+              <View key={p.id} style={styles.heroRow}>
+                <Text style={styles.heroName}>{p.name}</Text>
+                <Text style={styles.heroChange}>
+                  HP {Math.floor(p.hpBefore)} → {Math.floor(p.hpAfter)} · ATK {p.atkBefore.toFixed(1)} → {p.atkAfter.toFixed(1)}
+                </Text>
+              </View>
+            ))}
+          </View>
+
           <View style={styles.row}>
             <Text style={styles.label}>Heróis afetados:</Text>
             <Text style={styles.value}>{summary.heroesAffected}</Text>
@@ -46,9 +60,14 @@ export function OfflineSummaryModal({ visible, summary, onClose }: Props) {
             </View>
           )}
 
-          <TouchableOpacity style={styles.button} onPress={onClose} activeOpacity={0.8}>
-            <Text style={styles.buttonText}>Fechar</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={[styles.button, styles.cancel]} onPress={onDismiss} activeOpacity={0.8}>
+              <Text style={styles.buttonText}>Descartar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.apply]} onPress={onApply} activeOpacity={0.8}>
+              <Text style={styles.buttonText}>Aplicar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -98,9 +117,35 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     alignItems: 'center',
   },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.md,
+  },
+  cancel: {
+    backgroundColor: theme.colors.surfaceLight,
+    flex: 1,
+  },
+  apply: {
+    backgroundColor: theme.colors.primary,
+    flex: 1,
+  },
   buttonText: {
     color: theme.colors.textPrimary,
     fontWeight: theme.fontWeight.bold,
+  },
+  heroRow: {
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.surfaceLight,
+  },
+  heroName: {
+    color: theme.colors.textPrimary,
+    fontWeight: theme.fontWeight.semibold,
+  },
+  heroChange: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.sm,
   },
 });
 

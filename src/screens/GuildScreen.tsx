@@ -20,6 +20,7 @@ import { Hero } from '../types';
 export function GuildScreen() {
   const { state, setHeroTask, recruitHero, isLoaded, offlineSummary, clearOfflineSummary } =
     useGame();
+  const { applyOfflineSummary } = useGame();
 
   if (!isLoaded) {
     return (
@@ -86,7 +87,8 @@ export function GuildScreen() {
       <OfflineSummaryModal
         visible={!!offlineSummary}
         summary={offlineSummary}
-        onClose={clearOfflineSummary}
+        onApply={applyOfflineSummary}
+        onDismiss={clearOfflineSummary}
       />
     </SafeAreaView>
   );
