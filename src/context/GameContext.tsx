@@ -86,49 +86,43 @@ export function GameProvider({ children }: GameProviderProps) {
               switch (h.currentTask) {
                 case HeroTask.TRAIN_HP: {
                   heroesAffected += 1;
-                  let remaining = (h.trainingProgressMs?.hp ?? 0) + ticks * TICK_INTERVAL_MS;
-                  let count = (h.trainingCount?.hp ?? 0);
-                  let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
-                  while (remaining >= timePerPoint) {
-                    remaining -= timePerPoint;
-                    afterHp += 1;
-                    count += 1;
-                    timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
-                  }
-                  afterProgress.hp = remaining;
-                  afterCount.hp = count;
+                  const available = (h.trainingProgressMs?.hp ?? 0) + ticks * TICK_INTERVAL_MS;
+                  const { points, leftoverMs } = require('../utils/trainingMath').computePointsFromMs(
+                    BASE_TRAIN_TIME_MS,
+                    TRAIN_INFLATION_FACTOR,
+                    available
+                  );
+                  afterHp += points;
+                  afterProgress.hp = leftoverMs;
+                  afterCount.hp = (h.trainingCount?.hp ?? 0) + points;
                   break;
                 }
 
                 case HeroTask.TRAIN_ATK: {
                   heroesAffected += 1;
-                  let remaining = (h.trainingProgressMs?.atk ?? 0) + ticks * TICK_INTERVAL_MS;
-                  let count = (h.trainingCount?.atk ?? 0);
-                  let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
-                  while (remaining >= timePerPoint) {
-                    remaining -= timePerPoint;
-                    afterAtk += 1;
-                    count += 1;
-                    timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
-                  }
-                  afterProgress.atk = remaining;
-                  afterCount.atk = count;
+                  const available = (h.trainingProgressMs?.atk ?? 0) + ticks * TICK_INTERVAL_MS;
+                  const { points, leftoverMs } = require('../utils/trainingMath').computePointsFromMs(
+                    BASE_TRAIN_TIME_MS,
+                    TRAIN_INFLATION_FACTOR,
+                    available
+                  );
+                  afterAtk += points;
+                  afterProgress.atk = leftoverMs;
+                  afterCount.atk = (h.trainingCount?.atk ?? 0) + points;
                   break;
                 }
 
                 case HeroTask.TRAIN_MP: {
                   heroesAffected += 1;
-                  let remaining = (h.trainingProgressMs?.mp ?? 0) + ticks * TICK_INTERVAL_MS;
-                  let count = (h.trainingCount?.mp ?? 0);
-                  let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
-                  while (remaining >= timePerPoint) {
-                    remaining -= timePerPoint;
-                    afterMp += 1;
-                    count += 1;
-                    timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
-                  }
-                  afterProgress.mp = remaining;
-                  afterCount.mp = count;
+                  const available = (h.trainingProgressMs?.mp ?? 0) + ticks * TICK_INTERVAL_MS;
+                  const { points, leftoverMs } = require('../utils/trainingMath').computePointsFromMs(
+                    BASE_TRAIN_TIME_MS,
+                    TRAIN_INFLATION_FACTOR,
+                    available
+                  );
+                  afterMp += points;
+                  afterProgress.mp = leftoverMs;
+                  afterCount.mp = (h.trainingCount?.mp ?? 0) + points;
                   break;
                 }
 

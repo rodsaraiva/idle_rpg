@@ -9,6 +9,9 @@ module.exports = {
     '^uuid$': '<rootDir>/jest-mocks/uuid.cjs.js',
     '^@react-native-async-storage/async-storage$': '<rootDir>/jest-mocks/async-storage-mock.js',
     '^react-native/Libraries/TurboModule/TurboModuleRegistry$': '<rootDir>/jest-mocks/TurboModuleRegistry.js',
+    '.+Libraries/TurboModule/TurboModuleRegistry': '<rootDir>/jest-mocks/TurboModuleRegistry.js',
+    '^react-native/Libraries/Utilities/NativePlatformConstantsIOS$': '<rootDir>/jest-mocks/NativePlatformConstantsIOS.js',
+    '^react-native/src/private/specs_DEPRECATED/modules/NativePlatformConstantsIOS$': '<rootDir>/jest-mocks/NativePlatformConstantsIOS.js',
   },
   transformIgnorePatterns: [
     'node_modules/(?!(react-native|@react-native|@react-navigation)/)',

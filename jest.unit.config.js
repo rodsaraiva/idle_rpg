@@ -5,7 +5,7 @@ module.exports = {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   testMatch: ['**/src/__tests__/**/?(*.)+(test).[jt]s?(x)'],
-  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/src/__tests__/context/gameContext.offline.test.tsx'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/src/__tests__/context/gameContext.offline.test.tsx', '/src/__tests__/components/'],
   moduleNameMapper: {
     '^uuid$': '<rootDir>/jest-mocks/uuid.cjs.js',
   },
