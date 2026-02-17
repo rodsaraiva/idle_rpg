@@ -39,3 +39,14 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+ 
+# Editor/IDE
+.vscode/
+.idea/
+.expo-shared/
+
+# Logs and local files
+*.log
+.env
+.env.local
+.history/
