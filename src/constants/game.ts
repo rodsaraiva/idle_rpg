@@ -4,11 +4,15 @@ export const TICK_INTERVAL_MS = 1000;
 /** Intervalo de auto-save em milissegundos */
 export const AUTO_SAVE_INTERVAL_MS = 5000;
 
-/** Ganho de HP por segundo ao treinar HP */
-export const HP_TRAIN_PER_TICK = 1;
+/** Tempo base (ms) por ponto treinado (5s) */
+export const BASE_TRAIN_TIME_MS = 5000;
 
-/** Ganho de ATK por segundo ao treinar ATK */
-export const ATK_TRAIN_PER_TICK = 0.5;
+/** Fator de inflação por ponto (10% = 0.1) */
+export const TRAIN_INFLATION_FACTOR = 0.1;
+
+/** (compat) Ganho por tick - mantido para compatibilidade de testes antigos (equiv. a 1 ponto por 1s) */
+export const HP_TRAIN_PER_TICK = 1;
+export const ATK_TRAIN_PER_TICK = 1;
 /** Ganho de MP por segundo ao treinar MP */
 export const MP_TRAIN_PER_TICK = 0.3;
 

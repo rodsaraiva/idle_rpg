@@ -12,9 +12,8 @@ import { saveGameState, loadGameState } from '../services/storage';
 import {
   TICK_INTERVAL_MS,
   AUTO_SAVE_INTERVAL_MS,
-  HP_TRAIN_PER_TICK,
-  ATK_TRAIN_PER_TICK,
-  MP_TRAIN_PER_TICK,
+  BASE_TRAIN_TIME_MS,
+  TRAIN_INFLATION_FACTOR,
 } from '../constants/game';
 import { getMissionGoldPerTick } from '../utils/math';
 
@@ -79,24 +78,62 @@ export function GameProvider({ children }: GameProviderProps) {
               let afterHp = beforeHp;
               let afterAtk = beforeAtk;
               let afterMp = beforeMp;
+              const beforeProgress = h.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 };
+              const beforeCount = h.trainingCount ?? { hp: 0, atk: 0, mp: 0 };
+              let afterProgress = { ...beforeProgress };
+              let afterCount = { ...beforeCount };
 
               switch (h.currentTask) {
-                case HeroTask.TRAIN_HP:
-                  afterHp = beforeHp + HP_TRAIN_PER_TICK * ticks;
+                case HeroTask.TRAIN_HP: {
                   heroesAffected += 1;
+                  let remaining = (h.trainingProgressMs?.hp ?? 0) + ticks * TICK_INTERVAL_MS;
+                  let count = (h.trainingCount?.hp ?? 0);
+                  let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+                  while (remaining >= timePerPoint) {
+                    remaining -= timePerPoint;
+                    afterHp += 1;
+                    count += 1;
+                    timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+                  }
+                  afterProgress.hp = remaining;
+                  afterCount.hp = count;
                   break;
+                }
 
-                case HeroTask.TRAIN_ATK:
-                  afterAtk = beforeAtk + ATK_TRAIN_PER_TICK * ticks;
+                case HeroTask.TRAIN_ATK: {
                   heroesAffected += 1;
+                  let remaining = (h.trainingProgressMs?.atk ?? 0) + ticks * TICK_INTERVAL_MS;
+                  let count = (h.trainingCount?.atk ?? 0);
+                  let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+                  while (remaining >= timePerPoint) {
+                    remaining -= timePerPoint;
+                    afterAtk += 1;
+                    count += 1;
+                    timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+                  }
+                  afterProgress.atk = remaining;
+                  afterCount.atk = count;
                   break;
+                }
+
+                case HeroTask.TRAIN_MP: {
+                  heroesAffected += 1;
+                  let remaining = (h.trainingProgressMs?.mp ?? 0) + ticks * TICK_INTERVAL_MS;
+                  let count = (h.trainingCount?.mp ?? 0);
+                  let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+                  while (remaining >= timePerPoint) {
+                    remaining -= timePerPoint;
+                    afterMp += 1;
+                    count += 1;
+                    timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+                  }
+                  afterProgress.mp = remaining;
+                  afterCount.mp = count;
+                  break;
+                }
 
                 case HeroTask.MISSION:
                   offlineGold += ticks * getMissionGoldPerTick(h.atk);
-                  heroesAffected += 1;
-                  break;
-                case HeroTask.TRAIN_MP:
-                  afterMp = beforeMp + MP_TRAIN_PER_TICK * ticks;
                   heroesAffected += 1;
                   break;
 
@@ -115,7 +152,7 @@ export function GameProvider({ children }: GameProviderProps) {
                 mpAfter: afterMp,
               });
 
-              return { ...h, hp: afterHp, atk: afterAtk, mp: afterMp };
+              return { ...h, hp: afterHp, atk: afterAtk, mp: afterMp, trainingProgressMs: afterProgress, trainingCount: afterCount };
             });
 
             const newState: GameState = {

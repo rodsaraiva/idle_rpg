@@ -1,6 +1,5 @@
 import { gameReducer, initialGameState } from '../../context/gameReducer';
 import { HeroTask, Hero } from '../../types';
-import { HP_TRAIN_PER_TICK, ATK_TRAIN_PER_TICK } from '../../constants/game';
 import { getMissionGoldPerTick } from '../../utils/math';
 
 function createHero(overrides: Partial<Hero> = {}): Hero {
@@ -15,26 +14,25 @@ function createHero(overrides: Partial<Hero> = {}): Hero {
 }
 
 describe('gameReducer', () => {
-  test('TRAIN_HP increases hp by HP_TRAIN_PER_TICK', () => {
+  test('TRAIN_HP increases hp by 1 per base tick', () => {
     const hero = createHero({ currentTask: HeroTask.TRAIN_HP, hp: 10 });
     const state = { ...initialGameState, heroes: [hero] };
     const next = gameReducer(state, { type: 'TICK' });
-    expect(next.heroes[0].hp).toBeCloseTo(10 + HP_TRAIN_PER_TICK);
+    expect(next.heroes[0].hp).toBe(11);
   });
 
-  test('TRAIN_ATK increases atk by ATK_TRAIN_PER_TICK (float handling)', () => {
+  test('TRAIN_ATK increases atk by 1 per base tick (float handling)', () => {
     const hero = createHero({ currentTask: HeroTask.TRAIN_ATK, atk: 2.5 });
     const state = { ...initialGameState, heroes: [hero] };
     const next = gameReducer(state, { type: 'TICK' });
-    expect(next.heroes[0].atk).toBeCloseTo(2.5 + ATK_TRAIN_PER_TICK);
+    expect(next.heroes[0].atk).toBeCloseTo(3.5);
   });
 
-  test('TRAIN_MP increases mp by MP_TRAIN_PER_TICK (float handling)', () => {
-    const { MP_TRAIN_PER_TICK } = require('../../constants/game');
+  test('TRAIN_MP increases mp by 1 per base tick (float handling)', () => {
     const hero = createHero({ currentTask: HeroTask.TRAIN_MP, mp: 1.5 });
     const state = { ...initialGameState, heroes: [hero] };
     const next = gameReducer(state, { type: 'TICK' });
-    expect(next.heroes[0].mp).toBeCloseTo(1.5 + MP_TRAIN_PER_TICK);
+    expect(next.heroes[0].mp).toBe(2.5);
   });
 
   test('MISSION generates gold based on atk', () => {

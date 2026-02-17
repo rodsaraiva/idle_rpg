@@ -14,5 +14,8 @@ export function createHero(): Hero {
     atk: INITIAL_HERO_STATS.atk,
     mp: INITIAL_HERO_STATS.mp,
     currentTask: HeroTask.IDLE,
+    // training progress in milliseconds and counts for inflation
+    trainingProgressMs: { hp: 0, atk: 0, mp: 0 },
+    trainingCount: { hp: 0, atk: 0, mp: 0 },
   };
 }

@@ -15,6 +15,20 @@ export interface Hero {
   atk: number;
   mp: number;
   currentTask: HeroTask;
+  trainingProgressMs?: TrainingProgress;
+  trainingCount?: TrainingCount;
+}
+ 
+export interface TrainingProgress {
+  hp: number; // ms
+  atk: number;
+  mp: number;
+}
+
+export interface TrainingCount {
+  hp: number; // points gained via training
+  atk: number;
+  mp: number;
 }
 
 /** Estado global do jogo */

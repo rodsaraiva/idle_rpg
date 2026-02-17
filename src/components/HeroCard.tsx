@@ -4,6 +4,8 @@ import { Hero, HeroTask } from '../types';
 import { theme } from '../theme';
 import { StatBar } from './StatBar';
 import { TaskButton } from './TaskButton';
+import { AttributeProgress } from './AttributeProgress';
+import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 
 interface HeroCardProps {
   hero: Hero;
@@ -33,6 +35,38 @@ export function HeroCard({ hero, onSetTask }: HeroCardProps) {
         <StatBar label="ATK" value={hero.atk} color={theme.colors.atk} />
         <StatBar label="MP" value={hero.mp} color={theme.colors.mp} />
       </View>
+
+      {/* Barra de progresso do atributo atual */}
+      {hero.currentTask === HeroTask.TRAIN_HP && hero.trainingProgressMs ? (
+        <AttributeProgress
+          fraction={
+            (hero.trainingProgressMs.hp ?? 0) /
+            (BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, hero.trainingCount?.hp ?? 0))
+          }
+          color={theme.colors.hp}
+          label="Progresso HP"
+        />
+      ) : null}
+      {hero.currentTask === HeroTask.TRAIN_ATK && hero.trainingProgressMs ? (
+        <AttributeProgress
+          fraction={
+            (hero.trainingProgressMs.atk ?? 0) /
+            (BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, hero.trainingCount?.atk ?? 0))
+          }
+          color={theme.colors.atk}
+          label="Progresso ATK"
+        />
+      ) : null}
+      {hero.currentTask === HeroTask.TRAIN_MP && hero.trainingProgressMs ? (
+        <AttributeProgress
+          fraction={
+            (hero.trainingProgressMs.mp ?? 0) /
+            (BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, hero.trainingCount?.mp ?? 0))
+          }
+          color={theme.colors.mp}
+          label="Progresso MP"
+        />
+      ) : null}
 
       {/* Botões de Tarefa */}
       <View style={styles.actions}>

@@ -18,7 +18,16 @@ export async function loadGameState(): Promise<GameState | null> {
   try {
     const data = await AsyncStorage.getItem(STORAGE_KEY);
     if (!data) return null;
-    return JSON.parse(data) as GameState;
+    const parsed = JSON.parse(data) as any;
+    // migrate old saves: ensure heroes have training fields
+    if (parsed && Array.isArray(parsed.heroes)) {
+      parsed.heroes = parsed.heroes.map((h: any) => ({
+        trainingProgressMs: h.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 },
+        trainingCount: h.trainingCount ?? { hp: 0, atk: 0, mp: 0 },
+        ...h,
+      }));
+    }
+    return parsed as GameState;
   } catch (error) {
     console.error('Erro ao carregar estado do jogo:', error);
     return null;

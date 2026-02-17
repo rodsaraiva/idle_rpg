@@ -1,5 +1,9 @@
 import { GameState, GameAction, HeroTask } from '../types';
-import { HP_TRAIN_PER_TICK, ATK_TRAIN_PER_TICK, MP_TRAIN_PER_TICK } from '../constants/game';
+import {
+  BASE_TRAIN_TIME_MS,
+  TRAIN_INFLATION_FACTOR,
+} from '../constants/game';
+import { TICK_INTERVAL_MS } from '../constants/game';
 import { getMissionGoldPerTick, getRecruitCost } from '../utils/math';
 import { createHero } from '../utils/heroFactory';
 
@@ -18,15 +22,62 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let goldEarned = 0;
 
       const updatedHeroes = state.heroes.map((hero) => {
+        // copy hero to modify
+        let newHero = { ...hero };
         switch (hero.currentTask) {
-          case HeroTask.TRAIN_HP:
-            return { ...hero, hp: hero.hp + HP_TRAIN_PER_TICK };
+          case HeroTask.TRAIN_HP: {
+            const progress = (hero.trainingProgressMs?.hp ?? 0) + (TICK_INTERVAL_MS ?? 1000);
+            let remaining = progress;
+            let count = (hero.trainingCount?.hp ?? 0);
+            let hp = hero.hp;
+            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+            while (remaining >= timePerPoint) {
+              remaining -= timePerPoint;
+              hp += 1;
+              count += 1;
+              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+            }
+            newHero.hp = hp;
+            newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), hp: remaining };
+            newHero.trainingCount = { ...(hero.trainingCount ?? { hp: 0, atk: 0, mp: 0 }), hp: count };
+            return newHero;
+          }
 
-          case HeroTask.TRAIN_ATK:
-            return { ...hero, atk: hero.atk + ATK_TRAIN_PER_TICK };
+          case HeroTask.TRAIN_ATK: {
+            const progress = (hero.trainingProgressMs?.atk ?? 0) + (TICK_INTERVAL_MS ?? 1000);
+            let remaining = progress;
+            let count = (hero.trainingCount?.atk ?? 0);
+            let atk = hero.atk;
+            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+            while (remaining >= timePerPoint) {
+              remaining -= timePerPoint;
+              atk += 1;
+              count += 1;
+              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+            }
+            newHero.atk = atk;
+            newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), atk: remaining };
+            newHero.trainingCount = { ...(hero.trainingCount ?? { hp: 0, atk: 0, mp: 0 }), atk: count };
+            return newHero;
+          }
 
-          case HeroTask.TRAIN_MP:
-            return { ...hero, mp: hero.mp + MP_TRAIN_PER_TICK };
+          case HeroTask.TRAIN_MP: {
+            const progress = (hero.trainingProgressMs?.mp ?? 0) + (TICK_INTERVAL_MS ?? 1000);
+            let remaining = progress;
+            let count = (hero.trainingCount?.mp ?? 0);
+            let mp = hero.mp;
+            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+            while (remaining >= timePerPoint) {
+              remaining -= timePerPoint;
+              mp += 1;
+              count += 1;
+              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+            }
+            newHero.mp = mp;
+            newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), mp: remaining };
+            newHero.trainingCount = { ...(hero.trainingCount ?? { hp: 0, atk: 0, mp: 0 }), mp: count };
+            return newHero;
+          }
 
           case HeroTask.MISSION:
             goldEarned += getMissionGoldPerTick(hero.atk);
