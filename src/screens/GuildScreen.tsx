@@ -14,10 +14,12 @@ import { getRecruitCost } from '../utils/math';
 import { GoldDisplay } from '../components/GoldDisplay';
 import { HeroCard } from '../components/HeroCard';
 import { RecruitButton } from '../components/RecruitButton';
+import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
 import { Hero } from '../types';
 
 export function GuildScreen() {
-  const { state, setHeroTask, recruitHero, isLoaded } = useGame();
+  const { state, setHeroTask, recruitHero, isLoaded, offlineSummary, clearOfflineSummary } =
+    useGame();
 
   if (!isLoaded) {
     return (
@@ -81,6 +83,11 @@ export function GuildScreen() {
           />
         )}
       </View>
+      <OfflineSummaryModal
+        visible={!!offlineSummary}
+        summary={offlineSummary}
+        onClose={clearOfflineSummary}
+      />
     </SafeAreaView>
   );
 }

@@ -30,3 +30,11 @@ export type GameAction =
   | { type: 'SET_HERO_TASK'; heroId: string; task: HeroTask }
   | { type: 'RECRUIT_HERO' }
   | { type: 'LOAD_STATE'; state: GameState };
+
+/** Resumo do progresso offline aplicado ao carregar o save */ 
+export interface OfflineSummary {
+  ticks: number;
+  goldGained: number;
+  heroesAffected: number;
+  cappedHours: number; // horas de cap aplicadas (se houver)
+}

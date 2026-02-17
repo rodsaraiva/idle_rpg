@@ -6,10 +6,16 @@ import React, {
   useRef,
   ReactNode,
 } from 'react';
-import { GameState, GameAction, HeroTask } from '../types';
+import { GameState, GameAction, HeroTask, OfflineSummary } from '../types';
 import { gameReducer, initialGameState } from './gameReducer';
 import { saveGameState, loadGameState } from '../services/storage';
-import { TICK_INTERVAL_MS, AUTO_SAVE_INTERVAL_MS } from '../constants/game';
+import {
+  TICK_INTERVAL_MS,
+  AUTO_SAVE_INTERVAL_MS,
+  HP_TRAIN_PER_TICK,
+  ATK_TRAIN_PER_TICK,
+} from '../constants/game';
+import { getMissionGoldPerTick } from '../utils/math';
 
 interface GameContextValue {
   state: GameState;
@@ -17,6 +23,8 @@ interface GameContextValue {
   setHeroTask: (heroId: string, task: HeroTask) => void;
   recruitHero: () => void;
   isLoaded: boolean;
+  offlineSummary: OfflineSummary | null;
+  clearOfflineSummary: () => void;
 }
 
 export const GameContext = createContext<GameContextValue>({
@@ -25,6 +33,8 @@ export const GameContext = createContext<GameContextValue>({
   setHeroTask: () => {},
   recruitHero: () => {},
   isLoaded: false,
+  offlineSummary: null,
+  clearOfflineSummary: () => {},
 });
 
 interface GameProviderProps {
@@ -34,17 +44,75 @@ interface GameProviderProps {
 export function GameProvider({ children }: GameProviderProps) {
   const [state, dispatch] = useReducer(gameReducer, initialGameState);
   const [isLoaded, setIsLoaded] = React.useState(false);
+  const [offlineSummary, setOfflineSummary] = React.useState<OfflineSummary | null>(null);
   const stateRef = useRef(state);
 
   // Mantém a ref sincronizada para o auto-save não usar estado stale
   stateRef.current = state;
 
-  // Carrega o estado salvo ao iniciar
+  // Carrega o estado salvo ao iniciar e aplica progresso offline (com cap)
   useEffect(() => {
     async function loadSavedState() {
       const savedState = await loadGameState();
       if (savedState) {
-        dispatch({ type: 'LOAD_STATE', state: savedState });
+        try {
+          const savedAt = savedState.lastSavedAt || Date.now();
+          const elapsedMs = Date.now() - savedAt;
+
+          // Limita o progresso offline a 72 horas (configurável)
+          const MAX_OFFLINE_MS = 1000 * 60 * 60 * 24 * 3; // 72h
+          const cappedMs = Math.min(elapsedMs, MAX_OFFLINE_MS);
+          const ticks = Math.floor(cappedMs / TICK_INTERVAL_MS);
+
+          if (ticks > 0) {
+            let offlineGold = 0;
+            let heroesAffected = 0;
+
+            const heroes = savedState.heroes.map((h) => {
+              switch (h.currentTask) {
+                case HeroTask.TRAIN_HP:
+                  heroesAffected += 1;
+                  return { ...h, hp: h.hp + HP_TRAIN_PER_TICK * ticks };
+
+                case HeroTask.TRAIN_ATK:
+                  heroesAffected += 1;
+                  return { ...h, atk: h.atk + ATK_TRAIN_PER_TICK * ticks };
+
+                case HeroTask.MISSION:
+                  heroesAffected += 1;
+                  offlineGold += ticks * getMissionGoldPerTick(h.atk);
+                  return h;
+
+                default:
+                  return h;
+              }
+            });
+
+            savedState.heroes = heroes;
+            savedState.gold = (savedState.gold || 0) + offlineGold;
+
+            const cappedHours =
+              elapsedMs > MAX_OFFLINE_MS ? Math.floor(MAX_OFFLINE_MS / (1000 * 60 * 60)) : 0;
+
+            const summary: OfflineSummary = {
+              ticks,
+              goldGained: Math.floor(offlineGold),
+              heroesAffected,
+              cappedHours,
+            };
+
+            // salva resumo temporariamente para exibir no modal
+            setOfflineSummary(summary);
+            console.log(
+              `Offline progress applied: ${ticks} ticks (capped), gold +${offlineGold}`
+            );
+          }
+
+          dispatch({ type: 'LOAD_STATE', state: savedState });
+        } catch (err) {
+          console.error('Erro ao aplicar progresso offline:', err);
+          dispatch({ type: 'LOAD_STATE', state: savedState });
+        }
       }
       setIsLoaded(true);
     }
@@ -84,9 +152,21 @@ export function GameProvider({ children }: GameProviderProps) {
     dispatch({ type: 'RECRUIT_HERO' });
   }, [dispatch]);
 
+  const clearOfflineSummary = useCallback(() => {
+    setOfflineSummary(null);
+  }, []);
+
   return (
     <GameContext.Provider
-      value={{ state, dispatch, setHeroTask, recruitHero, isLoaded }}
+      value={{
+        state,
+        dispatch,
+        setHeroTask,
+        recruitHero,
+        isLoaded,
+        offlineSummary,
+        clearOfflineSummary,
+      }}
     >
       {children}
     </GameContext.Provider>
