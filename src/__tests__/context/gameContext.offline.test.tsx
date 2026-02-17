@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, create } from 'react-test-renderer';
 import { GameProvider } from '../../context/GameContext';
 import { loadGameState as realLoad } from '../../services/storage';
 import { GameState, HeroTask } from '../../types';
@@ -46,14 +46,33 @@ describe('GameContext offline application', () => {
       return null;
     }
 
-    render(
-      <GameProvider>
-        <Consumer />
-      </GameProvider>
-    );
+    let renderer: any;
+    await act(async () => {
+      renderer = create(
+        <GameProvider>
+          <Consumer />
+        </GameProvider>
+      );
+      // let effects run once
+      await new Promise((r) => setTimeout(r, 0));
+    });
 
-    await waitFor(() => {
-      expect(offlineSummary).not.toBeNull();
+    // poll until offlineSummary is set (timeout after 5s)
+    await new Promise<void>((resolve, reject) => {
+      const start = Date.now();
+      const interval = setInterval(() => {
+        if (offlineSummary) {
+          clearInterval(interval);
+          resolve();
+        } else if (Date.now() - start > 5000) {
+          clearInterval(interval);
+          reject(new Error('Timed out waiting for offlineSummary'));
+        }
+      }, 50);
+    });
+
+    await act(async () => {
+      renderer.unmount();
     });
 
     const elapsedMs = Date.now() - savedState.lastSavedAt;
