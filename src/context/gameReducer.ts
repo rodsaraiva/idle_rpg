@@ -1,4 +1,4 @@
-import { GameState, GameAction, HeroTask } from '../types';
+import { GameState, GameAction, HeroTask, ClassId } from '../types';
 import { BASE_TRAIN_TIME_MS } from '../constants/game';
 import { getRecruitCost } from '../utils/math';
 import { createHero } from '../utils/heroFactory';
@@ -212,8 +212,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'RECRUIT_HERO': {
       const cost = getRecruitCost(state.heroesRecruited);
       if (state.gold < cost) return state;
-
-      const newHero = createHero();
+      // pick a random class equiprobably
+      const classKeys = Object.keys(CLASS_DEFS) as ClassId[];
+      const randClass = classKeys[Math.floor(Math.random() * classKeys.length)];
+      const newHero = createHero(randClass);
 
       return {
         ...state,

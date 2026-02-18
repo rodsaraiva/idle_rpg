@@ -28,7 +28,7 @@ export function HeroCard({ hero, onSetTask }: HeroCardProps) {
       <View style={styles.header}>
         <View>
           <Text style={styles.name}>{hero.name}</Text>
-          <Text style={styles.classLabel}>{CLASS_DEFS[hero.classId ?? 'WARRIOR']?.displayName ?? ''}</Text>
+          <Text style={styles.classLabel}>{CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}</Text>
         </View>
         <Text style={styles.taskBadge}>{TASK_LABEL_MAP[hero.currentTask]}</Text>
       </View>
