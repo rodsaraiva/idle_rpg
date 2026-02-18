@@ -37,6 +37,9 @@ export interface GameState {
   heroes: Hero[];
   heroesRecruited: number;
   lastSavedAt: number;
+  // runtime-configurable pacing and inflation (for experiments)
+  tickIntervalMs?: number;
+  trainInflationFactor?: number;
 }
 
 /** Ação disparada para alterar o estado do jogo */
@@ -44,6 +47,8 @@ export type GameAction =
   | { type: 'TICK' }
   | { type: 'SET_HERO_TASK'; heroId: string; task: HeroTask }
   | { type: 'RECRUIT_HERO' }
+  | { type: 'SET_TICK_INTERVAL'; ms: number }
+  | { type: 'SET_TRAIN_INFLATION'; inflation: number }
   | { type: 'LOAD_STATE'; state: GameState };
 
 /** Resumo do progresso offline aplicado ao carregar o save */ 

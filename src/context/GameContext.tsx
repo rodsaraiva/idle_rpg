@@ -9,13 +9,9 @@ import React, {
 import { GameState, GameAction, HeroTask, OfflineSummaryFull, PerHeroChange } from '../types';
 import { gameReducer, initialGameState } from './gameReducer';
 import { saveGameState, loadGameState } from '../services/storage';
-import {
-  TICK_INTERVAL_MS,
-  AUTO_SAVE_INTERVAL_MS,
-  BASE_TRAIN_TIME_MS,
-  TRAIN_INFLATION_FACTOR,
-} from '../constants/game';
+import { TICK_INTERVAL_MS, AUTO_SAVE_INTERVAL_MS, BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 import { getMissionGoldPerTick } from '../utils/math';
+import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 
 interface GameContextValue {
   state: GameState;
@@ -26,6 +22,8 @@ interface GameContextValue {
   offlineSummary: OfflineSummaryFull | null;
   clearOfflineSummary: () => void;
   applyOfflineSummary: () => Promise<void>;
+  setTickInterval?: (ms: number) => void;
+  setTrainInflationFactor?: (inflation: number) => void;
 }
 
 export const GameContext = createContext<GameContextValue>({
@@ -37,6 +35,8 @@ export const GameContext = createContext<GameContextValue>({
   offlineSummary: null,
   clearOfflineSummary: () => {},
   applyOfflineSummary: async () => {},
+  setTickInterval: () => {},
+  setTrainInflationFactor: () => {},
 });
 
 interface GameProviderProps {
@@ -48,6 +48,7 @@ export function GameProvider({ children }: GameProviderProps) {
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [offlineSummary, setOfflineSummary] = React.useState<OfflineSummaryFull | null>(null);
   const stateRef = useRef(state);
+  const prevStateRef = useRef<GameState | null>(null);
 
   // Mantém a ref sincronizada para o auto-save não usar estado stale
   stateRef.current = state;
@@ -64,7 +65,7 @@ export function GameProvider({ children }: GameProviderProps) {
           // Limita o progresso offline a 72 horas (configurável)
           const MAX_OFFLINE_MS = 1000 * 60 * 60 * 24 * 3; // 72h
           const cappedMs = Math.min(elapsedMs, MAX_OFFLINE_MS);
-          const ticks = Math.floor(cappedMs / TICK_INTERVAL_MS);
+          const ticks = Math.floor(cappedMs / (savedState.tickIntervalMs ?? TICK_INTERVAL_MS));
 
           if (ticks > 0) {
             let offlineGold = 0;
@@ -86,10 +87,10 @@ export function GameProvider({ children }: GameProviderProps) {
               switch (h.currentTask) {
                 case HeroTask.TRAIN_HP: {
                   heroesAffected += 1;
-                  const available = (h.trainingProgressMs?.hp ?? 0) + ticks * TICK_INTERVAL_MS;
+                  const available = (h.trainingProgressMs?.hp ?? 0) + ticks * (savedState.tickIntervalMs ?? TICK_INTERVAL_MS);
                   const { points, leftoverMs } = require('../utils/trainingMath').computePointsFromMs(
                     BASE_TRAIN_TIME_MS,
-                    TRAIN_INFLATION_FACTOR,
+                    savedState.trainInflationFactor ?? TRAIN_INFLATION_FACTOR,
                     available
                   );
                   afterHp += points;
@@ -100,10 +101,10 @@ export function GameProvider({ children }: GameProviderProps) {
 
                 case HeroTask.TRAIN_ATK: {
                   heroesAffected += 1;
-                  const available = (h.trainingProgressMs?.atk ?? 0) + ticks * TICK_INTERVAL_MS;
+                  const available = (h.trainingProgressMs?.atk ?? 0) + ticks * (savedState.tickIntervalMs ?? TICK_INTERVAL_MS);
                   const { points, leftoverMs } = require('../utils/trainingMath').computePointsFromMs(
                     BASE_TRAIN_TIME_MS,
-                    TRAIN_INFLATION_FACTOR,
+                    savedState.trainInflationFactor ?? TRAIN_INFLATION_FACTOR,
                     available
                   );
                   afterAtk += points;
@@ -114,10 +115,10 @@ export function GameProvider({ children }: GameProviderProps) {
 
                 case HeroTask.TRAIN_MP: {
                   heroesAffected += 1;
-                  const available = (h.trainingProgressMs?.mp ?? 0) + ticks * TICK_INTERVAL_MS;
+                  const available = (h.trainingProgressMs?.mp ?? 0) + ticks * (savedState.tickIntervalMs ?? TICK_INTERVAL_MS);
                   const { points, leftoverMs } = require('../utils/trainingMath').computePointsFromMs(
                     BASE_TRAIN_TIME_MS,
-                    TRAIN_INFLATION_FACTOR,
+                    savedState.trainInflationFactor ?? TRAIN_INFLATION_FACTOR,
                     available
                   );
                   afterMp += points;
@@ -188,15 +189,17 @@ export function GameProvider({ children }: GameProviderProps) {
   }, []);
 
   // Game loop — executa a cada TICK_INTERVAL_MS
+  // Game loop — executa a cada tickIntervalMs configurável
   useEffect(() => {
     if (!isLoaded) return;
+    const tickMs = state.tickIntervalMs ?? TICK_INTERVAL_MS;
 
     const tickInterval = setInterval(() => {
       dispatch({ type: 'TICK' });
-    }, TICK_INTERVAL_MS);
+    }, tickMs);
 
     return () => clearInterval(tickInterval);
-  }, [isLoaded]);
+  }, [isLoaded, state.tickIntervalMs]);
 
   // Auto-save periódico
   useEffect(() => {
@@ -219,6 +222,50 @@ export function GameProvider({ children }: GameProviderProps) {
   const recruitHero = useCallback(() => {
     dispatch({ type: 'RECRUIT_HERO' });
   }, [dispatch]);
+
+  const setTickInterval = useCallback((ms: number) => {
+    dispatch({ type: 'SET_TICK_INTERVAL', ms });
+  }, []);
+
+  const setTrainInflationFactor = useCallback((inflation: number) => {
+    dispatch({ type: 'SET_TRAIN_INFLATION', inflation });
+  }, []);
+
+  // Emit feedback events comparando prev/current state
+  useEffect(() => {
+    const prev = prevStateRef.current;
+    if (prev) {
+      // gold delta
+      if ((state.gold || 0) > (prev.gold || 0)) {
+        const delta = Math.floor((state.gold || 0) - (prev.gold || 0));
+        if (delta > 0) {
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${delta}💰`, color: '#ffd34d' });
+        }
+      }
+
+      // new heroes recruited
+      if ((state.heroes?.length || 0) > (prev.heroes?.length || 0)) {
+        const newCount = (state.heroes?.length || 0) - (prev.heroes?.length || 0);
+        emit(FEEDBACK_EVENTS.TOAST, { text: `Recrutado +${newCount} herói(s)` });
+      }
+
+      // per-hero stat increases (aggregate small floats)
+      state.heroes.forEach((h) => {
+        const prevHero = prev.heroes.find((ph) => ph.id === h.id);
+        if (!prevHero) return;
+        if (h.hp > prevHero.hp) {
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${h.hp - prevHero.hp} HP`, color: '#7ed957' });
+        }
+        if (h.atk > prevHero.atk) {
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${h.atk - prevHero.atk} ATK`, color: '#ff8a65' });
+        }
+        if (h.mp > prevHero.mp) {
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${h.mp - prevHero.mp} MP`, color: '#66b2ff' });
+        }
+      });
+    }
+    prevStateRef.current = state;
+  }, [state]);
 
   const clearOfflineSummary = useCallback(() => {
     setOfflineSummary(null);
@@ -247,6 +294,8 @@ export function GameProvider({ children }: GameProviderProps) {
         offlineSummary,
         clearOfflineSummary,
         applyOfflineSummary,
+        setTickInterval,
+        setTrainInflationFactor,
       }}
     >
       {children}

@@ -1,9 +1,5 @@
 import { GameState, GameAction, HeroTask } from '../types';
-import {
-  BASE_TRAIN_TIME_MS,
-  TRAIN_INFLATION_FACTOR,
-} from '../constants/game';
-import { TICK_INTERVAL_MS } from '../constants/game';
+import { BASE_TRAIN_TIME_MS } from '../constants/game';
 import { getMissionGoldPerTick, getRecruitCost } from '../utils/math';
 import { createHero } from '../utils/heroFactory';
 
@@ -13,12 +9,16 @@ export const initialGameState: GameState = {
   heroes: [],
   heroesRecruited: 0,
   lastSavedAt: Date.now(),
+  tickIntervalMs: 1000, // default, can be overridden by saved state
+  trainInflationFactor: 0.1,
 };
 
 /** Reducer puro que contém toda a lógica do jogo */
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'TICK': {
+      const tickMs = state.tickIntervalMs ?? 1000;
+      const inflation = state.trainInflationFactor ?? 0.1;
       let goldEarned = 0;
 
       const updatedHeroes = state.heroes.map((hero) => {
@@ -26,16 +26,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         let newHero = { ...hero };
         switch (hero.currentTask) {
           case HeroTask.TRAIN_HP: {
-            const progress = (hero.trainingProgressMs?.hp ?? 0) + (TICK_INTERVAL_MS ?? 1000);
+            const progress = (hero.trainingProgressMs?.hp ?? 0) + tickMs;
             let remaining = progress;
             let count = (hero.trainingCount?.hp ?? 0);
             let hp = hero.hp;
-            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
             while (remaining >= timePerPoint) {
               remaining -= timePerPoint;
               hp += 1;
               count += 1;
-              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
             }
             newHero.hp = hp;
             newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), hp: remaining };
@@ -44,16 +44,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           }
 
           case HeroTask.TRAIN_ATK: {
-            const progress = (hero.trainingProgressMs?.atk ?? 0) + (TICK_INTERVAL_MS ?? 1000);
+            const progress = (hero.trainingProgressMs?.atk ?? 0) + tickMs;
             let remaining = progress;
             let count = (hero.trainingCount?.atk ?? 0);
             let atk = hero.atk;
-            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
             while (remaining >= timePerPoint) {
               remaining -= timePerPoint;
               atk += 1;
               count += 1;
-              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
             }
             newHero.atk = atk;
             newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), atk: remaining };
@@ -62,16 +62,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           }
 
           case HeroTask.TRAIN_MP: {
-            const progress = (hero.trainingProgressMs?.mp ?? 0) + (TICK_INTERVAL_MS ?? 1000);
+            const progress = (hero.trainingProgressMs?.mp ?? 0) + tickMs;
             let remaining = progress;
             let count = (hero.trainingCount?.mp ?? 0);
             let mp = hero.mp;
-            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
             while (remaining >= timePerPoint) {
               remaining -= timePerPoint;
               mp += 1;
               count += 1;
-              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count);
+              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
             }
             newHero.mp = mp;
             newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), mp: remaining };
@@ -117,6 +117,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         gold: state.gold - cost,
         heroes: [...state.heroes, newHero],
         heroesRecruited: state.heroesRecruited + 1,
+      };
+    }
+    case 'SET_TICK_INTERVAL': {
+      return {
+        ...state,
+        tickIntervalMs: action.ms,
+      };
+    }
+    case 'SET_TRAIN_INFLATION': {
+      return {
+        ...state,
+        trainInflationFactor: action.inflation,
       };
     }
 

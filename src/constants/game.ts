@@ -1,11 +1,11 @@
 /** Intervalo do game loop em milissegundos */
-export const TICK_INTERVAL_MS = 1000;
+export const TICK_INTERVAL_MS = 500;
 
 /** Intervalo de auto-save em milissegundos */
 export const AUTO_SAVE_INTERVAL_MS = 5000;
 
 /** Tempo base (ms) por ponto treinado (30s) */
-export const BASE_TRAIN_TIME_MS = 30000;
+export const BASE_TRAIN_TIME_MS = 5000;
 
 /** Fator de inflação por ponto (10% = 0.1) */
 export const TRAIN_INFLATION_FACTOR = 0.1;
