@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
 import { useGame } from '../hooks/useGame';
 import { HeroTask } from '../types';
 import { theme } from '../theme';
 import { Hero } from '../types';
 import { MISSIONS } from '../constants/missions';
-import { Button } from 'react-native';
+import { Button, View as RNView } from 'react-native';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
+import { HeroSelectableRow } from '../components/HeroSelectableRow';
+import { MissionActiveItem } from '../components/MissionActiveItem';
 
 export function MissionsScreen() {
   const { state, isLoaded, dispatch } = useGame();
@@ -21,15 +23,27 @@ export function MissionsScreen() {
 
   const missionHeroes = state.heroes.filter((h) => h.currentTask === HeroTask.MISSION);
   const idleHeroes = state.heroes.filter((h) => h.currentTask === HeroTask.IDLE);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    // remove selected ids that are no longer idle
+    setSelectedIds((s) => s.filter((id) => idleHeroes.some((h) => h.id === id)));
+  }, [idleHeroes]);
 
   const startMission = (templateId: string, minHeroes: number) => {
-    if (idleHeroes.length < minHeroes) {
-      // use centralized feedback (works on web and native)
-      emit(FEEDBACK_EVENTS.TOAST, { text: `Heróis insuficientes — precisa de ${minHeroes}` });
+    if (selectedIds.length < minHeroes) {
+      emit(FEEDBACK_EVENTS.TOAST, { text: `Selecione ao menos ${minHeroes} herói(s)` });
       return;
     }
-    const selected = idleHeroes.slice(0, minHeroes).map((h) => h.id);
-    dispatch({ type: 'START_MISSION', templateId, heroIds: selected });
+    // ensure selected are still idle
+    const valid = selectedIds.filter((id) => idleHeroes.some((h) => h.id === id));
+    if (valid.length < minHeroes) {
+      emit(FEEDBACK_EVENTS.TOAST, { text: 'Alguns heróis não estão mais disponíveis' });
+      return;
+    }
+    dispatch({ type: 'START_MISSION', templateId, heroIds: valid });
+    // clear selections that were sent
+    setSelectedIds((s) => s.filter((id) => !valid.includes(id)));
   };
 
   const renderHero = ({ item }: { item: Hero }) => (
@@ -47,6 +61,19 @@ export function MissionsScreen() {
 
         <Text style={[styles.subtitle, { marginTop: 12 }]}>Missões disponíveis</Text>
         <Text style={[styles.subtitle, { marginTop: 6 }]}>Heróis disponíveis: {idleHeroes.length}</Text>
+        <RNView style={{ marginTop: 8, marginBottom: 8 }}>
+          {idleHeroes.map((h) => (
+            <HeroSelectableRow
+              key={h.id}
+              hero={h}
+              selected={selectedIds.includes(h.id)}
+              disabled={false}
+              onToggle={(id) =>
+                setSelectedIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))
+              }
+            />
+          ))}
+        </RNView>
         <FlatList
           data={MISSIONS}
           keyExtractor={(m) => m.id}
@@ -69,6 +96,13 @@ export function MissionsScreen() {
 
         <Text style={[styles.subtitle, { marginTop: 12 }]}>Heróis em missão</Text>
         <FlatList data={missionHeroes} renderItem={renderHero} keyExtractor={(i) => i.id} />
+
+        <Text style={[styles.subtitle, { marginTop: 12 }]}>Missões ativas</Text>
+        {state.activeMissions && state.activeMissions.length > 0 ? (
+          state.activeMissions.map((m) => <MissionActiveItem key={m.id} mission={m} />)
+        ) : (
+          <Text style={{ color: theme.colors.textSecondary, marginTop: 6 }}>Nenhuma missão ativa</Text>
+        )}
       </View>
     </SafeAreaView>
   );
