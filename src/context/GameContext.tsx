@@ -183,7 +183,10 @@ export function GameProvider({ children }: GameProviderProps) {
                   const template = MISSIONS.find((t) => t.id === m.templateId);
                   if (template) {
                     const heroesForMission = newHeroes.filter((h) => m.heroIds.includes(h.id));
-                    const reward = calcMissionReward(template, heroesForMission);
+                    const reward = calcMissionReward(template, heroesForMission, {
+                      healerBuffMultiplier: m.healerBuffMultiplier,
+                      rogueRngBonus: m.rogueRngBonus,
+                    });
                     additionalGold += reward;
                     // release heroes
                     m.heroIds.forEach((hid: string) => {

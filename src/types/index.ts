@@ -64,6 +64,9 @@ export interface ActiveMission {
   heroIds: string[];
   remainingMs: number;
   startedAt: number;
+  // modifiers computed at mission start
+  healerBuffMultiplier?: number;
+  rogueRngBonus?: number;
 }
 
 /** Resumo do progresso offline aplicado ao carregar o save */ 

@@ -107,7 +107,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const template = MISSIONS.find((t) => t.id === m.templateId);
           if (template) {
             const heroes = state.heroes.filter((h) => m.heroIds.includes(h.id));
-            const reward = calcMissionReward(template, heroes);
+            const reward = calcMissionReward(template, heroes, {
+              healerBuffMultiplier: (m as any).healerBuffMultiplier,
+              rogueRngBonus: (m as any).rogueRngBonus,
+            });
             completed.push({ mission: m, reward });
           }
         }
@@ -151,12 +154,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
       // assign mission id
       const missionId = uuidv4();
+      // compute modifiers: healer buff and rogue rng bonus
+      const heroesForMission = action.heroIds.map((id) => heroesMap.get(id)!).filter(Boolean) as any[];
+      const countHealers = heroesForMission.filter((h) => h.classId === 'HEALER').length;
+      const countRogues = heroesForMission.filter((h) => h.classId === 'ROGUE').length;
+      const healerBuffMultiplier = 1 + Math.min(0.3, countHealers * 0.1); // +10% per healer, cap 30%
+      const rogueRngBonus = Math.min(0.08, countRogues * 0.02); // +0.02 per rogue, cap 0.08
+
       const newMission = {
         id: missionId,
         templateId: template.id,
         heroIds: action.heroIds,
         remainingMs: template.durationMs,
         startedAt: Date.now(),
+        healerBuffMultiplier,
+        rogueRngBonus,
       };
       // mark heroes as on mission
       const newHeroesState = state.heroes.map((h) =>
