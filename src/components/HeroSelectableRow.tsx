@@ -29,7 +29,7 @@ export const HeroSelectableRow = memo(function HeroSelectableRow({
       </View>
       <View style={styles.info}>
         <Text style={styles.name}>{hero.name}</Text>
-        <Text style={styles.stats}>ATK {hero.atk.toFixed(1)} • HP {hero.hp}</Text>
+        <Text style={styles.stats}>ATK {Math.floor(hero.atk)} • HP {Math.floor(hero.hp)}</Text>
       </View>
     </TouchableOpacity>
   );

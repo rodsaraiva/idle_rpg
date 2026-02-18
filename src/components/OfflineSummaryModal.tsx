@@ -42,7 +42,7 @@ export function OfflineSummaryModal({ visible, summary, onApply, onDismiss }: Pr
               <View key={p.id} style={styles.heroRow}>
                 <Text style={styles.heroName}>{p.name}</Text>
                 <Text style={styles.heroChange}>
-                  HP {Math.floor(p.hpBefore)} → {Math.floor(p.hpAfter)} · ATK {p.atkBefore.toFixed(1)} → {p.atkAfter.toFixed(1)}
+                  HP {Math.floor(p.hpBefore)} → {Math.floor(p.hpAfter)} · ATK {Math.floor(p.atkBefore)} → {Math.floor(p.atkAfter)}
                 </Text>
               </View>
             ))}

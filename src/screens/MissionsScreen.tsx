@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, FlatList, StyleSheet, SafeAreaView, Button, ScrollView } from 'react-native';
 import { useGame } from '../hooks/useGame';
 import { HeroTask } from '../types';
 import { theme } from '../theme';
 import { Hero } from '../types';
 import { MISSIONS } from '../constants/missions';
-import { Button, View as RNView } from 'react-native';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { HeroSelectableRow } from '../components/HeroSelectableRow';
 import { MissionActiveItem } from '../components/MissionActiveItem';
@@ -49,19 +48,22 @@ export function MissionsScreen() {
   const renderHero = ({ item }: { item: Hero }) => (
     <View style={styles.heroRow}>
       <Text style={styles.heroName}>{item.name}</Text>
-      <Text style={styles.heroInfo}>ATK {item.atk.toFixed(1)}</Text>
+      <Text style={styles.heroInfo}>
+        HP {Math.floor(item.hp)} • ATK {Math.floor(item.atk)} • MP {Math.floor(item.mp)}
+      </Text>
+      <Text style={styles.heroInfo}>Total ganho: 💰 {Math.floor(state.perHeroGold?.[item.id] ?? 0)}</Text>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Missões</Text>
         <Text style={styles.subtitle}>Heróis em missão: {missionHeroes.length}</Text>
 
         <Text style={[styles.subtitle, { marginTop: 12 }]}>Missões disponíveis</Text>
         <Text style={[styles.subtitle, { marginTop: 6 }]}>Heróis disponíveis: {idleHeroes.length}</Text>
-        <RNView style={{ marginTop: 8, marginBottom: 8 }}>
+        <View style={{ marginTop: 8, marginBottom: 8 }}>
           {idleHeroes.map((h) => (
             <HeroSelectableRow
               key={h.id}
@@ -73,7 +75,7 @@ export function MissionsScreen() {
               }
             />
           ))}
-        </RNView>
+        </View>
         <FlatList
           data={MISSIONS}
           keyExtractor={(m) => m.id}
@@ -103,7 +105,7 @@ export function MissionsScreen() {
         ) : (
           <Text style={{ color: theme.colors.textSecondary, marginTop: 6 }}>Nenhuma missão ativa</Text>
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

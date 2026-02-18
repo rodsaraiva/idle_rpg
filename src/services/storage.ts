@@ -26,6 +26,8 @@ export async function loadGameState(): Promise<GameState | null> {
         trainingCount: h.trainingCount ?? { hp: 0, atk: 0, mp: 0 },
         ...h,
       }));
+      // ensure perHeroGold exists
+      parsed.perHeroGold = parsed.perHeroGold ?? {};
     }
     return parsed as GameState;
   } catch (error) {

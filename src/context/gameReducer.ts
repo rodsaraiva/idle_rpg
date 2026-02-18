@@ -120,12 +120,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // release heroes from completed missions and add rewards
       let newHeroes = updatedHeroes.map((h) => ({ ...h }));
+      const perHeroGold = { ...(state.perHeroGold ?? {}) };
       completed.forEach((c) => {
+        const n = c.mission.heroIds.length || 1;
+        const per = Math.floor(c.reward / n);
         c.mission.heroIds.forEach((hid) => {
           const idx = newHeroes.findIndex((hh) => hh.id === hid);
           if (idx >= 0) {
             newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
           }
+          perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
         });
       });
 
@@ -136,6 +140,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         heroes: newHeroes,
         gold: state.gold + goldEarned + totalReward,
         activeMissions: remainingMissions,
+        perHeroGold,
       };
     }
 

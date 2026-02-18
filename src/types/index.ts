@@ -45,6 +45,8 @@ export interface GameState {
   trainInflationFactor?: number;
   // active missions currently running
   activeMissions?: ActiveMission[];
+  // total gold earned per hero (accumulated from mission shares)
+  perHeroGold?: Record<string, number>;
 }
 
 /** Ação disparada para alterar o estado do jogo */

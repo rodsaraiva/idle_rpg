@@ -177,6 +177,7 @@ export function GameProvider({ children }: GameProviderProps) {
             if (savedState.activeMissions && savedState.activeMissions.length > 0) {
               let additionalGold = 0;
               const tickMs = savedState.tickIntervalMs ?? TICK_INTERVAL_MS;
+              const perHeroGold = { ...(newState.perHeroGold ?? {}) };
               savedState.activeMissions.forEach((m: any) => {
                 const remaining = m.remainingMs - ticks * tickMs;
                 if (remaining <= 0) {
@@ -188,10 +189,13 @@ export function GameProvider({ children }: GameProviderProps) {
                       rogueRngBonus: m.rogueRngBonus,
                     });
                     additionalGold += reward;
-                    // release heroes
+                    // distribute to heroes (floor division)
+                    const n = m.heroIds.length || 1;
+                    const per = Math.floor(reward / n);
                     m.heroIds.forEach((hid: string) => {
                       const idx = newHeroes.findIndex((hh) => hh.id === hid);
                       if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
+                      perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
                     });
                   }
                 } else {
@@ -200,6 +204,7 @@ export function GameProvider({ children }: GameProviderProps) {
                 }
               });
               newState.gold += additionalGold;
+              newState.perHeroGold = perHeroGold;
               newState.activeMissions = newActiveMissions;
               summary.goldGained = Math.floor(offlineGold + additionalGold);
             }
