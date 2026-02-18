@@ -32,7 +32,7 @@ export function calcMissionReward(
   const statSum = statSumBase * healerBuff;
 
   // non-linear mapping parameters (defaults)
-  const ref = opts?.ref ?? 20;
+  const ref = opts?.ref ?? 40;
   const exponent = opts?.exponent ?? 1.6;
 
   // normalize and apply exponent to compress low values
