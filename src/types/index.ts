@@ -7,6 +7,8 @@ export enum HeroTask {
   MISSION = 'MISSION',
 }
 
+export type ClassId = 'WARRIOR' | 'TANK' | 'ROGUE' | 'ARCHER' | 'MAGE' | 'HEALER';
+
 /** Representação de um herói da guilda */
 export interface Hero {
   id: string;
@@ -15,6 +17,7 @@ export interface Hero {
   atk: number;
   mp: number;
   currentTask: HeroTask;
+  classId?: ClassId;
   trainingProgressMs?: TrainingProgress;
   trainingCount?: TrainingCount;
 }

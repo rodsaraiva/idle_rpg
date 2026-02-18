@@ -6,6 +6,7 @@ import { StatBar } from './StatBar';
 import { TaskButton } from './TaskButton';
 import { AttributeProgress } from './AttributeProgress';
 import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
+import { CLASS_DEFS } from '../constants/classes';
 
 interface HeroCardProps {
   hero: Hero;
@@ -25,7 +26,10 @@ export function HeroCard({ hero, onSetTask }: HeroCardProps) {
     <View style={styles.card}>
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <Text style={styles.name}>{hero.name}</Text>
+        <View>
+          <Text style={styles.name}>{hero.name}</Text>
+          <Text style={styles.classLabel}>{CLASS_DEFS[hero.classId ?? 'WARRIOR']?.displayName ?? ''}</Text>
+        </View>
         <Text style={styles.taskBadge}>{TASK_LABEL_MAP[hero.currentTask]}</Text>
       </View>
 
@@ -127,6 +131,11 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: theme.borderRadius.sm,
     overflow: 'hidden',
+  },
+  classLabel: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
   },
   stats: {
     marginBottom: theme.spacing.md,

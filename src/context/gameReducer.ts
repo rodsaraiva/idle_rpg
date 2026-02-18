@@ -2,6 +2,7 @@ import { GameState, GameAction, HeroTask } from '../types';
 import { BASE_TRAIN_TIME_MS } from '../constants/game';
 import { getRecruitCost } from '../utils/math';
 import { createHero } from '../utils/heroFactory';
+import { CLASS_DEFS } from '../constants/classes';
 import { MISSIONS } from '../constants/missions';
 import { calcMissionReward } from '../utils/missionMath';
 import { v4 as uuidv4 } from 'uuid';
@@ -34,12 +35,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             let remaining = progress;
             let count = (hero.trainingCount?.hp ?? 0);
             let hp = hero.hp;
-            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
+            const classSpeedHp = hero.classId ? (CLASS_DEFS[hero.classId]?.trainSpeed?.hp ?? 1) : 1;
+            let timePerPoint = (BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count)) / classSpeedHp;
             while (remaining >= timePerPoint) {
               remaining -= timePerPoint;
               hp += 1;
               count += 1;
-              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
+              timePerPoint = (BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count)) / classSpeedHp;
             }
             newHero.hp = hp;
             newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), hp: remaining };
@@ -52,12 +54,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             let remaining = progress;
             let count = (hero.trainingCount?.atk ?? 0);
             let atk = hero.atk;
-            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
+            const classSpeedAtk = hero.classId ? (CLASS_DEFS[hero.classId]?.trainSpeed?.atk ?? 1) : 1;
+            let timePerPoint = (BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count)) / classSpeedAtk;
             while (remaining >= timePerPoint) {
               remaining -= timePerPoint;
               atk += 1;
               count += 1;
-              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
+              timePerPoint = (BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count)) / classSpeedAtk;
             }
             newHero.atk = atk;
             newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), atk: remaining };
@@ -70,12 +73,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             let remaining = progress;
             let count = (hero.trainingCount?.mp ?? 0);
             let mp = hero.mp;
-            let timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
+            const classSpeedMp = hero.classId ? (CLASS_DEFS[hero.classId]?.trainSpeed?.mp ?? 1) : 1;
+            let timePerPoint = (BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count)) / classSpeedMp;
             while (remaining >= timePerPoint) {
               remaining -= timePerPoint;
               mp += 1;
               count += 1;
-              timePerPoint = BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count);
+              timePerPoint = (BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count)) / classSpeedMp;
             }
             newHero.mp = mp;
             newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), mp: remaining };
