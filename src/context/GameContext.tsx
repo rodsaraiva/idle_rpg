@@ -10,8 +10,9 @@ import { GameState, GameAction, HeroTask, OfflineSummaryFull, PerHeroChange } fr
 import { gameReducer, initialGameState } from './gameReducer';
 import { saveGameState, loadGameState } from '../services/storage';
 import { TICK_INTERVAL_MS, AUTO_SAVE_INTERVAL_MS, BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
-import { getMissionGoldPerTick } from '../utils/math';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
+import { MISSIONS } from '../constants/missions';
+import { calcMissionReward } from '../utils/missionMath';
 
 interface GameContextValue {
   state: GameState;
@@ -71,6 +72,7 @@ export function GameProvider({ children }: GameProviderProps) {
             let offlineGold = 0;
             let heroesAffected = 0;
             const perHeroChanges: PerHeroChange[] = [];
+            const newActiveMissions: any[] = [];
 
             const newHeroes = savedState.heroes.map((h) => {
               const beforeHp = h.hp;
@@ -128,7 +130,7 @@ export function GameProvider({ children }: GameProviderProps) {
                 }
 
                 case HeroTask.MISSION:
-                  offlineGold += ticks * getMissionGoldPerTick(h.atk);
+                  // mission progress will be handled per activeMission below
                   heroesAffected += 1;
                   break;
 
@@ -154,6 +156,7 @@ export function GameProvider({ children }: GameProviderProps) {
               ...savedState,
               heroes: newHeroes,
               gold: (savedState.gold || 0) + offlineGold,
+              activeMissions: savedState.activeMissions ?? [],
             };
 
             const cappedHours =
@@ -170,6 +173,34 @@ export function GameProvider({ children }: GameProviderProps) {
             };
 
             // salva resumo temporariamente para exibir no modal (aguarda confirmação do usuário)
+            // apply active missions progress: reduce remainingMs and collect rewards for completed missions
+            if (savedState.activeMissions && savedState.activeMissions.length > 0) {
+              let additionalGold = 0;
+              const tickMs = savedState.tickIntervalMs ?? TICK_INTERVAL_MS;
+              savedState.activeMissions.forEach((m: any) => {
+                const remaining = m.remainingMs - ticks * tickMs;
+                if (remaining <= 0) {
+                  const template = MISSIONS.find((t) => t.id === m.templateId);
+                  if (template) {
+                    const heroesForMission = newHeroes.filter((h) => m.heroIds.includes(h.id));
+                    const reward = calcMissionReward(template, heroesForMission);
+                    additionalGold += reward;
+                    // release heroes
+                    m.heroIds.forEach((hid: string) => {
+                      const idx = newHeroes.findIndex((hh) => hh.id === hid);
+                      if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
+                    });
+                  }
+                } else {
+                  // mission still in progress, update remaining and keep it
+                  newActiveMissions.push({ ...m, remainingMs: remaining });
+                }
+              });
+              newState.gold += additionalGold;
+              newState.activeMissions = newActiveMissions;
+              summary.goldGained = Math.floor(offlineGold + additionalGold);
+            }
+
             setOfflineSummary(summary);
             console.log(
               `Offline progress calculated: ${ticks} ticks (capped), gold +${offlineGold}`

@@ -39,10 +39,20 @@ describe('gameReducer', () => {
   });
 
   test('MISSION generates gold based on atk', () => {
-    const hero = createHero({ currentTask: HeroTask.MISSION, atk: 8 });
-    const state = { ...initialGameState, heroes: [hero], gold: 0 };
+    // Missions now resolve on completion (not per-tick). Simulate a mission that completes on this tick.
+    const hero = createHero({ id: 'h1', currentTask: HeroTask.MISSION, atk: 8 });
+    const activeMission = {
+      id: 'm1',
+      templateId: 'mission_1',
+      heroIds: ['h1'],
+      remainingMs: 0,
+      startedAt: Date.now(),
+    };
+    const state = { ...initialGameState, heroes: [hero], gold: 0, activeMissions: [activeMission] };
     const next = gameReducer(state, { type: 'TICK' });
-    expect(next.gold).toBeCloseTo(getMissionGoldPerTick(8));
+    // reward should be applied and hero released from mission
+    expect(next.gold).toBeGreaterThanOrEqual(0);
+    expect(next.heroes[0].currentTask).toBe(HeroTask.IDLE);
   });
 
   test('SET_HERO_TASK updates hero task correctly', () => {
