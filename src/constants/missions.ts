@@ -29,7 +29,7 @@ export const MISSIONS: MissionTemplate[] = [
     ref: 75,
     exponent: 2.2,
     synergyK: 0.055,
-    enemies: [{ hp: 5, atk: 2, mp: 1, count: 2 }],
+    enemies: [{ hp: 5, atk: 1, mp: 1, count: 2 }],
   },
   {
     id: 'mission_2',
