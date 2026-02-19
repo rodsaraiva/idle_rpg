@@ -30,11 +30,28 @@ export function computeBattleOutcome(
   // clone heroes to working copies
   const heroes = heroesIn.map((h) => ({ ...h }));
 
-  // create enemies: orcs defined as per mission: number = template.minHeroes
-  const enemyCount = template.minHeroes;
+  // create enemies from template.enemies if provided, otherwise fallback to simple orc count
   const enemies: { id: string; hp: number; atk: number; mp: number; alive?: boolean }[] = [];
-  for (let i = 0; i < enemyCount; i++) {
-    enemies.push({ id: `orc_${i}`, hp: 5, atk: 2, mp: 1, alive: true });
+  if (template.enemies && template.enemies.length > 0) {
+    let idx = 0;
+    template.enemies.forEach((edef, gi) => {
+      const cnt = edef.count ?? 1;
+      for (let i = 0; i < cnt; i++) {
+        enemies.push({
+          id: `enemy_${gi}_${i}`,
+          hp: edef.hp,
+          atk: edef.atk,
+          mp: edef.mp,
+          alive: true,
+        });
+        idx++;
+      }
+    });
+  } else {
+    const enemyCount = template.minHeroes;
+    for (let i = 0; i < enemyCount; i++) {
+      enemies.push({ id: `orc_${i}`, hp: 5, atk: 2, mp: 1, alive: true });
+    }
   }
 
   const maxRounds = 12;

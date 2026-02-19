@@ -11,6 +11,8 @@ export interface MissionTemplate {
   ref?: number;
   exponent?: number;
   synergyK?: number;
+  // optional explicit enemy composition for battle simulation
+  enemies?: { hp: number; atk: number; mp: number; count?: number }[];
 }
 
 export const MISSIONS: MissionTemplate[] = [
@@ -27,6 +29,7 @@ export const MISSIONS: MissionTemplate[] = [
     ref: 75,
     exponent: 2.2,
     synergyK: 0.055,
+    enemies: [{ hp: 5, atk: 2, mp: 1, count: 2 }],
   },
   {
     id: 'mission_2',
@@ -41,6 +44,10 @@ export const MISSIONS: MissionTemplate[] = [
     ref: 200,
     exponent: 1.9,
     synergyK: 0.04,
+    enemies: [
+      { hp: 6, atk: 2, mp: 1, count: 2 },
+      { hp: 10, atk: 3, mp: 1, count: 1 },
+    ],
   },
   {
     id: 'mission_3',
@@ -55,6 +62,10 @@ export const MISSIONS: MissionTemplate[] = [
     ref: 350,
     exponent: 1.6,
     synergyK: 0.02,
+    enemies: [
+      { hp: 6, atk: 2, mp: 1, count: 3 },
+      { hp: 10, atk: 3, mp: 1, count: 2 },
+    ],
   },
 ];
 
