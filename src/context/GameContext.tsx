@@ -75,10 +75,12 @@ export function GameProvider({ children }: GameProviderProps) {
             const newActiveMissions: any[] = [];
 
             const newHeroes = savedState.heroes.map((h) => {
-              const beforeHp = h.hp;
+              const beforeHpMax = (h as any).hpMax ?? (h as any).hp ?? 0;
+              const beforeHpCurrent = (h as any).hpCurrent ?? (h as any).hp ?? beforeHpMax;
               const beforeAtk = h.atk;
               const beforeMp = h.mp;
-              let afterHp = beforeHp;
+              let afterHpMax = beforeHpMax;
+              let afterHpCurrent = beforeHpCurrent;
               let afterAtk = beforeAtk;
               let afterMp = beforeMp;
               const beforeProgress = h.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 };
@@ -95,7 +97,9 @@ export function GameProvider({ children }: GameProviderProps) {
                     savedState.trainInflationFactor ?? TRAIN_INFLATION_FACTOR,
                     available
                   );
-                  afterHp += points;
+                  afterHpMax += points;
+                  // increase current by same amount, cap at new max
+                  afterHpCurrent = Math.min(afterHpMax, afterHpCurrent + points);
                   afterProgress.hp = leftoverMs;
                   afterCount.hp = (h.trainingCount?.hp ?? 0) + points;
                   break;
@@ -138,18 +142,36 @@ export function GameProvider({ children }: GameProviderProps) {
                   break;
               }
 
-              perHeroChanges.push({
-                id: h.id,
-                name: h.name,
-                hpBefore: beforeHp,
-                hpAfter: afterHp,
-                atkBefore: beforeAtk,
-                atkAfter: afterAtk,
-                mpBefore: beforeMp,
-                mpAfter: afterMp,
-              });
+              // only add to perHeroChanges if something changed
+              if (
+                beforeHpMax !== afterHpMax ||
+                beforeHpCurrent !== afterHpCurrent ||
+                beforeAtk !== afterAtk ||
+                beforeMp !== afterMp
+              ) {
+                perHeroChanges.push({
+                  id: h.id,
+                  name: h.name,
+                  hpMaxBefore: beforeHpMax,
+                  hpMaxAfter: afterHpMax,
+                  hpCurrentBefore: beforeHpCurrent,
+                  hpCurrentAfter: afterHpCurrent,
+                  atkBefore: beforeAtk,
+                  atkAfter: afterAtk,
+                  mpBefore: beforeMp,
+                  mpAfter: afterMp,
+                });
+              }
 
-              return { ...h, hp: afterHp, atk: afterAtk, mp: afterMp, trainingProgressMs: afterProgress, trainingCount: afterCount };
+              return {
+                ...h,
+                hpMax: afterHpMax,
+                hpCurrent: afterHpCurrent,
+                atk: afterAtk,
+                mp: afterMp,
+                trainingProgressMs: afterProgress,
+                trainingCount: afterCount,
+              };
             });
 
             const newState: GameState = {

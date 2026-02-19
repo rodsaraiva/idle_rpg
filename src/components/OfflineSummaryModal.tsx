@@ -38,14 +38,23 @@ export function OfflineSummaryModal({ visible, summary, onApply, onDismiss }: Pr
           <View style={{ height: 8 }} />
           <Text style={[styles.label, { marginBottom: 8 }]}>Mudanças por herói:</Text>
           <View style={{ maxHeight: 160 }}>
-            {summary.perHeroChanges.map((p) => (
-              <View key={p.id} style={styles.heroRow}>
-                <Text style={styles.heroName}>{p.name}</Text>
-                <Text style={styles.heroChange}>
-                  HP {Math.floor(p.hpBefore)} → {Math.floor(p.hpAfter)} · ATK {Math.floor(p.atkBefore)} → {Math.floor(p.atkAfter)}
-                </Text>
-              </View>
-            ))}
+            {summary.perHeroChanges
+              .filter(
+                (p) =>
+                  p.hpMaxBefore !== p.hpMaxAfter ||
+                  p.hpCurrentBefore !== p.hpCurrentAfter ||
+                  p.atkBefore !== p.atkAfter ||
+                  p.mpBefore !== p.mpAfter
+              )
+              .map((p) => (
+                <View key={p.id} style={styles.heroRow}>
+                  <Text style={styles.heroName}>{p.name}</Text>
+                  <Text style={styles.heroChange}>
+                    HP {Math.floor(p.hpCurrentBefore)}/{Math.floor(p.hpMaxBefore)} → {Math.floor(p.hpCurrentAfter)}/{Math.floor(p.hpMaxAfter)} ·
+                    ATK {Math.floor(p.atkBefore)} → {Math.floor(p.atkAfter)}
+                  </Text>
+                </View>
+              ))}
           </View>
 
           <View style={styles.row}>

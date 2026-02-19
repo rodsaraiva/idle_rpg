@@ -101,8 +101,10 @@ export interface OfflineSummary {
 export interface PerHeroChange {
   id: string;
   name: string;
-  hpBefore: number;
-  hpAfter: number;
+  hpMaxBefore: number;
+  hpMaxAfter: number;
+  hpCurrentBefore: number;
+  hpCurrentAfter: number;
   atkBefore: number;
   atkAfter: number;
   mpBefore: number;
