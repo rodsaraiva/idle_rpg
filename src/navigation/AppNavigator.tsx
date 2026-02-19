@@ -3,6 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { TrainingScreen } from '../screens/TrainingScreen';
 import { MissionsScreen } from '../screens/MissionsScreen';
+import { EnfermariaScreen } from '../screens/EnfermariaScreen';
+import { ShopScreen } from '../screens/ShopScreen';
 import { theme } from '../theme';
 import { Text } from 'react-native';
 
@@ -29,6 +31,12 @@ export function AppNavigator() {
           component={MissionsScreen}
           options={{ tabBarLabel: 'Missões' }}
         />
+        <Tab.Screen
+          name="Enfermaria"
+          component={EnfermariaScreen}
+          options={{ tabBarLabel: 'Enfermaria' }}
+        />
+        <Tab.Screen name="Loja" component={ShopScreen} options={{ tabBarLabel: 'Loja' }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

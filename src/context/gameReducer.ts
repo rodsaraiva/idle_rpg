@@ -1,5 +1,5 @@
 import { GameState, GameAction, HeroTask, ClassId } from '../types';
-import { BASE_TRAIN_TIME_MS, HP_REGEN_INTERVAL_MS, HP_REGEN_AMOUNT } from '../constants/game';
+import { BASE_TRAIN_TIME_MS, HP_REGEN_INTERVAL_MS, HP_REGEN_AMOUNT, ENFERMARIA_MULTIPLIER_BASE, ENFERMARIA_HEALER_MP_K } from '../constants/game';
 import { getRecruitCost } from '../utils/math';
 import { createHero } from '../utils/heroFactory';
 import { CLASS_DEFS } from '../constants/classes';
@@ -109,19 +109,34 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       });
 
       // apply passive HP regen for idle heroes (mutate updatedHeroes in place)
+      // compute healer total MP in guild (affects infirmary regen)
+      const healerMpSum = (updatedHeroes || []).reduce((s, hh) => {
+        return s + ((hh.classId === 'HEALER' ? (hh.mp ?? 0) : 0) as number);
+      }, 0);
+
       for (let i = 0; i < updatedHeroes.length; i++) {
         const h = updatedHeroes[i];
-        if (h.currentTask === HeroTask.IDLE && (h.hpCurrent ?? 0) < (h.hpMax ?? 0)) {
+        if ((h.currentTask === HeroTask.IDLE || h.currentTask === HeroTask.INFIRMARY) && (h.hpCurrent ?? 0) < (h.hpMax ?? 0)) {
           const prog = (h.hpRegenProgressMs ?? 0) + tickMs;
           let remaining = prog;
-          let gained = 0;
+          let intervals = 0;
           while (remaining >= HP_REGEN_INTERVAL_MS) {
             remaining -= HP_REGEN_INTERVAL_MS;
-            gained += HP_REGEN_AMOUNT;
+            intervals += 1;
           }
           h.hpRegenProgressMs = remaining;
-          if (gained > 0) {
-            h.hpCurrent = Math.min(h.hpMax ?? 0, (h.hpCurrent ?? 0) + gained);
+
+          if (intervals > 0) {
+            // base gain
+            let gain = intervals * HP_REGEN_AMOUNT;
+            // infirmary multiplier
+            if (h.currentTask === HeroTask.INFIRMARY) {
+              const baseMul = ENFERMARIA_MULTIPLIER_BASE;
+              const healerBoost = 1 + healerMpSum * ENFERMARIA_HEALER_MP_K;
+              const effectiveMul = baseMul * healerBoost;
+              gain = Math.floor(gain * effectiveMul);
+            }
+            h.hpCurrent = Math.min(h.hpMax ?? 0, (h.hpCurrent ?? 0) + gain);
           }
         }
       }
@@ -223,7 +238,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       for (const hid of action.heroIds) {
         const h = heroesMap.get(hid);
         if (!h) return state; // invalid hero
-        if (h.currentTask === HeroTask.TRAIN_ATK || h.currentTask === HeroTask.TRAIN_HP || h.currentTask === HeroTask.TRAIN_MP || h.currentTask === HeroTask.MISSION) {
+        if (
+          h.currentTask === HeroTask.TRAIN_ATK ||
+          h.currentTask === HeroTask.TRAIN_HP ||
+          h.currentTask === HeroTask.TRAIN_MP ||
+          h.currentTask === HeroTask.MISSION ||
+          h.currentTask === HeroTask.INFIRMARY
+        ) {
           return state; // hero busy
         }
       }
@@ -317,6 +338,25 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         trainInflationFactor: action.inflation,
       };
+    }
+    case 'START_INFERMARIA': {
+      const heroesMap = new Map(state.heroes.map((h) => [h.id, h]));
+      const heroIds = action.heroIds.filter((id) => {
+        const h = heroesMap.get(id);
+        return !!h && h.currentTask === HeroTask.IDLE && (h.hpCurrent ?? 0) < (h.hpMax ?? 0);
+      });
+      if (heroIds.length === 0) return state;
+      const newHeroesState = state.heroes.map((h) =>
+        heroIds.includes(h.id) ? { ...h, currentTask: HeroTask.INFIRMARY } : h
+      );
+      return { ...state, heroes: newHeroesState };
+    }
+    case 'RELEASE_FROM_INFERMARIA': {
+      const heroIds = action.heroIds || [];
+      const newHeroesState = state.heroes.map((h) =>
+        heroIds.includes(h.id) ? { ...h, currentTask: HeroTask.IDLE } : h
+      );
+      return { ...state, heroes: newHeroesState };
     }
 
     case 'LOAD_STATE': {

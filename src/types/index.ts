@@ -4,6 +4,7 @@ export enum HeroTask {
   TRAIN_HP = 'TRAIN_HP',
   TRAIN_ATK = 'TRAIN_ATK',
   TRAIN_MP = 'TRAIN_MP',
+  INFIRMARY = 'INFIRMARY',
   MISSION = 'MISSION',
 }
 
@@ -59,6 +60,8 @@ export interface GameState {
 /** Ação disparada para alterar o estado do jogo */
 export type GameAction =
   | { type: 'TICK' }
+  | { type: 'START_INFERMARIA'; heroIds: string[] }
+  | { type: 'RELEASE_FROM_INFERMARIA'; heroIds: string[] }
   | { type: 'SET_HERO_TASK'; heroId: string; task: HeroTask }
   | { type: 'RECRUIT_HERO' }
   | { type: 'SET_TICK_INTERVAL'; ms: number }

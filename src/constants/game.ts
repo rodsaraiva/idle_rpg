@@ -14,6 +14,10 @@ export const TRAIN_INFLATION_FACTOR = 0.1;
 export const HP_REGEN_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 export const HP_REGEN_AMOUNT = 1;
 
+/** Enfermaria (infirmary) regeneration multipliers */
+export const ENFERMARIA_MULTIPLIER_BASE = 2; // base x2 regen
+export const ENFERMARIA_HEALER_MP_K = 0.02; // per MP of healers add 2% to multiplier
+
 /** (compat) Ganho por tick - mantido para compatibilidade de testes antigos (equiv. a 1 ponto por 1s) */
 export const HP_TRAIN_PER_TICK = 1;
 export const ATK_TRAIN_PER_TICK = 1;

@@ -18,6 +18,7 @@ const TASK_LABEL_MAP: Record<HeroTask, string> = {
   [HeroTask.TRAIN_HP]: '❤️ Treinando HP',
   [HeroTask.TRAIN_ATK]: '⚔️ Treinando ATK',
   [HeroTask.TRAIN_MP]: '🔮 Treinando MP',
+  [HeroTask.INFIRMARY]: '🩺 Enfermaria',
   [HeroTask.MISSION]: '🪙 Em Missão',
 };
 
