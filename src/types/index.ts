@@ -20,6 +20,8 @@ export interface Hero {
   classId?: ClassId;
   trainingProgressMs?: TrainingProgress;
   trainingCount?: TrainingCount;
+  // if set, hero is incapacitated until this timestamp (ms since epoch)
+  incapacitatedUntilMs?: number;
 }
  
 export interface TrainingProgress {
@@ -47,6 +49,8 @@ export interface GameState {
   activeMissions?: ActiveMission[];
   // total gold earned per hero (accumulated from mission shares)
   perHeroGold?: Record<string, number>;
+  // recent mission results to show in UI
+  recentMissionResults?: MissionResult[];
 }
 
 /** Ação disparada para alterar o estado do jogo */
@@ -58,6 +62,7 @@ export type GameAction =
   | { type: 'SET_TRAIN_INFLATION'; inflation: number }
   | { type: 'START_MISSION'; templateId: string; heroIds: string[] }
   | { type: 'COMPLETE_MISSION'; missionId: string; reward: number }
+  | { type: 'DISMISS_MISSION_RESULT'; missionId: string }
   | { type: 'LOAD_STATE'; state: GameState };
 
 export interface ActiveMission {
@@ -69,6 +74,17 @@ export interface ActiveMission {
   // modifiers computed at mission start
   healerBuffMultiplier?: number;
   rogueRngBonus?: number;
+}
+
+export interface MissionResult {
+  missionId: string;
+  templateId: string;
+  success: boolean;
+  reward: number;
+  casualties: { heroId: string; hpLost: number; hpAfter: number; incapacitatedUntilMs?: number }[];
+  enemyCasualties: number;
+  rounds: number;
+  log?: string[];
 }
 
 /** Resumo do progresso offline aplicado ao carregar o save */ 

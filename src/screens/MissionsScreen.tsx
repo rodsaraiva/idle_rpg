@@ -8,6 +8,7 @@ import { MISSIONS } from '../constants/missions';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { HeroSelectableRow } from '../components/HeroSelectableRow';
 import { MissionActiveItem } from '../components/MissionActiveItem';
+import { MissionResultModal } from '../components/MissionResultModal';
 
 export function MissionsScreen() {
   const { state, isLoaded, dispatch } = useGame();
@@ -58,6 +59,7 @@ export function MissionsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
+        <MissionResultModal />
         <Text style={styles.title}>Missões</Text>
         <Text style={styles.subtitle}>Heróis em missão: {missionHeroes.length}</Text>
 

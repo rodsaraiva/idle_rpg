@@ -5,6 +5,7 @@ import { createHero } from '../utils/heroFactory';
 import { CLASS_DEFS } from '../constants/classes';
 import { MISSIONS } from '../constants/missions';
 import { calcMissionReward } from '../utils/missionMath';
+import { computeBattleOutcome } from '../utils/battleSim';
 import { v4 as uuidv4 } from 'uuid';
 
 /** Estado inicial quando não há save */
@@ -107,7 +108,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           const template = MISSIONS.find((t) => t.id === m.templateId);
           if (template) {
             const heroes = state.heroes.filter((h) => m.heroIds.includes(h.id));
-            const reward = calcMissionReward(template, heroes, {
+            // run a battle simulation (RPG-style single-run)
+            const outcome = computeBattleOutcome(template, heroes, {
               healerBuffMultiplier: (m as any).healerBuffMultiplier,
               rogueRngBonus: (m as any).rogueRngBonus,
               ref: template.ref,
@@ -115,7 +117,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               synergyK: template.synergyK,
               scale: template.scale,
             });
-            completed.push({ mission: m, reward });
+            // attach outcome.reward as mission reward (penalty if failed)
+            completed.push({ mission: m, reward: outcome.reward });
+            // attach casualties info to mission object for reducer later use
+            (m as any).__outcome = outcome;
           }
         }
       });
@@ -131,13 +136,45 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         c.mission.heroIds.forEach((hid) => {
           const idx = newHeroes.findIndex((hh) => hh.id === hid);
           if (idx >= 0) {
+            // release hero from mission
             newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
+            // apply battle casualties if present
+            const outcome = (c.mission as any).__outcome;
+            if (outcome && Array.isArray(outcome.casualties)) {
+              const caus = outcome.casualties.find((x: any) => x.heroId === hid);
+              if (caus) {
+                newHeroes[idx].hp = caus.hpAfter;
+                if (caus.incapacitatedUntilMs) {
+                  newHeroes[idx].incapacitatedUntilMs = caus.incapacitatedUntilMs;
+                } else {
+                  // clear incapacitation if healed
+                  delete newHeroes[idx].incapacitatedUntilMs;
+                }
+              }
+            }
           }
           perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
         });
       });
 
       const totalReward = completed.reduce((s, c) => s + c.reward, 0);
+      // collect mission results to push to recentMissionResults
+      const existingResults = state.recentMissionResults ? [...state.recentMissionResults] : [];
+      completed.forEach((c) => {
+        const outcome = (c.mission as any).__outcome;
+        if (outcome) {
+          existingResults.unshift({
+            missionId: c.mission.id,
+            templateId: c.mission.templateId,
+            success: outcome.success,
+            reward: outcome.reward,
+            casualties: outcome.casualties,
+            enemyCasualties: outcome.enemyCasualties,
+            rounds: outcome.rounds,
+            log: outcome.log,
+          });
+        }
+      });
 
       return {
         ...state,
@@ -145,6 +182,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         gold: state.gold + goldEarned + totalReward,
         activeMissions: remainingMissions,
         perHeroGold,
+        recentMissionResults: existingResults.slice(0, 10), // keep last 10
       };
     }
 
@@ -188,6 +226,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         heroes: newHeroesState,
         activeMissions: [...(state.activeMissions || []), newMission],
+      };
+    }
+
+    case 'DISMISS_MISSION_RESULT': {
+      return {
+        ...state,
+        recentMissionResults: (state.recentMissionResults || []).filter((r) => r.missionId !== action.missionId),
       };
     }
 

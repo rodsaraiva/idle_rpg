@@ -9,6 +9,7 @@ export interface MissionRewardOptions {
   ref?: number; // reference statSum that maps to 1.0 before exponent
   exponent?: number; // curve exponent (>1 compresses lows)
   synergyK?: number; // team synergy coefficient
+  scale?: number; // optional override for template.scale
 }
 
 export function calcMissionReward(

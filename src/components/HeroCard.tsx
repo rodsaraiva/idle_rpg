@@ -30,14 +30,19 @@ export function HeroCard({ hero, onSetTask }: HeroCardProps) {
           <Text style={styles.name}>{hero.name}</Text>
           <Text style={styles.classLabel}>{CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}</Text>
         </View>
-        <Text style={styles.taskBadge}>{TASK_LABEL_MAP[hero.currentTask]}</Text>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={styles.taskBadge}>{TASK_LABEL_MAP[hero.currentTask]}</Text>
+          {hero.incapacitatedUntilMs && hero.incapacitatedUntilMs > Date.now() ? (
+            <Text style={styles.incapText}>Incapacitado</Text>
+          ) : null}
+        </View>
       </View>
 
       {/* Atributos */}
       <View style={styles.stats}>
-        <StatBar label="HP" value={hero.hp} color={theme.colors.hp} />
-        <StatBar label="ATK" value={hero.atk} color={theme.colors.atk} />
-        <StatBar label="MP" value={hero.mp} color={theme.colors.mp} />
+        <StatBar label="HP" value={Math.floor(hero.hp)} color={theme.colors.hp} />
+        <StatBar label="ATK" value={Math.floor(hero.atk)} color={theme.colors.atk} />
+        <StatBar label="MP" value={Math.floor(hero.mp)} color={theme.colors.mp} />
       </View>
 
       {/* Barra de progresso do atributo atual */}
