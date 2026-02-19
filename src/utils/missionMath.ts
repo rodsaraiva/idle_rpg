@@ -22,9 +22,10 @@ export function calcMissionReward(
 
   // base stat sum (weighted)
   const statSumBase = heroes.reduce((acc, h) => {
+    const hpForCalc = (h as any).hpMax ?? (h as any).hpCurrent ?? 0;
     return (
       acc +
-      (h.hp * (weights.hp ?? 0)) +
+      (hpForCalc * (weights.hp ?? 0)) +
       (h.atk * (weights.atk ?? 0)) +
       (h.mp * (weights.mp ?? 0))
     );

@@ -1,5 +1,5 @@
 import { GameState, GameAction, HeroTask, ClassId } from '../types';
-import { BASE_TRAIN_TIME_MS } from '../constants/game';
+import { BASE_TRAIN_TIME_MS, HP_REGEN_INTERVAL_MS, HP_REGEN_AMOUNT } from '../constants/game';
 import { getRecruitCost } from '../utils/math';
 import { createHero } from '../utils/heroFactory';
 import { CLASS_DEFS } from '../constants/classes';
@@ -35,16 +35,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             const progress = (hero.trainingProgressMs?.hp ?? 0) + tickMs;
             let remaining = progress;
             let count = (hero.trainingCount?.hp ?? 0);
-            let hp = hero.hp;
+            let hpMax = hero.hpMax;
             const classSpeedHp = hero.classId ? (CLASS_DEFS[hero.classId]?.trainSpeed?.hp ?? 1) : 1;
             let timePerPoint = (BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count)) / classSpeedHp;
             while (remaining >= timePerPoint) {
               remaining -= timePerPoint;
-              hp += 1;
+              hpMax += 1;
               count += 1;
               timePerPoint = (BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count)) / classSpeedHp;
             }
-            newHero.hp = hp;
+            newHero.hpMax = hpMax;
+            // ensure hpCurrent doesn't exceed new max
+            newHero.hpCurrent = Math.min(newHero.hpCurrent ?? hpMax, hpMax);
             newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), hp: remaining };
             newHero.trainingCount = { ...(hero.trainingCount ?? { hp: 0, atk: 0, mp: 0 }), hp: count };
             return newHero;
@@ -68,6 +70,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             newHero.trainingCount = { ...(hero.trainingCount ?? { hp: 0, atk: 0, mp: 0 }), atk: count };
             return newHero;
           }
+        // continue to other cases
 
           case HeroTask.TRAIN_MP: {
             const progress = (hero.trainingProgressMs?.mp ?? 0) + tickMs;
@@ -97,6 +100,24 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             return hero;
         }
       });
+
+      // apply passive HP regen for idle heroes (mutate updatedHeroes in place)
+      for (let i = 0; i < updatedHeroes.length; i++) {
+        const h = updatedHeroes[i];
+        if (h.currentTask === HeroTask.IDLE && (h.hpCurrent ?? 0) < (h.hpMax ?? 0)) {
+          const prog = (h.hpRegenProgressMs ?? 0) + tickMs;
+          let remaining = prog;
+          let gained = 0;
+          while (remaining >= HP_REGEN_INTERVAL_MS) {
+            remaining -= HP_REGEN_INTERVAL_MS;
+            gained += HP_REGEN_AMOUNT;
+          }
+          h.hpRegenProgressMs = remaining;
+          if (gained > 0) {
+            h.hpCurrent = Math.min(h.hpMax ?? 0, (h.hpCurrent ?? 0) + gained);
+          }
+        }
+      }
 
       // process active missions timers
       const active = (state.activeMissions || []).map((m) => ({ ...m }));
@@ -143,7 +164,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             if (outcome && Array.isArray(outcome.casualties)) {
               const caus = outcome.casualties.find((x: any) => x.heroId === hid);
               if (caus) {
-                newHeroes[idx].hp = caus.hpAfter;
+                newHeroes[idx].hpCurrent = caus.hpAfter;
                 if (caus.incapacitatedUntilMs) {
                   newHeroes[idx].incapacitatedUntilMs = caus.incapacitatedUntilMs;
                 } else {

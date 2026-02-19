@@ -63,10 +63,10 @@ export function computeBattleOutcome(
 
   // helper to check alive lists
   const aliveEnemies = () => enemies.filter((e) => e.hp > 0);
-  const aliveHeroes = () => heroes.filter((h) => h.hp > 0);
+  const aliveHeroes = () => heroes.filter((h) => h.hpCurrent > 0);
 
   // count tanks for mitigation
-  const tankCount = heroes.filter((h) => h.classId === 'TANK' && h.hp > 0).length;
+  const tankCount = heroes.filter((h) => h.classId === 'TANK' && h.hpCurrent > 0).length;
   const tankMitigation = Math.min(0.5, 0.15 * tankCount); // % damage reduced to non-tanks
 
   let rounds = 0;
@@ -76,30 +76,30 @@ export function computeBattleOutcome(
 
     // Heroes act first
     for (const hero of heroes) {
-      if (hero.hp <= 0) continue;
+      if (hero.hpCurrent <= 0) continue;
       if (aliveEnemies().length === 0) break;
 
       // simple healing behavior for HEALER
       if (hero.classId === 'HEALER') {
-        // heal ally if someone below 50% hp
+        // heal ally if someone below 50% hp (use current HP)
         const ally = heroes
-          .filter((a) => a.hp > 0)
-          .sort((a, b) => a.hp - b.hp)[0];
-        if (ally && ally.hp < Math.max(1, Math.floor(ally.hp + 0))) {
+          .filter((a) => a.hpCurrent > 0)
+          .sort((a, b) => a.hpCurrent - b.hpCurrent)[0];
+        if (ally && ally.hpCurrent < Math.max(1, Math.floor(ally.hpCurrent + 0))) {
           // minimal heuristic: if any ally below current average, heal
         }
         // choose to heal only if someone below 50% of their starting hp estimate
-        const targetToHeal = heroes.find((h) => h.hp > 0 && h.hp < 6); // heuristic
+        const targetToHeal = heroes.find((h) => h.hpCurrent > 0 && h.hpCurrent < 6); // heuristic
         if (targetToHeal) {
           const healAmount = Math.max(1, Math.floor(1 + hero.atk * 0.2));
-          targetToHeal.hp += healAmount;
+          targetToHeal.hpCurrent += healAmount;
           log.push(`${hero.name} heals ${targetToHeal.name} for ${healAmount} HP`);
           continue;
         }
       }
 
       // otherwise attack: pick lowest HP enemy
-      const target = aliveEnemies().sort((a, b) => a.hp - b.hp)[0];
+        const target = aliveEnemies().sort((a, b) => a.hp - b.hp)[0];
       if (!target) continue;
 
       const hitChance = Math.min(0.98, baseHit + hero.atk * hitPerAtk);
@@ -134,10 +134,10 @@ export function computeBattleOutcome(
         if (target.classId !== 'TANK' && tankMitigation > 0) {
           dmg = Math.max(1, Math.floor(dmg * (1 - tankMitigation)));
         }
-        target.hp -= dmg;
+        target.hpCurrent -= dmg;
         log.push(`${enemy.id} hits ${target.name} for ${dmg}`);
-        if (target.hp <= 0) {
-          target.hp = 0;
+        if (target.hpCurrent <= 0) {
+          target.hpCurrent = 0;
           log.push(`${target.name} is incapacitated`);
         }
       } else {
@@ -164,14 +164,14 @@ export function computeBattleOutcome(
   // prepare casualties
   const casualties = heroes.map((h) => {
     const original = heroesIn.find((oh) => oh.id === h.id);
-    const hpBefore = original ? original.hp : h.hp;
-    const hpLost = Math.max(0, (original ? original.hp : 0) - h.hp);
+    const hpBefore = original ? original.hpCurrent : h.hpCurrent;
+    const hpLost = Math.max(0, (original ? original.hpCurrent : 0) - h.hpCurrent);
     const res: { heroId: string; hpLost: number; hpAfter: number; incapacitatedUntilMs?: number } = {
       heroId: h.id,
       hpLost,
-      hpAfter: h.hp,
+      hpAfter: h.hpCurrent,
     };
-    if (h.hp <= 0) {
+    if (h.hpCurrent <= 0) {
       res.incapacitatedUntilMs = Date.now() + 30 * 60 * 1000; // 30 minutes
     }
     return res;

@@ -50,7 +50,7 @@ export function MissionsScreen() {
     <View style={styles.heroRow}>
       <Text style={styles.heroName}>{item.name}</Text>
       <Text style={styles.heroInfo}>
-        HP {Math.floor(item.hp)} • ATK {Math.floor(item.atk)} • MP {Math.floor(item.mp)}
+        HP {Math.floor(item.hpCurrent)}/{Math.floor(item.hpMax)} • ATK {Math.floor(item.atk)} • MP {Math.floor(item.mp)}
       </Text>
       <Text style={styles.heroInfo}>Total ganho: 💰 {Math.floor(state.perHeroGold?.[item.id] ?? 0)}</Text>
     </View>

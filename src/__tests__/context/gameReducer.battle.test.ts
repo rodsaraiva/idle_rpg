@@ -9,7 +9,7 @@ describe('gameReducer mission integration', () => {
     const hero = createHero('WARRIOR');
     const state = {
       ...initialGameState,
-      heroes: [{ ...hero, hp: 30, atk: 12, currentTask: HeroTask.IDLE }],
+      heroes: [{ ...hero, hpMax: 30, hpCurrent: 30, atk: 12, currentTask: HeroTask.IDLE }],
       heroesRecruited: 1,
       activeMissions: [],
     };

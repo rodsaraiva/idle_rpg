@@ -2,11 +2,13 @@ import { gameReducer, initialGameState } from '../../context/gameReducer';
 import { HeroTask, Hero } from '../../types';
 import { getMissionGoldPerTick } from '../../utils/math';
 
-function createHero(overrides: Partial<Hero> = {}): Hero {
+function createHero(overrides: any = {}): Hero {
+  const hpVal = overrides.hp ?? overrides.hpMax ?? 10;
   return {
     id: overrides.id || 'h1',
     name: overrides.name || 'Hero',
-    hp: overrides.hp ?? 10,
+    hpMax: hpVal,
+    hpCurrent: hpVal,
     atk: overrides.atk ?? 5,
     mp: overrides.mp ?? 3,
     currentTask: overrides.currentTask ?? HeroTask.IDLE,
@@ -18,7 +20,7 @@ describe('gameReducer', () => {
     const hero = createHero({ currentTask: HeroTask.TRAIN_HP, hp: 10 });
     const state = { ...initialGameState, heroes: [hero] };
     const next = gameReducer(state, { type: 'TICK' });
-    expect(next.heroes[0].hp).toBe(10); // no full point yet
+    expect(next.heroes[0].hpCurrent).toBe(10); // no full point yet
     expect(next.heroes[0].trainingProgressMs?.hp).toBeGreaterThanOrEqual(1000);
   });
 

@@ -40,7 +40,12 @@ export function HeroCard({ hero, onSetTask }: HeroCardProps) {
 
       {/* Atributos */}
       <View style={styles.stats}>
-        <StatBar label="HP" value={Math.floor(hero.hp)} color={theme.colors.hp} />
+        <View style={styles.hpRow}>
+          <Text style={[styles.hpLabel, { color: theme.colors.hp }]}>HP</Text>
+          <Text style={[styles.hpValue, { color: theme.colors.hp }]}>{`${Math.floor(
+            hero.hpCurrent
+          )}/${Math.floor(hero.hpMax)}`}</Text>
+        </View>
         <StatBar label="ATK" value={Math.floor(hero.atk)} color={theme.colors.atk} />
         <StatBar label="MP" value={Math.floor(hero.mp)} color={theme.colors.mp} />
       </View>
@@ -149,5 +154,22 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: theme.spacing.sm,
+  },
+  hpRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 2,
+    marginBottom: 4,
+  },
+  hpLabel: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  hpValue: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.bold,
   },
 });

@@ -10,6 +10,10 @@ export const BASE_TRAIN_TIME_MS = 10000;
 /** Fator de inflação por ponto (10% = 0.1) */
 export const TRAIN_INFLATION_FACTOR = 0.1;
 
+/** HP regen: amount and interval */
+export const HP_REGEN_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+export const HP_REGEN_AMOUNT = 1;
+
 /** (compat) Ganho por tick - mantido para compatibilidade de testes antigos (equiv. a 1 ponto por 1s) */
 export const HP_TRAIN_PER_TICK = 1;
 export const ATK_TRAIN_PER_TICK = 1;

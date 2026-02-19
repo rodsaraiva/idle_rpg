@@ -5,7 +5,8 @@ function createHero(id = 'h1', task = HeroTask.IDLE): Hero {
   return {
     id,
     name: 'Hero',
-    hp: 10,
+    hpMax: 10,
+    hpCurrent: 10,
     atk: 5,
     mp: 3,
     currentTask: task,

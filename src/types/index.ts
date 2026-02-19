@@ -13,7 +13,8 @@ export type ClassId = 'WARRIOR' | 'TANK' | 'ROGUE' | 'ARCHER' | 'MAGE' | 'HEALER
 export interface Hero {
   id: string;
   name: string;
-  hp: number;
+  hpMax: number;
+  hpCurrent: number;
   atk: number;
   mp: number;
   currentTask: HeroTask;
@@ -22,6 +23,8 @@ export interface Hero {
   trainingCount?: TrainingCount;
   // if set, hero is incapacitated until this timestamp (ms since epoch)
   incapacitatedUntilMs?: number;
+  // accumulated ms toward next HP regen
+  hpRegenProgressMs?: number;
 }
  
 export interface TrainingProgress {

@@ -15,7 +15,8 @@ export function createHero(classId?: ClassId): Hero {
   return {
     id: uuidv4(),
     name: `${randomName} #${suffix}`,
-    hp,
+    hpMax: hp,
+    hpCurrent: hp,
     atk,
     mp,
     currentTask: HeroTask.IDLE,
