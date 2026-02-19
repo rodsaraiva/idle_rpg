@@ -44,9 +44,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               count += 1;
               timePerPoint = (BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count)) / classSpeedHp;
             }
+            const oldHpMax = hero.hpMax ?? 0;
+            const pointsGained = hpMax - oldHpMax;
             newHero.hpMax = hpMax;
-            // ensure hpCurrent doesn't exceed new max
-            newHero.hpCurrent = Math.min(newHero.hpCurrent ?? hpMax, hpMax);
+            // increase hpCurrent by the same gained points (keeps hero full if was full)
+            const prevCurrent = newHero.hpCurrent ?? oldHpMax;
+            if (pointsGained > 0) {
+              newHero.hpCurrent = Math.min(hpMax, prevCurrent + pointsGained);
+            } else {
+              newHero.hpCurrent = Math.min(prevCurrent, hpMax);
+            }
             newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 }), hp: remaining };
             newHero.trainingCount = { ...(hero.trainingCount ?? { hp: 0, atk: 0, mp: 0 }), hp: count };
             return newHero;
