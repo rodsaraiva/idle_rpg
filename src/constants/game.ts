@@ -5,7 +5,7 @@ export const TICK_INTERVAL_MS = 500;
 export const AUTO_SAVE_INTERVAL_MS = 5000;
 
 /** Tempo base (ms) por ponto treinado (30s) */
-export const BASE_TRAIN_TIME_MS = 5000;
+export const BASE_TRAIN_TIME_MS = 10000;
 
 /** Fator de inflação por ponto (10% = 0.1) */
 export const TRAIN_INFLATION_FACTOR = 0.1;

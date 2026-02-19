@@ -17,8 +17,8 @@ export const MISSIONS: MissionTemplate[] = [
     durationMs: 10_000,
     rewardMin: 1,
     rewardMax: 10,
-    statWeights: { hp: 0.2, atk: 1.0, mp: 0.1 },
-    scale: 1.0,
+    statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
+    scale: 0.9,
   },
   {
     id: 'mission_2',
@@ -27,8 +27,8 @@ export const MISSIONS: MissionTemplate[] = [
     durationMs: 30_000,
     rewardMin: 5,
     rewardMax: 50,
-    statWeights: { hp: 0.3, atk: 1.2, mp: 0.2 },
-    scale: 1.15,
+    statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
+    scale: 0.9,
   },
   {
     id: 'mission_3',
@@ -37,8 +37,8 @@ export const MISSIONS: MissionTemplate[] = [
     durationMs: 60_000,
     rewardMin: 10,
     rewardMax: 100,
-    statWeights: { hp: 0.25, atk: 1.25, mp: 0.15 },
-    scale: 1.25,
+    statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
+    scale: 0.9,
   },
 ];
 

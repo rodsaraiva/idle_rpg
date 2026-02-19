@@ -8,6 +8,7 @@ export interface MissionRewardOptions {
   // non-linear curve parameters
   ref?: number; // reference statSum that maps to 1.0 before exponent
   exponent?: number; // curve exponent (>1 compresses lows)
+  synergyK?: number; // team synergy coefficient
 }
 
 export function calcMissionReward(
@@ -32,15 +33,24 @@ export function calcMissionReward(
   const statSum = statSumBase * healerBuff;
 
   // non-linear mapping parameters (defaults)
-  const ref = opts?.ref ?? 40;
-  const exponent = opts?.exponent ?? 1.6;
+  const ref = opts?.ref ?? 100;
+  const exponent = opts?.exponent ?? 1.8;
 
-  // normalize and apply exponent to compress low values
-  const normalized = Math.max(0, Math.min(statSum / ref, 1));
+  // apply team composition adjustment: use average stat + synergy bonus based on team size
+  // apply team composition adjustment: use average stat + synergy bonus based on team size
+  const n = Math.max(1, heroes.length);
+  const statAvg = statSum / n;
+  const synergyK = opts?.synergyK ?? 0.12; // default synergy coefficient
+  const synergy = 1 + synergyK * (n > 1 ? Math.log(n) : 0); // small bonus as team grows
+  const effectiveStat = statAvg * synergy;
+  const normalized = Math.max(0, Math.min(effectiveStat / ref, 1));
   const curved = Math.pow(normalized, exponent); // 0..1
+  // dynamic scale decreases with team size: scaleMultiplier = max(0.1, 1 - 0.1 * n)
+  const scaleMultiplier = Math.max(0.1, 1 - 0.1 * n);
+  const dynamicScale = (template.scale ?? 1) * scaleMultiplier;
 
-  // base mapped reward in [rewardMin, rewardMax] before RNG
-  const baseMapped = template.rewardMin + (template.rewardMax - template.rewardMin) * curved;
+  // base mapped reward in [rewardMin, rewardMax] before RNG (apply dynamicScale)
+  const baseMapped = template.rewardMin + (template.rewardMax - template.rewardMin) * curved * dynamicScale;
 
   // RNG with optional rogue bonus
   const rogueBonus = opts?.rogueRngBonus ?? 0;
