@@ -3,7 +3,7 @@
 const ITER = 10000;
 
 const BASE = { hp: 10, atk: 5, mp: 3 };
-const BASE_TRAIN_TIME_MS = 5000;
+const BASE_TRAIN_TIME_MS = 10000;
 const TRAIN_INFLATION_FACTOR = 0.1;
 
 const MISSION = {
@@ -51,11 +51,20 @@ function calcMissionReward(template, heroes, opts) {
     return acc + (h.hp * (weights.hp || 0)) + (h.atk * (weights.atk || 0)) + (h.mp * (weights.mp || 0));
   }, 0);
   const statSum = statSumBase * healerBuff;
-  const ref = opts.ref || 20;
-  const exponent = opts.exponent || 1.6;
+  const ref = opts.ref || 250;
+  const exponent = opts.exponent || 2;
+  const synergyK = opts.synergyK || 0.05;
   const normalized = Math.max(0, Math.min(statSum / ref, 1));
-  const curved = Math.pow(normalized, exponent);
-  const baseMapped = template.rewardMin + (template.rewardMax - template.rewardMin) * curved;
+  // apply synergy as in game logic
+  const n = Math.max(1, heroes.length);
+  const statAvg = statSum / n;
+  const synergy = 1 + synergyK * (n > 1 ? Math.log(n) : 0);
+  const effectiveStat = statAvg * synergy;
+  const normalizedEffective = Math.max(0, Math.min(effectiveStat / ref, 1));
+  const curved = Math.pow(normalizedEffective, exponent);
+  const dynamicScale = (template.scale || 1) * Math.max(0, 1 - 0.1 * n);
+  const baseMappedRaw = template.rewardMin + (template.rewardMax - template.rewardMin) * curved;
+  const baseMapped = baseMappedRaw * dynamicScale;
   const rogueBonus = opts.rogueRngBonus || 0;
   const baseRandom = 0.9 + Math.random() * 0.2;
   const randomFactor = Math.min(1.1 + rogueBonus, Math.max(0.9, baseRandom + rogueBonus));
@@ -92,7 +101,7 @@ function simulateForClassAndDuration(classId, durationMs) {
   const { points } = computePointsFromMs(BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR, durationMs);
   const hero = { ...baseHero, atk: baseHero.atk + points };
 
-  const opts = { ref: 20, exponent: 1.6 };
+  const opts = { ref: 250, exponent: 2, synergyK: 0.05 };
   if (def.healer) opts.healerBuffMultiplier = 1 + Math.min(0.3, 1 * 0.1);
   if (def.rogue) opts.rogueRngBonus = Math.min(0.08, 1 * 0.02);
 

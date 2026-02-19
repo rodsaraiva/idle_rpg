@@ -1,7 +1,7 @@
 // simulate_full.js
 // Monte Carlo simulations for missions with various classes, compositions and training durations.
 // Usage: node scripts/simulate_full.js
-const ITER = 100000;
+const ITER = 10000;
 
 const BASE = { hp: 10, atk: 5, mp: 3 };
 const BASE_TRAIN_TIME_MS = 10000;
@@ -52,11 +52,18 @@ function calcMissionReward(template, heroes, opts) {
     return acc + (h.hp * (weights.hp || 0)) + (h.atk * (weights.atk || 0)) + (h.mp * (weights.mp || 0));
   }, 0);
   const statSum = statSumBase * healerBuff;
-  const ref = opts.ref || 40;
-  const exponent = opts.exponent || 1.8;
-  const normalized = Math.max(0, Math.min(statSum / ref, 1));
+  const ref = opts.ref || 250;
+  const exponent = opts.exponent || 2;
+  const synergyK = opts.synergyK || 0.05;
+  const n = Math.max(1, heroes.length);
+  const statAvg = statSum / n;
+  const synergy = 1 + synergyK * (n > 1 ? Math.log(n) : 0);
+  const effectiveStat = statAvg * synergy;
+  const normalized = Math.max(0, Math.min(effectiveStat / ref, 1));
   const curved = Math.pow(normalized, exponent);
-  const baseMapped = template.rewardMin + (template.rewardMax - template.rewardMin) * curved;
+  const dynamicScale = (template.scale || 1) * Math.max(0, 1 - 0.1 * n);
+  const baseMappedRaw = template.rewardMin + (template.rewardMax - template.rewardMin) * curved;
+  const baseMapped = baseMappedRaw * dynamicScale;
   const rogueBonus = opts.rogueRngBonus || 0;
   const baseRandom = 0.9 + Math.random() * 0.2;
   const randomFactor = Math.min(1.1 + rogueBonus, Math.max(0.9, baseRandom + rogueBonus));
@@ -102,7 +109,7 @@ function runScenario(template, teamClassIds, durationMs) {
     const countRogues = heroes.filter(h => CLASS_DEFS[h.classId].rogue).length;
     const healerBuffMultiplier = 1 + Math.min(0.3, countHealers * 0.1);
     const rogueRngBonus = Math.min(0.08, countRogues * 0.02);
-    const reward = calcMissionReward(template, heroes, { healerBuffMultiplier, rogueRngBonus, ref:40, exponent:1.6 });
+    const reward = calcMissionReward(template, heroes, { healerBuffMultiplier, rogueRngBonus, ref:250, exponent:2, synergyK:0.05 });
     freq[reward] = (freq[reward] || 0) + 1;
     // Welford
     const delta = reward - mean;

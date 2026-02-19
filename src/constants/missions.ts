@@ -7,6 +7,10 @@ export interface MissionTemplate {
   rewardMax: number;
   statWeights?: { hp?: number; atk?: number; mp?: number };
   scale?: number;
+  // optional balance overrides for reward curve
+  ref?: number;
+  exponent?: number;
+  synergyK?: number;
 }
 
 export const MISSIONS: MissionTemplate[] = [
@@ -18,7 +22,11 @@ export const MISSIONS: MissionTemplate[] = [
     rewardMin: 1,
     rewardMax: 10,
     statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
-    scale: 0.9,
+    // tuned to saturate already at ~30min for single hero
+    scale: 1.3,
+    ref: 75,
+    exponent: 2.2,
+    synergyK: 0.055,
   },
   {
     id: 'mission_2',
@@ -28,7 +36,11 @@ export const MISSIONS: MissionTemplate[] = [
     rewardMin: 5,
     rewardMax: 50,
     statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
-    scale: 0.9,
+    // tuned to saturate around 2h for two-hero teams
+    scale: 1.15,
+    ref: 200,
+    exponent: 1.9,
+    synergyK: 0.04,
   },
   {
     id: 'mission_3',
@@ -38,7 +50,11 @@ export const MISSIONS: MissionTemplate[] = [
     rewardMin: 10,
     rewardMax: 100,
     statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
-    scale: 0.9,
+    // tuned to avoid saturation in 2h for three-hero teams
+    scale: 1.08,
+    ref: 350,
+    exponent: 1.6,
+    synergyK: 0.02,
   },
 ];
 

@@ -33,14 +33,14 @@ export function calcMissionReward(
   const statSum = statSumBase * healerBuff;
 
   // non-linear mapping parameters (defaults)
-  const ref = opts?.ref ?? 100;
-  const exponent = opts?.exponent ?? 1.8;
+  const ref = opts?.ref ?? 250;
+  const exponent = opts?.exponent ?? 2;
 
   // apply team composition adjustment: use average stat + synergy bonus based on team size
   // apply team composition adjustment: use average stat + synergy bonus based on team size
   const n = Math.max(1, heroes.length);
   const statAvg = statSum / n;
-  const synergyK = opts?.synergyK ?? 0.12; // default synergy coefficient
+  const synergyK = opts?.synergyK ?? 0.05; // default synergy coefficient
   const synergy = 1 + synergyK * (n > 1 ? Math.log(n) : 0); // small bonus as team grows
   const effectiveStat = statAvg * synergy;
   const normalized = Math.max(0, Math.min(effectiveStat / ref, 1));

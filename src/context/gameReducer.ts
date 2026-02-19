@@ -110,6 +110,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             const reward = calcMissionReward(template, heroes, {
               healerBuffMultiplier: (m as any).healerBuffMultiplier,
               rogueRngBonus: (m as any).rogueRngBonus,
+              ref: template.ref,
+              exponent: template.exponent,
+              synergyK: template.synergyK,
+              scale: template.scale,
             });
             completed.push({ mission: m, reward });
           }
