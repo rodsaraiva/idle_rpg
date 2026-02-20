@@ -147,23 +147,31 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       active.forEach((m) => {
         m.remainingMs -= tickMs;
         if (m.remainingMs <= 0) {
-          // compute reward
+          // compute reward: if precomputed outcome exists use it, otherwise compute now
           const template = MISSIONS.find((t) => t.id === m.templateId);
           if (template) {
-            const heroes = state.heroes.filter((h) => m.heroIds.includes(h.id));
-            // run a battle simulation (RPG-style single-run)
-            const outcome = computeBattleOutcome(template, heroes, {
-              healerBuffMultiplier: (m as any).healerBuffMultiplier,
-              rogueRngBonus: (m as any).rogueRngBonus,
-              ref: template.ref,
-              exponent: template.exponent,
-              synergyK: template.synergyK,
-              scale: template.scale,
-            });
-            // attach outcome.reward as mission reward (penalty if failed)
-            completed.push({ mission: m, reward: outcome.reward });
-            // attach casualties info to mission object for reducer later use
-            (m as any).__outcome = outcome;
+            if ((m as any).precomputedOutcome && (m as any).precomputedOutcome.reward !== undefined) {
+              completed.push({ mission: m, reward: (m as any).precomputedOutcome.reward });
+              (m as any).__outcome = {
+                reward: (m as any).precomputedOutcome.reward,
+                rounds: (m as any).precomputedOutcome.rounds,
+                casualties: (m as any).precomputedOutcome.casualties ?? [],
+                log: (m as any).precomputedOutcome.log ?? [],
+              };
+            } else {
+              const heroes = state.heroes.filter((h) => m.heroIds.includes(h.id));
+              // run a battle simulation (fallback)
+              const outcome = computeBattleOutcome(template, heroes, {
+                healerBuffMultiplier: (m as any).healerBuffMultiplier,
+                rogueRngBonus: (m as any).rogueRngBonus,
+                ref: template.ref,
+                exponent: template.exponent,
+                synergyK: template.synergyK,
+                scale: template.scale,
+              });
+              completed.push({ mission: m, reward: outcome.reward });
+              (m as any).__outcome = outcome;
+            }
           }
         }
       });
@@ -172,6 +180,43 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // release heroes from completed missions and add rewards
       let newHeroes = updatedHeroes.map((h) => ({ ...h }));
+
+      // Apply scheduled actions for missions (live playback): update heroes/enemy states when action times are reached
+      for (let mi = 0; mi < active.length; mi++) {
+        const m = active[mi] as any;
+        const tpl = MISSIONS.find((t) => t.id === m.templateId);
+        if (!tpl) continue;
+        const elapsed = tpl.durationMs - (m.remainingMs ?? 0);
+        if (m.scheduledActions && Array.isArray(m.scheduledActions)) {
+          for (let ai = 0; ai < m.scheduledActions.length; ai++) {
+            const sched = m.scheduledActions[ai];
+            if (sched.applied) continue;
+            if ((sched.atMsFromStart ?? 0) <= elapsed) {
+              const act = sched.action;
+              // apply enemy -> hero hits
+              if (act.actorType === 'enemy' && act.actionType === 'hit' && act.targetId) {
+                const hid = act.targetId;
+                const idx = newHeroes.findIndex((hh) => hh.id === hid);
+                if (idx >= 0) {
+                  newHeroes[idx] = { ...newHeroes[idx], hpCurrent: Math.max(0, (newHeroes[idx].hpCurrent ?? 0) - (act.amount ?? 0)) };
+                }
+              }
+              // apply hero -> enemy hits to mission enemy state if present
+              if (act.actorType === 'hero' && act.actionType === 'hit' && act.targetId && m.enemiesState) {
+                const eid = act.targetId;
+                const eidx = (m.enemiesState as any[]).findIndex((ee) => ee.id === eid);
+                if (eidx >= 0) {
+                  const newHp = Math.max(0, ((m.enemiesState as any[])[eidx].hp ?? 0) - (act.amount ?? 0));
+                  (m.enemiesState as any[])[eidx] = { ...(m.enemiesState as any[])[eidx], hp: newHp, alive: newHp > 0 };
+                }
+              }
+              // mark applied
+              sched.applied = true;
+            }
+          }
+        }
+        active[mi] = m;
+      }
       const perHeroGold = { ...(state.perHeroGold ?? {}) };
       completed.forEach((c) => {
         const n = c.mission.heroIds.length || 1;
@@ -264,7 +309,60 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         startedAt: Date.now(),
         healerBuffMultiplier,
         rogueRngBonus,
-      };
+      } as any;
+
+      // Precompute mission outcome actions and schedule them for live playback (2s delay + 1s per action)
+      try {
+        const outcome = computeBattleOutcome(template, heroesForMission, {
+          healerBuffMultiplier,
+          rogueRngBonus,
+        });
+        // build initial enemies state similar to battleSim creation
+        const missionEnemies: any[] = [];
+        if (template.enemies && template.enemies.length > 0) {
+          template.enemies.forEach((edef, gi) => {
+            const cnt = edef.count ?? 1;
+            for (let i = 0; i < cnt; i++) {
+              missionEnemies.push({
+                id: `enemy_${gi}_${i}`,
+                hp: edef.hp,
+                atk: edef.atk,
+                mp: edef.mp,
+                alive: true,
+                attackType: Math.random() < 0.5 ? 'MELEE' : 'RANGED',
+              });
+            }
+          });
+        } else {
+          const enemyCount = template.minHeroes;
+          for (let i = 0; i < enemyCount; i++) {
+            missionEnemies.push({
+              id: `orc_${i}`,
+              hp: 5,
+              atk: 2,
+              mp: 1,
+              alive: true,
+              attackType: i % 2 === 0 ? 'MELEE' : 'RANGED',
+            });
+          }
+        }
+        // schedule actions: 2000ms delay before first action, 1000ms between actions
+        const scheduled = (outcome.actions || []).map((a: any, i: number) => ({
+          atMsFromStart: 2000 + i * 1000,
+          action: a,
+          applied: false,
+        }));
+        newMission.scheduledActions = scheduled;
+        newMission.enemiesState = missionEnemies;
+        newMission.precomputedOutcome = {
+          reward: outcome.reward,
+          rounds: outcome.rounds,
+          actions: outcome.actions,
+          log: outcome.log,
+        };
+      } catch (err) {
+        newMission.scheduledActions = [];
+      }
 
       // mark heroes as on mission and immediately cancel any training/infirmary state
       const newHeroesState = state.heroes.map((h) =>

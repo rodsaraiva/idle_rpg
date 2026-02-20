@@ -84,6 +84,17 @@ export interface ActiveMission {
   // modifiers computed at mission start
   healerBuffMultiplier?: number;
   rogueRngBonus?: number;
+  // scheduled actions for live playback: { atMsFromStart, action, applied }
+  scheduledActions?: { atMsFromStart: number; action: any; applied?: boolean }[];
+  // track mission enemies state for visualization (hp, id)
+  enemiesState?: { id: string; hp: number; atk: number; mp: number; alive?: boolean; attackType?: 'MELEE' | 'RANGED' }[];
+  // precomputed reward/summary to avoid recomputing on completion
+  precomputedOutcome?: {
+    reward?: number;
+    rounds?: number;
+    actions?: any[];
+    log?: string[];
+  };
 }
 
 export interface MissionResult {

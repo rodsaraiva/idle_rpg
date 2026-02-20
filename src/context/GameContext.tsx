@@ -324,6 +324,12 @@ export function GameProvider({ children }: GameProviderProps) {
         if (h.hp > prevHero.hp) {
           emit(FEEDBACK_EVENTS.FLOAT, { text: `+${h.hp - prevHero.hp} HP`, color: '#7ed957' });
         }
+        if ((h.hpCurrent ?? 0) < (prevHero.hpCurrent ?? 0)) {
+          const lost = Math.max(0, (prevHero.hpCurrent ?? 0) - (h.hpCurrent ?? 0));
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `-${lost} HP`, color: '#ff7a7a' });
+          // highlight hero damaged
+          emit('BATTLE_HIGHLIGHT', { id: h.id, duration: 800 });
+        }
         if (h.atk > prevHero.atk) {
           emit(FEEDBACK_EVENTS.FLOAT, { text: `+${h.atk - prevHero.atk} ATK`, color: '#ff8a65' });
         }
