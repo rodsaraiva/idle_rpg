@@ -20,6 +20,8 @@ export interface Hero {
   mp: number;
   currentTask: HeroTask;
   classId?: ClassId;
+  // attack style for targeting behavior
+  attackType?: 'MELEE' | 'RANGED';
   trainingProgressMs?: TrainingProgress;
   trainingCount?: TrainingCount;
   // if set, hero is incapacitated until this timestamp (ms since epoch)

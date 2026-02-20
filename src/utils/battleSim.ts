@@ -1,5 +1,5 @@
 import { MissionTemplate } from '../constants/missions';
-import { Hero } from '../types';
+import { Hero, /*AttackType*/ } from '../types';
 import { calcMissionReward } from './missionMath';
 
 export interface BattleOutcome {
@@ -31,7 +31,8 @@ export function computeBattleOutcome(
   const heroes = heroesIn.map((h) => ({ ...h }));
 
   // create enemies from template.enemies if provided, otherwise fallback to simple orc count
-  const enemies: { id: string; hp: number; atk: number; mp: number; alive?: boolean }[] = [];
+  type Enemy = { id: string; hp: number; atk: number; mp: number; alive?: boolean; attackType?: 'MELEE' | 'RANGED' };
+  const enemies: Enemy[] = [];
   if (template.enemies && template.enemies.length > 0) {
     let idx = 0;
     template.enemies.forEach((edef, gi) => {
@@ -43,6 +44,7 @@ export function computeBattleOutcome(
           atk: edef.atk,
           mp: edef.mp,
           alive: true,
+          attackType: Math.random() < 0.5 ? 'MELEE' : 'RANGED',
         });
         idx++;
       }
@@ -50,7 +52,14 @@ export function computeBattleOutcome(
   } else {
     const enemyCount = template.minHeroes;
     for (let i = 0; i < enemyCount; i++) {
-      enemies.push({ id: `orc_${i}`, hp: 5, atk: 2, mp: 1, alive: true });
+      enemies.push({
+        id: `orc_${i}`,
+        hp: 5,
+        atk: 2,
+        mp: 1,
+        alive: true,
+        attackType: i % 2 === 0 ? 'MELEE' : 'RANGED',
+      });
     }
   }
 
@@ -64,6 +73,29 @@ export function computeBattleOutcome(
   // helper to check alive lists
   const aliveEnemies = () => enemies.filter((e) => e.hp > 0);
   const aliveHeroes = () => heroes.filter((h) => h.hpCurrent > 0);
+
+  // choose target helper based on attacker attackType
+  function chooseTarget<T extends { hp: number }>(
+    attackerType: 'MELEE' | 'RANGED',
+    candidates: T[],
+    rngLocal: () => number
+  ): T | undefined {
+    if (!candidates || candidates.length === 0) return undefined;
+    const sorted = [...candidates].sort((a, b) => a.hp - b.hp);
+    const min = sorted[0];
+    const max = sorted[sorted.length - 1];
+    const roll = Math.floor(rngLocal() * 100); // 0..99
+    if (attackerType === 'MELEE') {
+      if (roll < 70) return max;
+      if (roll < 90) return min;
+      return candidates[Math.floor(rngLocal() * candidates.length)];
+    } else {
+      // RANGED
+      if (roll < 60) return min;
+      if (roll < 90) return max;
+      return candidates[Math.floor(rngLocal() * candidates.length)];
+    }
+  }
 
   // count tanks for mitigation
   const tankCount = heroes.filter((h) => h.classId === 'TANK' && h.hpCurrent > 0).length;
@@ -98,8 +130,9 @@ export function computeBattleOutcome(
         }
       }
 
-      // otherwise attack: pick lowest HP enemy
-        const target = aliveEnemies().sort((a, b) => a.hp - b.hp)[0];
+      // choose target based on attackType
+      const attackerType = (hero as any).attackType ?? 'MELEE';
+      const target = chooseTarget(attackerType, aliveEnemies(), rng);
       if (!target) continue;
 
       const hitChance = Math.min(0.98, baseHit + hero.atk * hitPerAtk);
@@ -123,9 +156,11 @@ export function computeBattleOutcome(
       if (enemy.hp <= 0) continue;
       const alive = aliveHeroes();
       if (alive.length === 0) break;
-      // choose target: lowest hp non-tank preferred
-      let target = alive.filter((h) => h.classId !== 'TANK')[0] ?? alive[0];
-      if (!target) target = alive[0];
+      // choose target based on enemy.attackType
+      const enemyType = (enemy as any).attackType ?? 'MELEE';
+      // pass hero objects but map hp to hpCurrent for selector (chooseTarget expects {hp:number})
+      const heroTarget = chooseTarget(enemyType, alive.map((h) => ({ ...h, hp: h.hpCurrent } as any)), rng) as any;
+      let target = heroTarget ?? alive[0];
 
       // enemy attack
       const hitChance = 0.8;
