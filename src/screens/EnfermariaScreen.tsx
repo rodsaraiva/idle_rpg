@@ -11,6 +11,7 @@ import {
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
 import { GoldDisplay } from '../components/GoldDisplay';
+import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { HeroCard } from '../components/HeroCard';
 import { Hero, HeroTask } from '../types';
 
@@ -56,13 +57,11 @@ export function EnfermariaScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
       <View style={styles.container}>
-        <View style={{ marginBottom: theme.spacing.md }}>
-          <Text style={styles.title}>Enfermaria</Text>
-          <Text style={styles.subtitle}>
-            {injuredIdle.length} herói{injuredIdle.length !== 1 ? 's' : ''} ferido{injuredIdle.length !== 1 ? 's' : ''}
-          </Text>
-        </View>
-        <GoldDisplay gold={state.gold} />
+        <ScreenHeader
+          title="Enfermaria"
+          subtitle={`${injuredIdle.length} herói${injuredIdle.length !== 1 ? 's' : ''} ferido${injuredIdle.length !== 1 ? 's' : ''}`}
+          right={<GoldDisplay gold={state.gold} />}
+        />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Na Enfermaria</Text>

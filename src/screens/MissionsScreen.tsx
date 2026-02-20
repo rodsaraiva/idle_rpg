@@ -9,6 +9,7 @@ import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { HeroCard } from '../components/HeroCard';
 import { MissionActiveItem } from '../components/MissionActiveItem';
 import { MissionResultModal } from '../components/MissionResultModal';
+import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { GoldDisplay } from '../components/GoldDisplay';
 
 export function MissionsScreen() {
@@ -67,11 +68,11 @@ export function MissionsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <MissionResultModal />
-        <View style={{ marginBottom: theme.spacing.md }}>
-          <Text style={styles.title}>Missões</Text>
-          <Text style={styles.subtitle}>Heróis em missão: {missionHeroes.length}</Text>
-        </View>
-        <GoldDisplay gold={state.gold} />
+        <ScreenHeader
+          title="Missões"
+          subtitle={`Heróis em missão: ${missionHeroes.length}`}
+          right={<GoldDisplay gold={state.gold} />}
+        />
 
         <Text style={[styles.subtitle, { marginTop: 12 }]}>Missões disponíveis</Text>
         <Text style={[styles.subtitle, { marginTop: 6 }]}>Heróis: {selectableHeroes.length}</Text>

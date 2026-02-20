@@ -12,6 +12,7 @@ import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
 import { getRecruitCost } from '../utils/math';
 import { GoldDisplay } from '../components/GoldDisplay';
+import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { HeroCard } from '../components/HeroCard';
 import { RecruitButton } from '../components/RecruitButton';
 import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
@@ -73,16 +74,11 @@ export function GuildScreen() {
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
 
       <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>Guilda</Text>
-            <Text style={styles.subtitle}>
-              {state.heroes.length} herói{state.heroes.length !== 1 ? 's' : ''}
-            </Text>
-          </View>
-          <GoldDisplay gold={state.gold} />
-        </View>
+        <ScreenHeader
+          title="Guilda"
+          subtitle={`${state.heroes.length} herói${state.heroes.length !== 1 ? 's' : ''}`}
+          right={<GoldDisplay gold={state.gold} />}
+        />
 
         {/* Botão de Recrutamento */}
         <View style={styles.recruitSection}>

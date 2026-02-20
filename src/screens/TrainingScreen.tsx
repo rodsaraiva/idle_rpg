@@ -4,6 +4,7 @@ import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
 import { getRecruitCost } from '../utils/math';
 import { GoldDisplay } from '../components/GoldDisplay';
+import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { HeroCard } from '../components/HeroCard';
 import { RecruitButton } from '../components/RecruitButton';
 import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
@@ -69,13 +70,11 @@ export function TrainingScreen() {
           <Text />
         </View>
         {/* ScreenHeader */}
-        <View style={{ marginBottom: theme.spacing.md }}>
-          <Text style={styles.title}>Treinamento</Text>
-          <Text style={styles.subtitle}>
-            {state.heroes.length} herói{state.heroes.length !== 1 ? 's' : ''}
-          </Text>
-        </View>
-        <GoldDisplay gold={state.gold} />
+        <ScreenHeader
+          title="Treinamento"
+          subtitle={`${state.heroes.length} herói${state.heroes.length !== 1 ? 's' : ''}`}
+          right={<GoldDisplay gold={state.gold} />}
+        />
 
         <View style={styles.recruitSection}>
           <RecruitButton cost={nextRecruitCost} canAfford={canAfford} onPress={recruitHero} />
