@@ -15,7 +15,7 @@ import { GoldDisplay } from '../components/GoldDisplay';
 import { HeroCard } from '../components/HeroCard';
 import { RecruitButton } from '../components/RecruitButton';
 import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
-import { Hero } from '../types';
+import { Hero, HeroTask } from '../types';
 
 export function GuildScreen() {
   const { state, setHeroTask, recruitHero, isLoaded, offlineSummary, clearOfflineSummary } =
@@ -35,7 +35,35 @@ export function GuildScreen() {
   const canAfford = state.gold >= nextRecruitCost;
 
   const renderHero = ({ item }: { item: Hero }) => (
-    <HeroCard hero={item} onSetTask={setHeroTask} />
+    <HeroCard
+      hero={item}
+      actions={[
+        {
+          label: 'Treinar HP',
+          isActive: item.currentTask === HeroTask.TRAIN_HP,
+          color: theme.colors.hp,
+          onPress: () => setHeroTask(item.id, HeroTask.TRAIN_HP),
+        },
+        {
+          label: 'Treinar ATK',
+          isActive: item.currentTask === HeroTask.TRAIN_ATK,
+          color: theme.colors.atk,
+          onPress: () => setHeroTask(item.id, HeroTask.TRAIN_ATK),
+        },
+        {
+          label: 'Treinar MP',
+          isActive: item.currentTask === HeroTask.TRAIN_MP,
+          color: theme.colors.mp,
+          onPress: () => setHeroTask(item.id, HeroTask.TRAIN_MP),
+        },
+        {
+          label: 'Descansar',
+          isActive: item.currentTask === HeroTask.IDLE,
+          color: theme.colors.textMuted,
+          onPress: () => setHeroTask(item.id, HeroTask.IDLE),
+        },
+      ]}
+    />
   );
 
   const keyExtractor = (item: Hero) => item.id;

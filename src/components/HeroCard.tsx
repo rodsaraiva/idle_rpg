@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Hero, HeroTask } from '../types';
 import { theme } from '../theme';
 import { StatBar } from './StatBar';
@@ -8,9 +8,21 @@ import { AttributeProgress } from './AttributeProgress';
 import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 import { CLASS_DEFS } from '../constants/classes';
 
+export interface HeroCardAction {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  color?: string;
+  isActive?: boolean;
+}
+
 interface HeroCardProps {
   hero: Hero;
-  onSetTask: (heroId: string, task: HeroTask) => void;
+  variant?: 'compact' | 'detailed';
+  actions?: HeroCardAction[];
+  selected?: boolean;
+  onToggle?: (id: string) => void;
+  onSetTask?: (heroId: string, task: HeroTask) => void;
 }
 
 const TASK_LABEL_MAP: Record<HeroTask, string> = {
@@ -22,10 +34,70 @@ const TASK_LABEL_MAP: Record<HeroTask, string> = {
   [HeroTask.MISSION]: '🪙 Em Missão',
 };
 
-export function HeroCard({ hero, onSetTask }: HeroCardProps) {
+export function HeroCard({
+  hero,
+  variant = 'detailed',
+  actions = [],
+  selected = false,
+  onToggle,
+  onSetTask,
+}: HeroCardProps) {
+  if (variant === 'compact') {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={styles.compactRow}
+        onPress={() => onToggle?.(hero.id)}
+        accessibilityRole="button"
+        accessibilityState={{ selected }}
+      >
+        <View style={[styles.checkbox, selected ? styles.checked : null]}>
+          {selected ? <Text style={styles.checkMark}>✓</Text> : null}
+        </View>
+        <View style={styles.compactInfo}>
+          <Text style={styles.name}>{hero.name}</Text>
+          <Text style={styles.classLabel}>{CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}</Text>
+          <Text style={styles.smallStats}>
+            HP {Math.floor(hero.hpCurrent)}/{Math.floor(hero.hpMax)} • ATK {Math.floor(hero.atk)}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
+  const defaultActions: HeroCardAction[] = onSetTask
+    ? [
+        {
+          label: 'Treinar HP',
+          isActive: hero.currentTask === HeroTask.TRAIN_HP,
+          color: theme.colors.hp,
+          onPress: () => onSetTask(hero.id, HeroTask.TRAIN_HP),
+        },
+        {
+          label: 'Treinar ATK',
+          isActive: hero.currentTask === HeroTask.TRAIN_ATK,
+          color: theme.colors.atk,
+          onPress: () => onSetTask(hero.id, HeroTask.TRAIN_ATK),
+        },
+        {
+          label: 'Treinar MP',
+          isActive: hero.currentTask === HeroTask.TRAIN_MP,
+          color: theme.colors.mp,
+          onPress: () => onSetTask(hero.id, HeroTask.TRAIN_MP),
+        },
+        {
+          label: 'Descansar',
+          isActive: hero.currentTask === HeroTask.IDLE,
+          color: theme.colors.textMuted,
+          onPress: () => onSetTask(hero.id, HeroTask.IDLE),
+        },
+      ]
+    : [];
+
+  const renderedActions = actions.length > 0 ? actions : defaultActions;
+
   return (
     <View style={styles.card}>
-      {/* Cabeçalho */}
       <View style={styles.header}>
         <View>
           <Text style={styles.name}>{hero.name}</Text>
@@ -39,19 +111,17 @@ export function HeroCard({ hero, onSetTask }: HeroCardProps) {
         </View>
       </View>
 
-      {/* Atributos */}
       <View style={styles.stats}>
         <View style={styles.hpRow}>
           <Text style={[styles.hpLabel, { color: theme.colors.hp }]}>HP</Text>
-          <Text style={[styles.hpValue, { color: theme.colors.hp }]}>{`${Math.floor(
-            hero.hpCurrent
-          )}/${Math.floor(hero.hpMax)}`}</Text>
+          <Text style={[styles.hpValue, { color: theme.colors.hp }]}>
+            {Math.floor(hero.hpCurrent)}/{Math.floor(hero.hpMax)}
+          </Text>
         </View>
         <StatBar label="ATK" value={Math.floor(hero.atk)} color={theme.colors.atk} />
         <StatBar label="MP" value={Math.floor(hero.mp)} color={theme.colors.mp} />
       </View>
 
-      {/* Barra de progresso do atributo atual */}
       {hero.currentTask === HeroTask.TRAIN_HP && hero.trainingProgressMs ? (
         <AttributeProgress
           fraction={
@@ -83,32 +153,16 @@ export function HeroCard({ hero, onSetTask }: HeroCardProps) {
         />
       ) : null}
 
-      {/* Botões de Tarefa */}
       <View style={styles.actions}>
-        <TaskButton
-          label="Treinar HP"
-          isActive={hero.currentTask === HeroTask.TRAIN_HP}
-          color={theme.colors.hp}
-          onPress={() => onSetTask(hero.id, HeroTask.TRAIN_HP)}
-        />
-        <TaskButton
-          label="Treinar ATK"
-          isActive={hero.currentTask === HeroTask.TRAIN_ATK}
-          color={theme.colors.atk}
-          onPress={() => onSetTask(hero.id, HeroTask.TRAIN_ATK)}
-        />
-        <TaskButton
-          label="Treinar MP"
-          isActive={hero.currentTask === HeroTask.TRAIN_MP}
-          color={theme.colors.mp}
-          onPress={() => onSetTask(hero.id, HeroTask.TRAIN_MP)}
-        />
-        <TaskButton
-          label="Descansar"
-          isActive={hero.currentTask === HeroTask.IDLE}
-          color={theme.colors.textMuted}
-          onPress={() => onSetTask(hero.id, HeroTask.IDLE)}
-        />
+        {renderedActions.map((a, i) => (
+          <TaskButton
+            key={`${a.label}-${i}`}
+            label={a.label}
+            isActive={!!a.isActive}
+            color={a.color ?? theme.colors.primary}
+            onPress={a.onPress}
+          />
+        ))}
       </View>
     </View>
   );
@@ -172,5 +226,45 @@ const styles = StyleSheet.create({
   hpValue: {
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.bold,
+  },
+  incapText: {
+    marginTop: 4,
+    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.xs,
+  },
+  compactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 8,
+    backgroundColor: theme.colors.surface,
+    marginBottom: 6,
+  },
+  checkbox: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  checked: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  checkMark: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+  compactInfo: {
+    flex: 1,
+  },
+  smallStats: {
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+    fontSize: 12,
   },
 });

@@ -25,7 +25,35 @@ export function TrainingScreen() {
   const canAfford = state.gold >= nextRecruitCost;
 
   const renderHero = ({ item }: { item: Hero }) => (
-    <HeroCard hero={item} onSetTask={setHeroTask} />
+    <HeroCard
+      hero={item}
+      actions={[
+        {
+          label: 'Treinar HP',
+          isActive: item.currentTask === HeroTask.TRAIN_HP,
+          color: theme.colors.hp,
+          onPress: () => setHeroTask(item.id, HeroTask.TRAIN_HP),
+        },
+        {
+          label: 'Treinar ATK',
+          isActive: item.currentTask === HeroTask.TRAIN_ATK,
+          color: theme.colors.atk,
+          onPress: () => setHeroTask(item.id, HeroTask.TRAIN_ATK),
+        },
+        {
+          label: 'Treinar MP',
+          isActive: item.currentTask === HeroTask.TRAIN_MP,
+          color: theme.colors.mp,
+          onPress: () => setHeroTask(item.id, HeroTask.TRAIN_MP),
+        },
+        {
+          label: 'Descansar',
+          isActive: item.currentTask === HeroTask.IDLE,
+          color: theme.colors.textMuted,
+          onPress: () => setHeroTask(item.id, HeroTask.IDLE),
+        },
+      ]}
+    />
   );
 
   const keyExtractor = (item: Hero) => item.id;
@@ -36,17 +64,18 @@ export function TrainingScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
       <View style={styles.container}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>Treinamento</Text>
-            <Text style={styles.subtitle}>
-              {state.heroes.length} herói{state.heroes.length !== 1 ? 's' : ''}
-            </Text>
-          </View>
-          <GoldDisplay gold={state.gold} />
+          <Text />
         </View>
+        {/* ScreenHeader */}
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <Text style={styles.title}>Treinamento</Text>
+          <Text style={styles.subtitle}>
+            {state.heroes.length} herói{state.heroes.length !== 1 ? 's' : ''}
+          </Text>
+        </View>
+        <GoldDisplay gold={state.gold} />
 
         <View style={styles.recruitSection}>
           <RecruitButton cost={nextRecruitCost} canAfford={canAfford} onPress={recruitHero} />

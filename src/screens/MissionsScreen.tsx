@@ -6,9 +6,10 @@ import { theme } from '../theme';
 import { Hero } from '../types';
 import { MISSIONS } from '../constants/missions';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
-import { HeroSelectableRow } from '../components/HeroSelectableRow';
+import { HeroCard } from '../components/HeroCard';
 import { MissionActiveItem } from '../components/MissionActiveItem';
 import { MissionResultModal } from '../components/MissionResultModal';
+import { GoldDisplay } from '../components/GoldDisplay';
 
 export function MissionsScreen() {
   const { state, isLoaded, dispatch } = useGame();
@@ -60,18 +61,21 @@ export function MissionsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <MissionResultModal />
-        <Text style={styles.title}>Missões</Text>
-        <Text style={styles.subtitle}>Heróis em missão: {missionHeroes.length}</Text>
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <Text style={styles.title}>Missões</Text>
+          <Text style={styles.subtitle}>Heróis em missão: {missionHeroes.length}</Text>
+        </View>
+        <GoldDisplay gold={state.gold} />
 
         <Text style={[styles.subtitle, { marginTop: 12 }]}>Missões disponíveis</Text>
         <Text style={[styles.subtitle, { marginTop: 6 }]}>Heróis disponíveis: {idleHeroes.length}</Text>
         <View style={{ marginTop: 8, marginBottom: 8 }}>
           {idleHeroes.map((h) => (
-            <HeroSelectableRow
+            <HeroCard
               key={h.id}
               hero={h}
+              variant="compact"
               selected={selectedIds.includes(h.id)}
-              disabled={false}
               onToggle={(id) =>
                 setSelectedIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))
               }

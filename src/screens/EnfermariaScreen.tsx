@@ -7,14 +7,11 @@ import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
-  TouchableOpacity,
 } from 'react-native';
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
-import { getRecruitCost } from '../utils/math';
 import { GoldDisplay } from '../components/GoldDisplay';
 import { HeroCard } from '../components/HeroCard';
-import { HeroSelectableRow } from '../components/HeroSelectableRow';
 import { Hero, HeroTask } from '../types';
 
 export function EnfermariaScreen() {
@@ -52,22 +49,20 @@ export function EnfermariaScreen() {
   };
 
   const renderSelectable = ({ item }: { item: Hero }) => (
-    <HeroSelectableRow hero={item} selected={selectedIds.includes(item.id)} onToggle={toggle} />
+    <HeroCard hero={item} variant="compact" selected={selectedIds.includes(item.id)} onToggle={toggle} />
   );
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
       <View style={styles.container}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>Enfermaria</Text>
-            <Text style={styles.subtitle}>
-              {injuredIdle.length} herói{injuredIdle.length !== 1 ? 's' : ''} ferido{injuredIdle.length !== 1 ? 's' : ''}
-            </Text>
-          </View>
-          <GoldDisplay gold={state.gold} />
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <Text style={styles.title}>Enfermaria</Text>
+          <Text style={styles.subtitle}>
+            {injuredIdle.length} herói{injuredIdle.length !== 1 ? 's' : ''} ferido{injuredIdle.length !== 1 ? 's' : ''}
+          </Text>
         </View>
+        <GoldDisplay gold={state.gold} />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Na Enfermaria</Text>
@@ -75,12 +70,17 @@ export function EnfermariaScreen() {
             <Text style={styles.empty}>Nenhum herói na enfermaria</Text>
           ) : (
             inInfirmary.map((h) => (
-              <View key={h.id} style={styles.infirmaryRow}>
-                <HeroCard hero={h} onSetTask={() => {}} />
-                <TouchableOpacity style={styles.smallButton} onPress={() => releaseFromInfirmary(h.id)}>
-                  <Text style={styles.smallButtonText}>Retirar</Text>
-                </TouchableOpacity>
-              </View>
+              <HeroCard
+                key={h.id}
+                hero={h}
+                actions={[
+                  {
+                    label: 'Retirar',
+                    color: theme.colors.textMuted,
+                    onPress: () => releaseFromInfirmary(h.id),
+                  },
+                ]}
+              />
             ))
           )}
         </View>
@@ -113,15 +113,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: theme.spacing.md },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: theme.colors.textSecondary },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: theme.spacing.lg, paddingBottom: theme.spacing.md },
   title: { fontSize: theme.fontSize.xxl, fontWeight: theme.fontWeight.bold, color: theme.colors.textPrimary },
   subtitle: { fontSize: theme.fontSize.sm, color: theme.colors.textSecondary, marginTop: 2 },
   section: { marginTop: theme.spacing.md },
   sectionTitle: { fontWeight: theme.fontWeight.semibold, color: theme.colors.textPrimary, marginBottom: theme.spacing.sm },
   empty: { color: theme.colors.textSecondary },
-  infirmaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing.sm },
-  smallButton: { backgroundColor: theme.colors.surfaceLight, paddingHorizontal: 8, paddingVertical: 6, borderRadius: theme.borderRadius.sm },
-  smallButtonText: { color: theme.colors.textPrimary },
   listContent: { paddingBottom: theme.spacing.xl },
   actionsRow: { marginTop: theme.spacing.md },
 });

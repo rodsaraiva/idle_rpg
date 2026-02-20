@@ -4,10 +4,14 @@ import { theme } from '../theme';
 
 export function ShopScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Loja</Text>
-      <Text style={styles.empty}>Em breve: itens e consumíveis</Text>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <Text style={styles.title}>Loja</Text>
+          <Text style={styles.subtitle}>Em breve: itens e consumíveis</Text>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
