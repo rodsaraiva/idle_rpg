@@ -343,16 +343,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'BUY_CHEST': {
       const cost = getRecruitCost(state.heroesRecruited);
       if (state.gold < cost) return state;
-      return {
+      console.log('[gameReducer] BUY_CHEST before:', { gold: state.gold, cost });
+      const newState = {
         ...state,
         gold: state.gold - cost,
       };
+      console.log('[gameReducer] BUY_CHEST after:', { gold: newState.gold });
+      return newState;
     }
 
     case 'CONFIRM_CHEST_REVEAL': {
+      console.log('[gameReducer] CONFIRM_CHEST_REVEAL adding hero', action.hero?.id);
+      const newHeroes = [...state.heroes, action.hero];
       return {
         ...state,
-        heroes: [...state.heroes, action.hero],
+        heroes: newHeroes,
         heroesRecruited: state.heroesRecruited + 1,
       };
     }

@@ -223,12 +223,15 @@ export function ChestRevealModal({
   const generateHero = (): Hero => {
     const classKeys = Object.keys(CLASS_DEFS) as ClassId[];
     const randClass = classKeys[Math.floor(Math.random() * classKeys.length)];
-    return createHero(randClass);
+    const h = createHero(randClass);
+    console.log('[ChestRevealModal] generated hero', { id: h.id, classId: h.classId, name: h.name });
+    return h;
   };
 
   const handleConfirm = () => {
     if (revealedHero) {
       lightTap();
+      console.log('[ChestRevealModal] handleConfirm - completing with hero', revealedHero.id);
       onComplete(revealedHero);
     }
   };
@@ -271,7 +274,7 @@ export function ChestRevealModal({
   const classEmoji = revealedHero?.classId ? CLASS_EMOJI[revealedHero.classId] : '❓';
 
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent={Platform.OS !== 'web'}>
       <View style={styles.backdrop}>
         <View style={styles.content}>
           {phase !== 'revealed' && (
@@ -375,15 +378,25 @@ export function ChestRevealModal({
 
 const styles = StyleSheet.create({
   backdrop: {
-    flex: 1,
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 9999,
   },
   content: {
     alignItems: 'center',
     paddingHorizontal: theme.spacing.lg,
     width: '100%',
+    maxWidth: 720,
+    maxHeight: '84vh',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.lg,
+    overflow: 'hidden',
   },
   chestLabel: {
     fontSize: theme.fontSize.xl,
@@ -397,11 +410,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
+    overflow: 'hidden',
+    position: 'relative',
   },
   lottiePulse: {
     position: 'absolute',
-    width: 200,
-    height: 200,
+    width: 160,
+    height: 160,
+    top: 0,
+    left: 0,
   },
   chestIcon: {
     justifyContent: 'center',
@@ -425,13 +442,19 @@ const styles = StyleSheet.create({
   },
   lottieBurst: {
     position: 'absolute',
-    width: 300,
-    height: 300,
+    width: 260,
+    height: 260,
+    top: -30,
+    left: '50%',
+    marginLeft: -130,
   },
   lottieConfetti: {
     position: 'absolute',
-    width: 420,
-    height: 420,
+    width: 340,
+    height: 340,
+    top: -60,
+    left: '50%',
+    marginLeft: -170,
   },
   heroCard: {
     backgroundColor: theme.colors.surface,

@@ -24,13 +24,17 @@ export function ShopScreen() {
       emit(FEEDBACK_EVENTS.TOAST, { text: 'Ouro insuficiente' });
       return;
     }
+    console.log('[ShopScreen] BUY_CHEST dispatch, before:', { gold: state.gold, chestId, label });
     dispatch({ type: 'BUY_CHEST', chestId });
+    console.log('[ShopScreen] BUY_CHEST dispatched, after (approx):', { chestId });
     setActiveChestLabel(label);
     setRevealVisible(true);
   };
 
   const handleRevealComplete = (hero: Hero) => {
+    console.log('[ShopScreen] CONFIRM_CHEST_REVEAL received hero:', hero);
     dispatch({ type: 'CONFIRM_CHEST_REVEAL', hero });
+    console.log('[ShopScreen] CONFIRM_CHEST_REVEAL dispatched for hero id:', hero?.id);
     setRevealVisible(false);
     setActiveChestLabel('');
   };
