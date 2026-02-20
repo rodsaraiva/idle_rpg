@@ -310,12 +310,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'SET_HERO_TASK': {
+      // do not allow changing a hero's task if they are currently on a mission
+      const target = state.heroes.find((h) => h.id === action.heroId);
+      if (!target) return state;
+      if (target.currentTask === HeroTask.MISSION) {
+        // ignore attempts to interrupt heroes on missions
+        return state;
+      }
       return {
         ...state,
         heroes: state.heroes.map((hero) =>
-          hero.id === action.heroId
-            ? { ...hero, currentTask: action.task }
-            : hero
+          hero.id === action.heroId ? { ...hero, currentTask: action.task } : hero
         ),
       };
     }
@@ -349,9 +354,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
     case 'START_INFERMARIA': {
       const heroesMap = new Map(state.heroes.map((h) => [h.id, h]));
+      // allow sending to infirmary even if the hero is training, but never if on a mission
       const heroIds = action.heroIds.filter((id) => {
         const h = heroesMap.get(id);
-        return !!h && h.currentTask === HeroTask.IDLE && (h.hpCurrent ?? 0) < (h.hpMax ?? 0);
+        return !!h && h.currentTask !== HeroTask.MISSION && (h.hpCurrent ?? 0) < (h.hpMax ?? 0);
       });
       if (heroIds.length === 0) return state;
       const newHeroesState = state.heroes.map((h) =>

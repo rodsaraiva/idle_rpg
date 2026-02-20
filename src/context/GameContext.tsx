@@ -275,6 +275,13 @@ export function GameProvider({ children }: GameProviderProps) {
 
   const setHeroTask = useCallback(
     (heroId: string, task: HeroTask) => {
+      // prevent interrupting heroes currently on mission (quick guard in context to avoid unnecessary dispatch)
+      const h = stateRef.current.heroes.find((x) => x.id === heroId);
+      if (!h) return;
+      if (h.currentTask === HeroTask.MISSION) {
+        emit(FEEDBACK_EVENTS.TOAST, { text: 'Herói em missão — não pode ser interrompido' });
+        return;
+      }
       dispatch({ type: 'SET_HERO_TASK', heroId, task });
     },
     [dispatch]

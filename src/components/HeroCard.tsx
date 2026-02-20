@@ -67,32 +67,39 @@ export function HeroCard({
   }
 
   const defaultActions: HeroCardAction[] = onSetTask
-    ? [
-        {
-          label: 'Treinar HP',
-          isActive: hero.currentTask === HeroTask.TRAIN_HP,
-          color: theme.colors.hp,
-          onPress: () => onSetTask(hero.id, HeroTask.TRAIN_HP),
-        },
-        {
-          label: 'Treinar ATK',
-          isActive: hero.currentTask === HeroTask.TRAIN_ATK,
-          color: theme.colors.atk,
-          onPress: () => onSetTask(hero.id, HeroTask.TRAIN_ATK),
-        },
-        {
-          label: 'Treinar MP',
-          isActive: hero.currentTask === HeroTask.TRAIN_MP,
-          color: theme.colors.mp,
-          onPress: () => onSetTask(hero.id, HeroTask.TRAIN_MP),
-        },
-        {
-          label: 'Descansar',
-          isActive: hero.currentTask === HeroTask.IDLE,
-          color: theme.colors.textMuted,
-          onPress: () => onSetTask(hero.id, HeroTask.IDLE),
-        },
-      ]
+    ? (() => {
+        const isLocked = hero.currentTask === HeroTask.MISSION;
+        return [
+          {
+            label: 'Treinar HP',
+            isActive: hero.currentTask === HeroTask.TRAIN_HP,
+            color: theme.colors.hp,
+            disabled: isLocked,
+            onPress: () => !isLocked && onSetTask(hero.id, HeroTask.TRAIN_HP),
+          },
+          {
+            label: 'Treinar ATK',
+            isActive: hero.currentTask === HeroTask.TRAIN_ATK,
+            color: theme.colors.atk,
+            disabled: isLocked,
+            onPress: () => !isLocked && onSetTask(hero.id, HeroTask.TRAIN_ATK),
+          },
+          {
+            label: 'Treinar MP',
+            isActive: hero.currentTask === HeroTask.TRAIN_MP,
+            color: theme.colors.mp,
+            disabled: isLocked,
+            onPress: () => !isLocked && onSetTask(hero.id, HeroTask.TRAIN_MP),
+          },
+          {
+            label: 'Descansar',
+            isActive: hero.currentTask === HeroTask.IDLE,
+            color: theme.colors.textMuted,
+            disabled: isLocked,
+            onPress: () => !isLocked && onSetTask(hero.id, HeroTask.IDLE),
+          },
+        ];
+      })()
     : [];
 
   const renderedActions = actions.length > 0 ? actions : defaultActions;
@@ -162,6 +169,7 @@ export function HeroCard({
             isActive={!!a.isActive}
             color={a.color ?? theme.colors.primary}
             onPress={a.onPress}
+            disabled={!!a.disabled}
           />
         ))}
       </View>

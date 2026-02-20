@@ -23,24 +23,24 @@ export function MissionsScreen() {
   }
 
   const missionHeroes = state.heroes.filter((h) => h.currentTask === HeroTask.MISSION);
-  // show all heroes in the missions screen (including training/infirmary); selection may include them
-  const allHeroes = state.heroes;
+  // heróis que podem ser selecionados para novas missões (exclui os que já estão em missão)
+  const selectableHeroes = state.heroes.filter((h) => h.currentTask !== HeroTask.MISSION);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  // keep selectedIds stable unless heroes are removed from the roster
+  // keep selectedIds stable unless selectable heroes change or are removed
   useEffect(() => {
-    setSelectedIds((s) => s.filter((id) => allHeroes.some((h) => h.id === id)));
-  }, [allHeroes]);
+    setSelectedIds((s) => s.filter((id) => selectableHeroes.some((h) => h.id === id)));
+  }, [selectableHeroes]);
 
   const startMission = (templateId: string, minHeroes: number) => {
     if (selectedIds.length < minHeroes) {
       emit(FEEDBACK_EVENTS.TOAST, { text: `Selecione ao menos ${minHeroes} herói(s)` });
       return;
     }
-    // validate selected still exist and are not already in mission or incapacitated
+    // validate selected still exist among selectable heroes and are not incapacitated
     const now = Date.now();
     const valid = selectedIds.filter((id) =>
-      allHeroes.some((h) => h.id === id && h.currentTask !== HeroTask.MISSION && !(h.incapacitatedUntilMs && h.incapacitatedUntilMs > now))
+      selectableHeroes.some((h) => h.id === id && !(h.incapacitatedUntilMs && h.incapacitatedUntilMs > now))
     );
     if (valid.length < minHeroes) {
       emit(FEEDBACK_EVENTS.TOAST, { text: 'Alguns heróis não podem ir para missão (estão incapacitados ou já em missão)' });
@@ -51,7 +51,7 @@ export function MissionsScreen() {
     setSelectedIds((s) => s.filter((id) => !valid.includes(id)));
   };
 
-  const availableCount = allHeroes.filter((h) => h.currentTask !== HeroTask.MISSION && !(h.incapacitatedUntilMs && h.incapacitatedUntilMs > Date.now())).length;
+  const availableCount = selectableHeroes.filter((h) => !(h.incapacitatedUntilMs && h.incapacitatedUntilMs > Date.now())).length;
 
   const renderHero = ({ item }: { item: Hero }) => (
     <View style={styles.heroRow}>
@@ -74,9 +74,9 @@ export function MissionsScreen() {
         <GoldDisplay gold={state.gold} />
 
         <Text style={[styles.subtitle, { marginTop: 12 }]}>Missões disponíveis</Text>
-        <Text style={[styles.subtitle, { marginTop: 6 }]}>Heróis: {allHeroes.length}</Text>
+        <Text style={[styles.subtitle, { marginTop: 6 }]}>Heróis: {selectableHeroes.length}</Text>
         <View style={{ marginTop: 8, marginBottom: 8 }}>
-          {allHeroes.map((h) => (
+          {selectableHeroes.map((h) => (
             <HeroCard
               key={h.id}
               hero={h}

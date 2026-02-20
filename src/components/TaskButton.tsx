@@ -7,6 +7,7 @@ interface TaskButtonProps {
   onPress: () => void;
   isActive: boolean;
   color?: string;
+  disabled?: boolean;
 }
 
 export function TaskButton({
@@ -14,17 +15,21 @@ export function TaskButton({
   onPress,
   isActive,
   color = theme.colors.primary,
+  disabled = false,
 }: TaskButtonProps) {
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        isActive
+        disabled
+          ? { opacity: 0.5, backgroundColor: 'transparent', borderColor: theme.colors.border }
+          : isActive
           ? { backgroundColor: color, borderColor: color }
           : { backgroundColor: 'transparent', borderColor: theme.colors.border },
       ]}
       onPress={onPress}
       activeOpacity={0.7}
+      disabled={disabled}
     >
       <Text
         style={[
