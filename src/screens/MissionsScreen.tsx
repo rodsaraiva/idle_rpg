@@ -23,29 +23,35 @@ export function MissionsScreen() {
   }
 
   const missionHeroes = state.heroes.filter((h) => h.currentTask === HeroTask.MISSION);
-  const idleHeroes = state.heroes.filter((h) => h.currentTask === HeroTask.IDLE);
+  // show all heroes in the missions screen (including training/infirmary); selection may include them
+  const allHeroes = state.heroes;
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+  // keep selectedIds stable unless heroes are removed from the roster
   useEffect(() => {
-    // remove selected ids that are no longer idle
-    setSelectedIds((s) => s.filter((id) => idleHeroes.some((h) => h.id === id)));
-  }, [idleHeroes]);
+    setSelectedIds((s) => s.filter((id) => allHeroes.some((h) => h.id === id)));
+  }, [allHeroes]);
 
   const startMission = (templateId: string, minHeroes: number) => {
     if (selectedIds.length < minHeroes) {
       emit(FEEDBACK_EVENTS.TOAST, { text: `Selecione ao menos ${minHeroes} herói(s)` });
       return;
     }
-    // ensure selected are still idle
-    const valid = selectedIds.filter((id) => idleHeroes.some((h) => h.id === id));
+    // validate selected still exist and are not already in mission or incapacitated
+    const now = Date.now();
+    const valid = selectedIds.filter((id) =>
+      allHeroes.some((h) => h.id === id && h.currentTask !== HeroTask.MISSION && !(h.incapacitatedUntilMs && h.incapacitatedUntilMs > now))
+    );
     if (valid.length < minHeroes) {
-      emit(FEEDBACK_EVENTS.TOAST, { text: 'Alguns heróis não estão mais disponíveis' });
+      emit(FEEDBACK_EVENTS.TOAST, { text: 'Alguns heróis não podem ir para missão (estão incapacitados ou já em missão)' });
       return;
     }
     dispatch({ type: 'START_MISSION', templateId, heroIds: valid });
     // clear selections that were sent
     setSelectedIds((s) => s.filter((id) => !valid.includes(id)));
   };
+
+  const availableCount = allHeroes.filter((h) => h.currentTask !== HeroTask.MISSION && !(h.incapacitatedUntilMs && h.incapacitatedUntilMs > Date.now())).length;
 
   const renderHero = ({ item }: { item: Hero }) => (
     <View style={styles.heroRow}>
@@ -68,9 +74,9 @@ export function MissionsScreen() {
         <GoldDisplay gold={state.gold} />
 
         <Text style={[styles.subtitle, { marginTop: 12 }]}>Missões disponíveis</Text>
-        <Text style={[styles.subtitle, { marginTop: 6 }]}>Heróis disponíveis: {idleHeroes.length}</Text>
+        <Text style={[styles.subtitle, { marginTop: 6 }]}>Heróis: {allHeroes.length}</Text>
         <View style={{ marginTop: 8, marginBottom: 8 }}>
-          {idleHeroes.map((h) => (
+          {allHeroes.map((h) => (
             <HeroCard
               key={h.id}
               hero={h}
@@ -95,7 +101,7 @@ export function MissionsScreen() {
                 <Button
                   title="Enviar"
                   onPress={() => startMission(item.id, item.minHeroes)}
-                  disabled={idleHeroes.length < item.minHeroes}
+                  disabled={availableCount < item.minHeroes}
                 />
               </View>
             </View>

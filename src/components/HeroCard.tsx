@@ -60,6 +60,7 @@ export function HeroCard({
           <Text style={styles.smallStats}>
             HP {Math.floor(hero.hpCurrent)}/{Math.floor(hero.hpMax)} • ATK {Math.floor(hero.atk)}
           </Text>
+          <Text style={styles.statusText}>{TASK_LABEL_MAP[hero.currentTask]}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -265,6 +266,11 @@ const styles = StyleSheet.create({
   smallStats: {
     color: theme.colors.textSecondary,
     marginTop: 2,
+    fontSize: 12,
+  },
+  statusText: {
+    color: theme.colors.textSecondary,
+    marginTop: 4,
     fontSize: 12,
   },
 });

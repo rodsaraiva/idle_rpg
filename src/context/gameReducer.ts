@@ -233,24 +233,23 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const template = MISSIONS.find((t) => t.id === action.templateId);
       if (!template) return state;
       if ((action.heroIds?.length ?? 0) < template.minHeroes) return state;
-      // verify heroes exist and are free (not training and not in mission)
+
+      // build map of heroes
       const heroesMap = new Map(state.heroes.map((h) => [h.id, h]));
+
+      // validate heroes exist and are not currently already in a mission or incapacitated
+      const now = Date.now();
       for (const hid of action.heroIds) {
         const h = heroesMap.get(hid);
-        if (!h) return state; // invalid hero
-        if (
-          h.currentTask === HeroTask.TRAIN_ATK ||
-          h.currentTask === HeroTask.TRAIN_HP ||
-          h.currentTask === HeroTask.TRAIN_MP ||
-          h.currentTask === HeroTask.MISSION ||
-          h.currentTask === HeroTask.INFIRMARY
-        ) {
-          return state; // hero busy
-        }
+        if (!h) return state; // invalid hero id
+        if (h.currentTask === HeroTask.MISSION) return state; // already in mission
+        if (h.incapacitatedUntilMs && h.incapacitatedUntilMs > now) return state; // cannot send incapacitated hero
       }
+
       // assign mission id
       const missionId = uuidv4();
-      // compute modifiers: healer buff and rogue rng bonus
+
+      // compute modifiers: healer buff and rogue rng bonus using the heroes at the time of start
       const heroesForMission = action.heroIds.map((id) => heroesMap.get(id)!).filter(Boolean) as any[];
       const countHealers = heroesForMission.filter((h) => h.classId === 'HEALER').length;
       const countRogues = heroesForMission.filter((h) => h.classId === 'ROGUE').length;
@@ -266,9 +265,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         healerBuffMultiplier,
         rogueRngBonus,
       };
-      // mark heroes as on mission
+
+      // mark heroes as on mission and immediately cancel any training/infirmary state
       const newHeroesState = state.heroes.map((h) =>
-        action.heroIds.includes(h.id) ? { ...h, currentTask: HeroTask.MISSION } : h
+        action.heroIds.includes(h.id)
+          ? {
+              ...h,
+              currentTask: HeroTask.MISSION,
+              // discard training progress/count when sent to mission (simpler behavior)
+              trainingProgressMs: undefined,
+              trainingCount: undefined,
+            }
+          : h
       );
 
       return {
