@@ -75,25 +75,43 @@ export function computeBattleOutcome(
   const aliveHeroes = () => heroes.filter((h) => h.hpCurrent > 0);
 
   // choose target helper based on attacker attackType
-  function chooseTarget<T extends { hp: number }>(
+  function chooseTarget<T extends Record<string, any>>(
     attackerType: 'MELEE' | 'RANGED',
     candidates: T[],
     rngLocal: () => number
   ): T | undefined {
     if (!candidates || candidates.length === 0) return undefined;
-    const sorted = [...candidates].sort((a, b) => a.hp - b.hp);
+    // helper to read hp (supports enemy.hp or hero.hpCurrent)
+    const hpOf = (c: T) => {
+      const maybeHp = (c as any).hp;
+      if (typeof maybeHp === 'number') return maybeHp;
+      const maybeHpCur = (c as any).hpCurrent;
+      if (typeof maybeHpCur === 'number') return maybeHpCur;
+      return 0;
+    };
+
+    const sorted = [...candidates].sort((a, b) => hpOf(a) - hpOf(b));
     const min = sorted[0];
     const max = sorted[sorted.length - 1];
     const roll = Math.floor(rngLocal() * 100); // 0..99
+
+    const randomCandidate = () => candidates[Math.floor(rngLocal() * candidates.length)];
+
+    const chooseAmongEquals = (value: number, list: T[]) => {
+      const group = list.filter((x) => hpOf(x) === value);
+      if (group.length <= 1) return group[0];
+      return group[Math.floor(rngLocal() * group.length)];
+    };
+
     if (attackerType === 'MELEE') {
-      if (roll < 70) return max;
-      if (roll < 90) return min;
-      return candidates[Math.floor(rngLocal() * candidates.length)];
+      if (roll < 70) return chooseAmongEquals(hpOf(max), sorted);
+      if (roll < 90) return chooseAmongEquals(hpOf(min), sorted);
+      return randomCandidate();
     } else {
       // RANGED
-      if (roll < 60) return min;
-      if (roll < 90) return max;
-      return candidates[Math.floor(rngLocal() * candidates.length)];
+      if (roll < 60) return chooseAmongEquals(hpOf(min), sorted);
+      if (roll < 90) return chooseAmongEquals(hpOf(max), sorted);
+      return randomCandidate();
     }
   }
 
@@ -158,8 +176,8 @@ export function computeBattleOutcome(
       if (alive.length === 0) break;
       // choose target based on enemy.attackType
       const enemyType = (enemy as any).attackType ?? 'MELEE';
-      // pass hero objects but map hp to hpCurrent for selector (chooseTarget expects {hp:number})
-      const heroTarget = chooseTarget(enemyType, alive.map((h) => ({ ...h, hp: h.hpCurrent } as any)), rng) as any;
+      // pass hero objects directly; chooseTarget will read hpCurrent internally
+      const heroTarget = chooseTarget(enemyType, alive, rng) as any;
       let target = heroTarget ?? alive[0];
 
       // enemy attack
