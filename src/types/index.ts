@@ -64,6 +64,8 @@ export type GameAction =
   | { type: 'RELEASE_FROM_INFERMARIA'; heroIds: string[] }
   | { type: 'SET_HERO_TASK'; heroId: string; task: HeroTask }
   | { type: 'RECRUIT_HERO' }
+  | { type: 'BUY_CHEST'; chestId: string }
+  | { type: 'CONFIRM_CHEST_REVEAL'; hero: Hero }
   | { type: 'SET_TICK_INTERVAL'; ms: number }
   | { type: 'SET_TRAIN_INFLATION'; inflation: number }
   | { type: 'START_MISSION'; templateId: string; heroIds: string[] }
