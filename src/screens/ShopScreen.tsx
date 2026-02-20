@@ -1,23 +1,52 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, ScrollView } from 'react-native';
 import { theme } from '../theme';
+import { ScreenHeader } from '../components/ui/ScreenHeader';
+import { GoldDisplay } from '../components/GoldDisplay';
+import { RecruitButton } from '../components/RecruitButton';
+import { useGame } from '../hooks/useGame';
+import { getRecruitCost } from '../utils/math';
+import { SHOP_ITEMS } from '../constants/shop';
 
 export function ShopScreen() {
+  const { state, recruitHero } = useGame();
+  const cost = getRecruitCost(state.heroesRecruited);
+  const canAfford = state.gold >= cost;
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={{ marginBottom: theme.spacing.md }}>
-          <Text style={styles.title}>Loja</Text>
-          <Text style={styles.subtitle}>Em breve: itens e consumíveis</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <ScreenHeader title="Loja" subtitle="Compre baús para recrutar heróis" right={<GoldDisplay gold={state.gold} />} />
+
+        <View style={styles.description}>
+          <Text style={styles.helpText}>Por enquanto os baús recrutam heróis aleatórios (mesmo comportamento de Recrutar Herói).</Text>
         </View>
-      </View>
+
+        <View style={styles.items}>
+          {SHOP_ITEMS.map((it) => (
+            <View key={it.id} style={styles.item}>
+              <RecruitButton
+                cost={cost}
+                canAfford={canAfford}
+                onPress={() => {
+                  recruitHero();
+                }}
+                label={it.label}
+              />
+            </View>
+          ))}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: theme.spacing.md },
-  title: { fontSize: theme.fontSize.xxl, fontWeight: theme.fontWeight.bold, color: theme.colors.textPrimary },
-  empty: { color: theme.colors.textSecondary, marginTop: theme.spacing.md },
+  safeArea: { flex: 1, backgroundColor: theme.colors.background },
+  container: { padding: theme.spacing.md },
+  description: { marginVertical: theme.spacing.md },
+  helpText: { color: theme.colors.textSecondary },
+  items: { gap: theme.spacing.md },
+  item: { marginBottom: theme.spacing.md },
 });
 

@@ -6,12 +6,13 @@ import { getRecruitCost } from '../utils/math';
 import { GoldDisplay } from '../components/GoldDisplay';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { HeroCard } from '../components/HeroCard';
-import { RecruitButton } from '../components/RecruitButton';
+import { useNavigation } from '@react-navigation/native';
 import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
 import { Hero, HeroTask } from '../types';
 
 export function TrainingScreen() {
-  const { state, setHeroTask, recruitHero, isLoaded, offlineSummary, clearOfflineSummary, applyOfflineSummary } = useGame();
+  const { state, setHeroTask, isLoaded, offlineSummary, clearOfflineSummary, applyOfflineSummary } = useGame();
+  const navigation = useNavigation<any>();
 
   if (!isLoaded) {
     return (
@@ -76,9 +77,7 @@ export function TrainingScreen() {
           right={<GoldDisplay gold={state.gold} />}
         />
 
-        <View style={styles.recruitSection}>
-          <RecruitButton cost={nextRecruitCost} canAfford={canAfford} onPress={recruitHero} />
-        </View>
+        {/* Recruit moved to Loja — no recruit button here */}
 
         <View style={styles.batchRow}>
           <TouchableOpacity style={styles.batchButton} onPress={() => setAll(HeroTask.TRAIN_HP)}>
@@ -97,6 +96,14 @@ export function TrainingScreen() {
             <Text style={styles.emptyIcon}>🏰</Text>
             <Text style={styles.emptyTitle}>Sua guilda está vazia</Text>
             <Text style={styles.emptySubtitle}>Recrute seu primeiro herói para começar a aventura!</Text>
+            <TouchableOpacity
+              style={styles.shopButton}
+              onPress={() => navigation.navigate('Loja')}
+              accessibilityRole="button"
+              accessibilityLabel="Ir para a loja"
+            >
+              <Text style={styles.shopButtonText}>Ir à Loja</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <FlatList data={state.heroes} renderItem={renderHero} keyExtractor={keyExtractor} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false} />
@@ -124,5 +131,16 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 64, marginBottom: theme.spacing.md },
   emptyTitle: { fontSize: theme.fontSize.xl, fontWeight: theme.fontWeight.bold, color: theme.colors.textPrimary, marginBottom: theme.spacing.sm },
   emptySubtitle: { fontSize: theme.fontSize.md, color: theme.colors.textSecondary, textAlign: 'center', paddingHorizontal: theme.spacing.xl },
+  shopButton: {
+    marginTop: theme.spacing.md,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.borderRadius.lg,
+  },
+  shopButtonText: {
+    color: theme.colors.textPrimary,
+    fontWeight: theme.fontWeight.bold,
+  },
 });
 

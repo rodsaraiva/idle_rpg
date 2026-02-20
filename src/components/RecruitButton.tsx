@@ -7,9 +7,10 @@ interface RecruitButtonProps {
   cost: number;
   canAfford: boolean;
   onPress: () => void;
+  label?: string;
 }
 
-export function RecruitButton({ cost, canAfford, onPress }: RecruitButtonProps) {
+export function RecruitButton({ cost, canAfford, onPress, label }: RecruitButtonProps) {
   return (
     <TouchableOpacity
       style={[styles.button, !canAfford && styles.buttonDisabled]}
@@ -18,7 +19,7 @@ export function RecruitButton({ cost, canAfford, onPress }: RecruitButtonProps) 
       activeOpacity={0.7}
     >
       <View style={styles.content}>
-        <Text style={styles.label}>⚔️ Recrutar Herói</Text>
+        <Text style={styles.label}>{label ?? '⚔️ Recrutar Herói'}</Text>
         <Text style={[styles.cost, !canAfford && styles.costDisabled]}>
           💰 {formatNumber(cost)}
         </Text>
