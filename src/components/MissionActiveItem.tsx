@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ActiveMission } from '../types';
 import { MISSIONS } from '../constants/missions';
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
+import { on, off, FEEDBACK_EVENTS } from '../services/feedback';
 
 interface Props {
   mission: ActiveMission;
@@ -24,6 +25,17 @@ export function MissionActiveItem({ mission }: Props) {
   const { state } = useGame();
   const template = MISSIONS.find((t) => t.id === mission.templateId);
   const heroes = state.heroes.filter((h) => mission.heroIds.includes(h.id));
+  const [highlighted, setHighlighted] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsub = on('BATTLE_HIGHLIGHT', (p: any) => {
+      if (!p || !p.id) return;
+      setHighlighted(p.id);
+      const t = p.duration ?? 400;
+      setTimeout(() => setHighlighted((cur) => (cur === p.id ? null : cur)), t);
+    });
+    return () => unsub();
+  }, []);
 
   const progress = useMemo(() => {
     if (!template) return 0;
@@ -38,9 +50,18 @@ export function MissionActiveItem({ mission }: Props) {
       </View>
       <View style={styles.heroesRow}>
         {heroes.map((h) => (
-          <Text key={h.id} style={styles.heroName}>
-            {h.name}
-          </Text>
+          <View key={h.id} style={[styles.heroMini, highlighted === h.id ? styles.highlight : null]}>
+            <Text style={styles.heroMiniName}>{h.name}</Text>
+            <View style={styles.hpRow}>
+              <View style={styles.hpBar}>
+                <View style={[styles.hpFill, { width: `${Math.max(0, Math.min(100, Math.round(((h.hpCurrent ?? 0) / (h.hpMax ?? 1)) * 100)))}%` }]} />
+              </View>
+              <Text style={styles.hpText}>
+                {Math.floor(h.hpCurrent ?? 0)}/{Math.floor(h.hpMax ?? 0)}
+              </Text>
+            </View>
+            <Text style={styles.typeText}>{h.attackType === 'RANGED' ? 'R' : 'M'}</Text>
+          </View>
         ))}
       </View>
       <View style={styles.progressBar}>
@@ -81,6 +102,50 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     fontSize: 12,
     marginRight: 8,
+  },
+  heroMini: {
+    backgroundColor: theme.colors.surfaceLight,
+    padding: 6,
+    borderRadius: theme.borderRadius.sm,
+    alignItems: 'center',
+    marginRight: 8,
+    minWidth: 88,
+  },
+  heroMiniName: {
+    color: theme.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: theme.fontWeight.semibold,
+    marginBottom: 4,
+  },
+  hpRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  hpBar: {
+    width: 64,
+    height: 8,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  hpFill: {
+    height: '100%',
+    backgroundColor: theme.colors.hp,
+  },
+  hpText: {
+    color: theme.colors.textSecondary,
+    fontSize: 10,
+  },
+  typeText: {
+    marginTop: 4,
+    fontSize: 10,
+    color: theme.colors.textMuted,
+  },
+  highlight: {
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    shadowColor: theme.colors.primary,
   },
   progressBar: {
     height: 8,

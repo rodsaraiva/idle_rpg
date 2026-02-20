@@ -1,5 +1,5 @@
 import { MissionTemplate } from '../constants/missions';
-import { Hero, /*AttackType*/ } from '../types';
+import { Hero /*AttackType*/ } from '../types';
 import { calcMissionReward } from './missionMath';
 
 export interface BattleOutcome {
@@ -9,6 +9,17 @@ export interface BattleOutcome {
   enemyCasualties: number;
   rounds: number;
   log?: string[];
+  actions?: {
+    round: number;
+    actorType: 'hero' | 'enemy';
+    actorId: string;
+    actorName?: string;
+    actionType: 'hit' | 'miss' | 'heal' | 'defeat';
+    targetId?: string;
+    amount?: number;
+    isCrit?: boolean;
+    text: string;
+  }[];
 }
 
 interface BattleOpts {
@@ -65,6 +76,17 @@ export function computeBattleOutcome(
 
   const maxRounds = 12;
   const log: string[] = [];
+  const actions: {
+    round: number;
+    actorType: 'hero' | 'enemy';
+    actorId: string;
+    actorName?: string;
+    actionType: 'hit' | 'miss' | 'heal' | 'defeat';
+    targetId?: string;
+    amount?: number;
+    isCrit?: boolean;
+    text: string;
+  }[] = [];
   const critBase = 0.05;
   const critMult = 1.5;
   const baseHit = 0.75;
@@ -159,13 +181,45 @@ export function computeBattleOutcome(
         const isCrit = rng() < critChance;
         const dmg = Math.max(1, Math.floor(hero.atk * (isCrit ? critMult : 1)));
         target.hp -= dmg;
-        log.push(`${hero.name} hits ${target.id} for ${dmg}${isCrit ? ' (crit)' : ''}`);
+        const txt = `${hero.name} hits ${target.id} for ${dmg}${isCrit ? ' (crit)' : ''}`;
+        log.push(txt);
+        actions.push({
+          round: rounds,
+          actorType: 'hero',
+          actorId: hero.id,
+          actorName: hero.name,
+          actionType: 'hit',
+          targetId: target.id,
+          amount: dmg,
+          isCrit,
+          text: txt,
+        });
         if (target.hp <= 0) {
           target.hp = 0;
-          log.push(`${target.id} is defeated`);
+          const dtxt = `${target.id} is defeated`;
+          log.push(dtxt);
+          actions.push({
+            round: rounds,
+            actorType: 'hero',
+            actorId: hero.id,
+            actorName: hero.name,
+            actionType: 'defeat',
+            targetId: target.id,
+            text: dtxt,
+          });
         }
       } else {
-        log.push(`${hero.name} misses ${target.id}`);
+        const txt = `${hero.name} misses ${target.id}`;
+        log.push(txt);
+        actions.push({
+          round: rounds,
+          actorType: 'hero',
+          actorId: hero.id,
+          actorName: hero.name,
+          actionType: 'miss',
+          targetId: target.id,
+          text: txt,
+        });
       }
     }
 
@@ -188,13 +242,44 @@ export function computeBattleOutcome(
           dmg = Math.max(1, Math.floor(dmg * (1 - tankMitigation)));
         }
         target.hpCurrent -= dmg;
-        log.push(`${enemy.id} hits ${target.name} for ${dmg}`);
+        const txt = `${enemy.id} hits ${target.name} for ${dmg}`;
+        log.push(txt);
+        actions.push({
+          round: rounds,
+          actorType: 'enemy',
+          actorId: enemy.id,
+          actorName: enemy.id,
+          actionType: 'hit',
+          targetId: target.id,
+          amount: dmg,
+          text: txt,
+        });
         if (target.hpCurrent <= 0) {
           target.hpCurrent = 0;
-          log.push(`${target.name} is incapacitated`);
+          const dt = `${target.name} is incapacitated`;
+          log.push(dt);
+          actions.push({
+            round: rounds,
+            actorType: 'enemy',
+            actorId: enemy.id,
+            actorName: enemy.id,
+            actionType: 'defeat',
+            targetId: target.id,
+            text: dt,
+          });
         }
       } else {
-        log.push(`${enemy.id} misses ${target.name}`);
+        const txt = `${enemy.id} misses ${target.name}`;
+        log.push(txt);
+        actions.push({
+          round: rounds,
+          actorType: 'enemy',
+          actorId: enemy.id,
+          actorName: enemy.id,
+          actionType: 'miss',
+          targetId: target.id,
+          text: txt,
+        });
       }
     }
   }
@@ -237,6 +322,7 @@ export function computeBattleOutcome(
     enemyCasualties: enemies.filter((e) => e.hp <= 0).length,
     rounds,
     log,
+    actions,
   };
 }
 
