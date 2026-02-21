@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Animated, StyleSheet, Easing } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Animated, StyleSheet, Easing, Platform } from 'react-native';
 import { on, off, emit, FEEDBACK_EVENTS } from '../services/feedback';
 
 interface FloatItem {
@@ -38,7 +38,7 @@ export function FeedbackLayer() {
   }, []);
 
   return (
-    <View pointerEvents="none" style={styles.container}>
+    <View style={[styles.container, { pointerEvents: 'none' as any }]}>
       {/* floating numbers stack */}
       <View style={styles.floats}>
         {floats.map((f, i) => (
@@ -59,14 +59,18 @@ export function FeedbackLayer() {
 }
 
 function FloatingNumber({ text, color, index }: { text: string; color?: string; index: number }) {
-  const anim = new Animated.Value(0);
+  const animRef = useRef<Animated.Value | null>(null);
+  if (!animRef.current) animRef.current = new Animated.Value(0);
+  const anim = animRef.current;
   useEffect(() => {
+    const isWeb = Platform.OS === 'web';
     Animated.timing(anim, {
       toValue: 1,
       duration: 700,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
+      useNativeDriver: !isWeb,
     }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const translateY = anim.interpolate({
@@ -107,9 +111,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#ffd34d',
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 1px 2px rgba(0,0,0,0.3)',
+      },
+      default: {
+        textShadowColor: 'rgba(0,0,0,0.3)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
+      },
+    }),
   },
   toasts: {
     position: 'absolute',

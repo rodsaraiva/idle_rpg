@@ -44,6 +44,7 @@ export function ChestRevealModal({
   onComplete,
   onCancel,
 }: ChestRevealModalProps) {
+  const isWeb = Platform.OS === 'web';
   const [phase, setPhase] = useState<RevealPhase>('suspense');
   const [revealedHero, setRevealedHero] = useState<Hero | null>(null);
 
@@ -119,13 +120,13 @@ export function ChestRevealModal({
           toValue: 1.15,
           duration: 400,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: !isWeb,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
           duration: 400,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: !isWeb,
         }),
       ]),
     );
@@ -136,13 +137,13 @@ export function ChestRevealModal({
           toValue: 1,
           duration: 600,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: !isWeb,
         }),
         Animated.timing(glowAnim, {
           toValue: 0.3,
           duration: 600,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: !isWeb,
         }),
       ]),
     );
@@ -173,13 +174,13 @@ export function ChestRevealModal({
         toValue: 1.3,
         duration: OPENING_DURATION_MS * 0.4,
         easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
+        useNativeDriver: !isWeb,
       }),
       Animated.timing(pulseAnim, {
         toValue: 0,
         duration: OPENING_DURATION_MS * 0.6,
         easing: Easing.in(Easing.ease),
-        useNativeDriver: true,
+        useNativeDriver: !isWeb,
       }),
     ]);
 
@@ -205,12 +206,12 @@ export function ChestRevealModal({
         toValue: 1,
         friction: 6,
         tension: 80,
-        useNativeDriver: true,
+        useNativeDriver: !isWeb,
       }),
       Animated.timing(cardOpacity, {
         toValue: 1,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: !isWeb,
       }),
     ]);
 
@@ -224,14 +225,18 @@ export function ChestRevealModal({
     const classKeys = Object.keys(CLASS_DEFS) as ClassId[];
     const randClass = classKeys[Math.floor(Math.random() * classKeys.length)];
     const h = createHero(randClass);
-    console.log('[ChestRevealModal] generated hero', { id: h.id, classId: h.classId, name: h.name });
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      console.log('[ChestRevealModal] generated hero', { id: h.id, classId: h.classId, name: h.name });
+    }
     return h;
   };
 
   const handleConfirm = () => {
     if (revealedHero) {
       lightTap();
-      console.log('[ChestRevealModal] handleConfirm - completing with hero', revealedHero.id);
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.log('[ChestRevealModal] handleConfirm - completing with hero', revealedHero.id);
+      }
       onComplete(revealedHero);
     }
   };

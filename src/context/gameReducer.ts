@@ -255,7 +255,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         const outcome = (c.mission as any).__outcome;
         // prefer __outcome, but if missing fallback to precomputedOutcome
         const finalOutcome = outcome || (c.mission as any).precomputedOutcome;
-        console.log('[gameReducer] pushing mission result', { missionId: c.mission.id, outcome: finalOutcome, __outcome_raw: outcome, precomputed: (c.mission as any).precomputedOutcome });
+        if (typeof __DEV__ !== 'undefined' && __DEV__) {
+          console.log('[gameReducer] pushing mission result', { missionId: c.mission.id, outcome: finalOutcome, __outcome_raw: outcome, precomputed: (c.mission as any).precomputedOutcome });
+        }
         if (finalOutcome) {
           existingResults.unshift({
             missionId: c.mission.id,
@@ -450,17 +452,23 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'BUY_CHEST': {
       const cost = getRecruitCost(state.heroesRecruited);
       if (state.gold < cost) return state;
-      console.log('[gameReducer] BUY_CHEST before:', { gold: state.gold, cost });
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.log('[gameReducer] BUY_CHEST before:', { gold: state.gold, cost });
+      }
       const newState = {
         ...state,
         gold: state.gold - cost,
       };
-      console.log('[gameReducer] BUY_CHEST after:', { gold: newState.gold });
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.log('[gameReducer] BUY_CHEST after:', { gold: newState.gold });
+      }
       return newState;
     }
 
     case 'CONFIRM_CHEST_REVEAL': {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
       console.log('[gameReducer] CONFIRM_CHEST_REVEAL adding hero', action.hero?.id);
+    }
       const newHeroes = [...state.heroes, action.hero];
       return {
         ...state,

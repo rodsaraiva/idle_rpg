@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { ActiveMission } from '../types';
 import { MISSIONS } from '../constants/missions';
 import { useGame } from '../hooks/useGame';
@@ -145,7 +145,17 @@ const styles = StyleSheet.create({
   highlight: {
     borderWidth: 1,
     borderColor: theme.colors.primary,
-    shadowColor: theme.colors.primary,
+    ...Platform.select({
+      web: {
+        boxShadow: `0 0 8px ${theme.colors.primary}`,
+      },
+      default: {
+        shadowColor: theme.colors.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 4,
+      },
+    }),
   },
   progressBar: {
     height: 8,

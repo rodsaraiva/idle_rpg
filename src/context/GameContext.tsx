@@ -232,9 +232,11 @@ export function GameProvider({ children }: GameProviderProps) {
             }
 
             setOfflineSummary(summary);
-            console.log(
-              `Offline progress calculated: ${ticks} ticks (capped), gold +${offlineGold}`
-            );
+            if (typeof __DEV__ !== 'undefined' && __DEV__) {
+              console.log(
+                `Offline progress calculated: ${ticks} ticks (capped), gold +${offlineGold}`
+              );
+            }
           } else {
             // nenhum progresso offline - carrega normalmente
             dispatch({ type: 'LOAD_STATE', state: savedState });
