@@ -23,14 +23,26 @@ export function MissionsScreen() {
     );
   }
 
-  const missionHeroes = state.heroes.filter((h) => h.currentTask === HeroTask.MISSION);
-  // heróis que podem ser selecionados para novas missões (exclui os que já estão em missão)
-  const selectableHeroes = state.heroes.filter((h) => h.currentTask !== HeroTask.MISSION);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // memoize hero lists to avoid unnecessary effect runs / re-renders
+  const missionHeroes = React.useMemo(
+    () => state.heroes.filter((h) => h.currentTask === HeroTask.MISSION),
+    [state.heroes]
+  );
+  const selectableHeroes = React.useMemo(
+    () => state.heroes.filter((h) => h.currentTask !== HeroTask.MISSION),
+    [state.heroes]
+  );
 
   // keep selectedIds stable unless selectable heroes change or are removed
   useEffect(() => {
-    setSelectedIds((s) => s.filter((id) => selectableHeroes.some((h) => h.id === id)));
+    setSelectedIds((prev) => {
+      const next = prev.filter((id) => selectableHeroes.some((h) => h.id === id));
+      // avoid creating a new array when nothing changed
+      if (next.length === prev.length && next.every((v, i) => v === prev[i])) return prev;
+      return next;
+    });
   }, [selectableHeroes]);
 
   const startMission = (templateId: string, minHeroes: number) => {

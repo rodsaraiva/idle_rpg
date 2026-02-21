@@ -10,12 +10,17 @@ import { lightTap, successNotification } from '../services/haptics';
 export function MissionResultModal() {
   const { state, dispatch } = useGame();
   const results = state.recentMissionResults ?? [];
-  if (results.length === 0) return null;
-  const r = results[0];
+
+  // Hooks must be declared unconditionally and in the same order on every render.
   const [displayedLog, setDisplayedLog] = useState<string[]>([]);
   const runnerRef = useRef<BattleRunner | null>(null);
+  const startTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // derive current result (may be null)
+  const r = results[0] ?? null;
 
   useEffect(() => {
+    if (!r) return;
     setDisplayedLog([]);
     if (r.actions && r.actions.length > 0) {
       // create runner with 1s delay between actions
@@ -80,7 +85,7 @@ export function MissionResultModal() {
       runnerRef.current = null;
     };
   }, [r]);
-
+  if (!r) return null;
   return (
     <Modal visible={true} animationType="slide" transparent={true}>
       <View style={styles.backdrop}>
