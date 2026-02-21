@@ -153,9 +153,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             if ((m as any).precomputedOutcome && (m as any).precomputedOutcome.reward !== undefined) {
               completed.push({ mission: m, reward: (m as any).precomputedOutcome.reward });
               (m as any).__outcome = {
+                success: (m as any).precomputedOutcome.success,
                 reward: (m as any).precomputedOutcome.reward,
                 rounds: (m as any).precomputedOutcome.rounds,
                 casualties: (m as any).precomputedOutcome.casualties ?? [],
+                enemyCasualties: (m as any).precomputedOutcome.enemyCasualties ?? 0,
+                actions: (m as any).precomputedOutcome.actions ?? [],
                 log: (m as any).precomputedOutcome.log ?? [],
               };
             } else {
@@ -250,16 +253,19 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const existingResults = state.recentMissionResults ? [...state.recentMissionResults] : [];
       completed.forEach((c) => {
         const outcome = (c.mission as any).__outcome;
-        if (outcome) {
+        // prefer __outcome, but if missing fallback to precomputedOutcome
+        const finalOutcome = outcome || (c.mission as any).precomputedOutcome;
+        console.log('[gameReducer] pushing mission result', { missionId: c.mission.id, outcome: finalOutcome, __outcome_raw: outcome, precomputed: (c.mission as any).precomputedOutcome });
+        if (finalOutcome) {
           existingResults.unshift({
             missionId: c.mission.id,
             templateId: c.mission.templateId,
-            success: outcome.success,
-            reward: outcome.reward,
-            casualties: outcome.casualties,
-            enemyCasualties: outcome.enemyCasualties,
-            rounds: outcome.rounds,
-            log: outcome.log,
+            success: Boolean(finalOutcome.success),
+            reward: finalOutcome.reward,
+            casualties: finalOutcome.casualties,
+            enemyCasualties: finalOutcome.enemyCasualties,
+            rounds: finalOutcome.rounds,
+            log: finalOutcome.log,
           });
         }
       });
@@ -359,6 +365,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           rounds: outcome.rounds,
           actions: outcome.actions,
           log: outcome.log,
+          success: outcome.success,
+          casualties: outcome.casualties,
+          enemyCasualties: outcome.enemyCasualties,
         };
       } catch (err) {
         newMission.scheduledActions = [];
