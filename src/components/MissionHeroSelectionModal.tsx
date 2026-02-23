@@ -206,7 +206,10 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                     key={i}
                     style={[styles.cell, hero ? styles.cellFilled : styles.cellEmpty]}
                     onLayout={(e) => {
-                      setCellLayout(i, e.nativeEvent.layout);
+                      const layout = e.nativeEvent.layout;
+                      // eslint-disable-next-line no-console
+                      console.log('[MissionHeroSelectionModal] cell layout', i, layout);
+                      setCellLayout(i, layout);
                     }}
                     onPress={() => {
                       if (hero) removeAt(i);
@@ -244,10 +247,13 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                     style={[styles.heroItem, placed && styles.heroItemPlaced]}
                     onPress={() => placeHero(item.id)}
                     onLongPress={(e) => {
-                      // start drag using page coordinates
-                      const ev = e.nativeEvent;
-                      // @ts-ignore has pageX/pageY
-                      startDrag(item, ev.pageX ?? ev.locationX, ev.pageY ?? ev.locationY);
+                      const ev = e.nativeEvent as any;
+                      // eslint-disable-next-line no-console
+                      console.log('[MissionHeroSelectionModal] onLongPress nativeEvent', ev);
+                      // prefer pageX/pageY, fall back to clientX/clientY (web) or locationX/locationY
+                      const x = ev.pageX ?? ev.clientX ?? ev.locationX ?? ev.screenX ?? 0;
+                      const y = ev.pageY ?? ev.clientY ?? ev.locationY ?? ev.screenY ?? 0;
+                      startDrag(item, x, y);
                     }}
                     // use longPress to start drag; avoid manual responder handlers to prevent conflicts
                     accessibilityRole="button"

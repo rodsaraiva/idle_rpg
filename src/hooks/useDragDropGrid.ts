@@ -36,10 +36,19 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
       return;
     }
     try {
-      // @ts-ignore measureInWindow exists
-      r.measureInWindow((cx: number, cy: number) => {
-        containerAbsRef.current = { x: cx, y: cy };
-      });
+      // prefer measureInWindow (native), but fall back to DOM bounding rect on web
+      // @ts-ignore measureInWindow may exist on native view refs
+      if (typeof (r as any).measureInWindow === 'function') {
+        (r as any).measureInWindow((cx: number, cy: number) => {
+          containerAbsRef.current = { x: cx, y: cy };
+        });
+      } else if (typeof (r as any).getBoundingClientRect === 'function') {
+        // web: DOM element
+        const rect = (r as any).getBoundingClientRect();
+        containerAbsRef.current = { x: rect.left, y: rect.top };
+      } else {
+        containerAbsRef.current = null;
+      }
     } catch {
       containerAbsRef.current = null;
     }
@@ -78,18 +87,23 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
       onStartShouldSetPanResponderCapture: () => draggingRef.current,
       onMoveShouldSetPanResponderCapture: () => draggingRef.current,
       onPanResponderMove: (_, gestureState) => {
-        pan.setValue({ x: gestureState.moveX - 40, y: gestureState.moveY - 20 });
+        const mx = gestureState.moveX ?? (gestureState as any).clientX ?? 0;
+        const my = gestureState.moveY ?? (gestureState as any).clientY ?? 0;
+        // debug coords
+        // eslint-disable-next-line no-console
+        console.log('[useDragDropGrid] onPanResponderMove', { mx, my });
+        pan.setValue({ x: mx - 40, y: my - 20 });
         const car = containerAbsRef.current;
         if (car) {
-          const mx = gestureState.moveX;
-          const my = gestureState.moveY;
           const idx = performDropAssign(mx, my);
           setHoveredIndex(idx === -1 ? null : idx);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
-        const mx = gestureState.moveX;
-        const my = gestureState.moveY;
+        const mx = gestureState.moveX ?? (gestureState as any).clientX ?? 0;
+        const my = gestureState.moveY ?? (gestureState as any).clientY ?? 0;
+        // eslint-disable-next-line no-console
+        console.log('[useDragDropGrid] onPanResponderRelease', { mx, my, hoveredIndex });
         const droppedIndex = performDropAssign(mx, my);
         const item = draggingItemRef.current;
         const dropFn = onDropRef.current;
@@ -150,6 +164,8 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
     pan.setValue({ x: pageX - 40, y: pageY - 20 });
     // ensure container absolute is measured
     measureContainer();
+    // eslint-disable-next-line no-console
+    console.log('[useDragDropGrid] startDrag', { id: (item as any)?.id, pageX, pageY, container: containerAbsRef.current });
     try {
       lightTap();
     } catch {
