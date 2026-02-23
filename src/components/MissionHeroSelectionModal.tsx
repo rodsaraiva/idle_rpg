@@ -223,7 +223,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                       if (hero) removeAt(i);
                     }}
                     // allow dragging a hero from a filled cell to another cell
-                    delayLongPress={100}
+                    delayLongPress={0}
                     onLongPress={(e) => {
                       if (!hero) return;
                       const ev = e.nativeEvent as any;
