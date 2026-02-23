@@ -355,6 +355,8 @@ const styles = StyleSheet.create({
   helperText: { color: theme.colors.textSecondary, marginRight: 8, alignSelf: 'center' },
   dragGhost: {
     position: 'absolute',
+    top: 0,
+    left: 0,
     width: 100,
     height: 44,
     zIndex: 1000,

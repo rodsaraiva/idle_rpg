@@ -147,9 +147,25 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
     removeWebListeners();
 
     const onMove = (e: MouseEvent | TouchEvent) => {
-      const px = 'touches' in e ? e.touches[0].pageX : (e as MouseEvent).pageX;
-      const py = 'touches' in e ? e.touches[0].pageY : (e as MouseEvent).pageY;
-      pan.setValue({ x: px - 40, y: py - 20 });
+      // normalize to page coordinates using client + scroll to match getBoundingClientRect usage
+      if ('touches' in e) {
+        try {
+          (e as TouchEvent).preventDefault();
+        } catch {
+          /* ignore */
+        }
+      }
+      const px =
+        'touches' in e
+          ? (e as TouchEvent).touches[0].clientX + window.scrollX
+          : (e as MouseEvent).clientX + window.scrollX;
+      const py =
+        'touches' in e
+          ? (e as TouchEvent).touches[0].clientY + window.scrollY
+          : (e as MouseEvent).clientY + window.scrollY;
+      const gw = ghostSizeRef.current.w;
+      const gh = ghostSizeRef.current.h;
+      pan.setValue({ x: px - gw / 2, y: py - gh / 2 - 8 });
       measureContainer();
       const idx = performDropAssign(px, py);
       setHoveredIndex(idx === -1 ? null : idx);
@@ -157,8 +173,14 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
 
     const onUp = (e: MouseEvent | TouchEvent) => {
       removeWebListeners();
-      const px = 'changedTouches' in e ? e.changedTouches[0].pageX : (e as MouseEvent).pageX;
-      const py = 'changedTouches' in e ? e.changedTouches[0].pageY : (e as MouseEvent).pageY;
+      const px =
+        'changedTouches' in e
+          ? (e as TouchEvent).changedTouches[0].clientX + window.scrollX
+          : (e as MouseEvent).clientX + window.scrollX;
+      const py =
+        'changedTouches' in e
+          ? (e as TouchEvent).changedTouches[0].clientY + window.scrollY
+          : (e as MouseEvent).clientY + window.scrollY;
       measureContainer();
       const droppedIndex = performDropAssign(px, py);
       finishDrop(droppedIndex);
@@ -187,7 +209,9 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
       onStartShouldSetPanResponderCapture: () => draggingRef.current,
       onMoveShouldSetPanResponderCapture: () => draggingRef.current,
       onPanResponderMove: (_, gs) => {
-        pan.setValue({ x: gs.moveX - 40, y: gs.moveY - 20 });
+        const gw = ghostSizeRef.current.w;
+        const gh = ghostSizeRef.current.h;
+        pan.setValue({ x: gs.moveX - gw / 2, y: gs.moveY - gh / 2 - 8 });
         const idx = performDropAssign(gs.moveX, gs.moveY);
         setHoveredIndex(idx === -1 ? null : idx);
       },
