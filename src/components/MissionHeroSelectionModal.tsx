@@ -222,6 +222,14 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                     onPress={() => {
                       if (hero) removeAt(i);
                     }}
+                    // allow initiating drag from a filled cell
+                    delayLongPress={100}
+                    onLongPress={(e) => {
+                      if (!hero) return;
+                      const ev = e.nativeEvent as any;
+                      // start drag from grid cell using page coordinates and ghost size
+                      startDrag(hero, ev.pageX ?? ev.locationX, ev.pageY ?? ev.locationY, ghostSize);
+                    }}
                     accessibilityRole="button"
                     accessibilityLabel={hero ? `${hero.name}, posição ${i + 1}` : `Posição ${i + 1}, vazia`}
                   >
