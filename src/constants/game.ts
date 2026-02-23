@@ -17,6 +17,10 @@ export const HP_REGEN_AMOUNT = 1;
 /** Enfermaria (infirmary) regeneration multipliers */
 export const ENFERMARIA_MULTIPLIER_BASE = 2; // base x2 regen
 export const ENFERMARIA_HEALER_MP_K = 0.02; // per MP of healers add 2% to multiplier
+/** Enfermaria time scale: how much faster regen time runs in infirmary (2 = 2x faster) */
+export const ENFERMARIA_TIME_SCALE = 2;
+/** Max allowed infirmary time scale (safety cap) */
+export const ENFERMARIA_MAX_SCALE = 6;
 
 /** (compat) Ganho por tick - mantido para compatibilidade de testes antigos (equiv. a 1 ponto por 1s) */
 export const HP_TRAIN_PER_TICK = 1;

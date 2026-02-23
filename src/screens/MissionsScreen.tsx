@@ -9,6 +9,7 @@ import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { HeroCard } from '../components/HeroCard';
 import { MissionActiveItem } from '../components/MissionActiveItem';
 import { MissionResultModal } from '../components/MissionResultModal';
+import { MissionHeroSelectionModal } from '../components/MissionHeroSelectionModal';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { GoldDisplay } from '../components/GoldDisplay';
 
@@ -23,7 +24,9 @@ export function MissionsScreen() {
     );
   }
 
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // modal state for choosing heroes after clicking "Enviar"
+  const [selectionModalVisible, setSelectionModalVisible] = useState(false);
+  const [pendingTemplate, setPendingTemplate] = useState<{ templateId: string; minHeroes: number } | null>(null);
 
   // memoize hero lists to avoid unnecessary effect runs / re-renders
   const missionHeroes = React.useMemo(
@@ -35,33 +38,25 @@ export function MissionsScreen() {
     [state.heroes]
   );
 
-  // keep selectedIds stable unless selectable heroes change or are removed
-  useEffect(() => {
-    setSelectedIds((prev) => {
-      const next = prev.filter((id) => selectableHeroes.some((h) => h.id === id));
-      // avoid creating a new array when nothing changed
-      if (next.length === prev.length && next.every((v, i) => v === prev[i])) return prev;
-      return next;
-    });
-  }, [selectableHeroes]);
+  const openSelectionModal = (templateId: string, minHeroes: number) => {
+    setPendingTemplate({ templateId, minHeroes });
+    setSelectionModalVisible(true);
+  };
 
-  const startMission = (templateId: string, minHeroes: number) => {
-    if (selectedIds.length < minHeroes) {
-      emit(FEEDBACK_EVENTS.TOAST, { text: `Selecione ao menos ${minHeroes} herói(s)` });
-      return;
-    }
-    // validate selected still exist among selectable heroes and are not incapacitated
+  const handleConfirmMission = (templateId: string, heroIds: string[]) => {
+    if (!templateId) return;
+    // validate again before dispatch
     const now = Date.now();
-    const valid = selectedIds.filter((id) =>
+    const valid = heroIds.filter((id) =>
       selectableHeroes.some((h) => h.id === id && !(h.incapacitatedUntilMs && h.incapacitatedUntilMs > now))
     );
-    if (valid.length < minHeroes) {
+    if (valid.length < (pendingTemplate?.minHeroes ?? 0)) {
       emit(FEEDBACK_EVENTS.TOAST, { text: 'Alguns heróis não podem ir para missão (estão incapacitados ou já em missão)' });
       return;
     }
     dispatch({ type: 'START_MISSION', templateId, heroIds: valid });
-    // clear selections that were sent
-    setSelectedIds((s) => s.filter((id) => !valid.includes(id)));
+    setSelectionModalVisible(false);
+    setPendingTemplate(null);
   };
 
   const availableCount = selectableHeroes.filter((h) => !(h.incapacitatedUntilMs && h.incapacitatedUntilMs > Date.now())).length;
@@ -87,20 +82,7 @@ export function MissionsScreen() {
         />
 
         <Text style={[styles.subtitle, { marginTop: 12 }]}>Missões disponíveis</Text>
-        <Text style={[styles.subtitle, { marginTop: 6 }]}>Heróis: {selectableHeroes.length}</Text>
-        <View style={{ marginTop: 8, marginBottom: 8 }}>
-          {selectableHeroes.map((h) => (
-            <HeroCard
-              key={h.id}
-              hero={h}
-              variant="compact"
-              selected={selectedIds.includes(h.id)}
-              onToggle={(id) =>
-                setSelectedIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))
-              }
-            />
-          ))}
-        </View>
+        <Text style={[styles.subtitle, { marginTop: 6 }]}>Heróis disponíveis: {selectableHeroes.length}</Text>
         <FlatList
           data={MISSIONS}
           keyExtractor={(m) => m.id}
@@ -113,12 +95,23 @@ export function MissionsScreen() {
               <View style={{ marginTop: 6 }}>
                 <Button
                   title="Enviar"
-                  onPress={() => startMission(item.id, item.minHeroes)}
+                  onPress={() => openSelectionModal(item.id, item.minHeroes)}
                   disabled={availableCount < item.minHeroes}
                 />
               </View>
             </View>
           )}
+        />
+        <MissionHeroSelectionModal
+          visible={selectionModalVisible}
+          onClose={() => {
+            setSelectionModalVisible(false);
+            setPendingTemplate(null);
+          }}
+          selectableHeroes={selectableHeroes}
+          minHeroes={pendingTemplate?.minHeroes ?? 0}
+          templateId={pendingTemplate?.templateId ?? ''}
+          onConfirm={handleConfirmMission}
         />
 
         <Text style={[styles.subtitle, { marginTop: 12 }]}>Heróis em missão</Text>

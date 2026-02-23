@@ -1,6 +1,6 @@
 import { gameReducer, initialGameState } from '../../context/gameReducer';
 import { HeroTask } from '../../types';
-import { ENFERMARIA_MULTIPLIER_BASE, ENFERMARIA_HEALER_MP_K, HP_REGEN_INTERVAL_MS } from '../../constants/game';
+import { HP_REGEN_INTERVAL_MS, ENFERMARIA_TIME_SCALE } from '../../constants/game';
 
 test('send to enfermaria and regen doubled', () => {
   const hero = { id: 'h1', name: 'H', hpMax: 10, hpCurrent: 5, atk: 5, mp: 0, currentTask: HeroTask.IDLE };
@@ -11,8 +11,9 @@ test('send to enfermaria and regen doubled', () => {
   const afterStart = gameReducer(state as any, { type: 'START_INFERMARIA', heroIds: ['h1'] });
   expect(afterStart.heroes.find((h) => h.id === 'h1')?.currentTask).toBe(HeroTask.INFIRMARY);
 
-  // simulate ticks enough to pass one regen interval
-  const ticks = HP_REGEN_INTERVAL_MS / 1000; // tickInterval 1000ms
+  // simulate ticks enough to pass one effective regen interval in infirmary (time runs faster)
+  const effectiveIntervalMs = Math.floor(HP_REGEN_INTERVAL_MS / ENFERMARIA_TIME_SCALE);
+  const ticks = effectiveIntervalMs / 1000; // tickInterval 1000ms
   let s = afterStart;
   for (let i = 0; i < ticks; i++) s = gameReducer(s as any, { type: 'TICK' });
 

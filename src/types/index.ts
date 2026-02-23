@@ -20,6 +20,8 @@ export interface Hero {
   mp: number;
   currentTask: HeroTask;
   classId?: ClassId;
+  // optional avatar image URL for UI
+  avatarUrl?: string;
   // attack style for targeting behavior
   attackType?: 'MELEE' | 'RANGED';
   trainingProgressMs?: TrainingProgress;

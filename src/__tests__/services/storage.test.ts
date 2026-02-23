@@ -32,6 +32,16 @@ describe('storage service', () => {
     expect((loaded as any).gold).toBe(10);
   });
 
+  test('loadGameState migrates missing training fields', async () => {
+    const legacy = { gold: 5, heroes: [{ id: 'h1', name: 'Old', hpMax: 10, hpCurrent: 5 }] };
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(legacy));
+    const loaded = await loadGameState();
+    expect(loaded).not.toBeNull();
+    const h = (loaded as any).heroes[0];
+    expect(h.trainingProgressMs).toBeDefined();
+    expect(h.trainingCount).toBeDefined();
+  });
+
   test('clearGameState calls removeItem', async () => {
     await clearGameState();
     expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);

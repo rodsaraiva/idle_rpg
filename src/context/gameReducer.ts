@@ -1,5 +1,5 @@
 import { GameState, GameAction, HeroTask, ClassId } from '../types';
-import { BASE_TRAIN_TIME_MS, HP_REGEN_INTERVAL_MS, HP_REGEN_AMOUNT, ENFERMARIA_MULTIPLIER_BASE, ENFERMARIA_HEALER_MP_K } from '../constants/game';
+import { BASE_TRAIN_TIME_MS, HP_REGEN_INTERVAL_MS, HP_REGEN_AMOUNT, ENFERMARIA_MULTIPLIER_BASE, ENFERMARIA_HEALER_MP_K, ENFERMARIA_TIME_SCALE, ENFERMARIA_MAX_SCALE } from '../constants/game';
 import { getRecruitCost } from '../utils/math';
 import { createHero } from '../utils/heroFactory';
 import { CLASS_DEFS } from '../constants/classes';
@@ -117,8 +117,19 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       for (let i = 0; i < updatedHeroes.length; i++) {
         const h = updatedHeroes[i];
         if ((h.currentTask === HeroTask.IDLE || h.currentTask === HeroTask.INFIRMARY) && (h.hpCurrent ?? 0) < (h.hpMax ?? 0)) {
-          const prog = (h.hpRegenProgressMs ?? 0) + tickMs;
+          // accumulate progress: scale the amount of "equivalent time" added per tick when in infirmary.
+          // This makes contributions order-independent: time spent in infirmary counts proportionally more.
+          // compute timeScale: base infirmary scale optionally boosted by total healer MP
+          let timeScale = 1;
+          if (h.currentTask === HeroTask.INFIRMARY) {
+            const healerBoost = 1 + healerMpSum * ENFERMARIA_HEALER_MP_K;
+            timeScale = Math.min(ENFERMARIA_TIME_SCALE * healerBoost, ENFERMARIA_MAX_SCALE);
+          }
+          // multiply tickMs by timeScale to compute how much equivalent ms to add
+          const progIncrement = Math.floor(tickMs * timeScale);
+          const prog = (h.hpRegenProgressMs ?? 0) + progIncrement;
           let remaining = prog;
+
           let intervals = 0;
           while (remaining >= HP_REGEN_INTERVAL_MS) {
             remaining -= HP_REGEN_INTERVAL_MS;
@@ -127,15 +138,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           h.hpRegenProgressMs = remaining;
 
           if (intervals > 0) {
-            // base gain
-            let gain = intervals * HP_REGEN_AMOUNT;
-            // infirmary multiplier
-            if (h.currentTask === HeroTask.INFIRMARY) {
-              const baseMul = ENFERMARIA_MULTIPLIER_BASE;
-              const healerBoost = 1 + healerMpSum * ENFERMARIA_HEALER_MP_K;
-              const effectiveMul = baseMul * healerBoost;
-              gain = Math.floor(gain * effectiveMul);
-            }
+            const gain = intervals * HP_REGEN_AMOUNT;
             h.hpCurrent = Math.min(h.hpMax ?? 0, (h.hpCurrent ?? 0) + gain);
           }
         }
