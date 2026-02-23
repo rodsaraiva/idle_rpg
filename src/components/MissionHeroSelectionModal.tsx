@@ -15,6 +15,8 @@ import { useDragDropGrid } from '../hooks/useDragDropGrid';
 import { Hero } from '../types';
 import { theme } from '../theme';
 
+const IS_WEB = Platform.OS === 'web';
+
 const CLASS_EMOJI: Record<string, string> = {
   WARRIOR: '⚔️',
   TANK: '🛡️',
@@ -66,7 +68,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
   }, [selectableHeroes]);
 
   const placedSet = useMemo(() => new Set(slots.filter(Boolean) as string[]), [slots]);
-  const gridRef = useRef<View | null>(null);
+  const containerViewRef = useRef<View | null>(null);
 
   const placeHero = (heroId: string) => {
     // if already placed, remove it
@@ -136,8 +138,8 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
       const av: Animated.Value = cellScalesRef.current[droppedIndex];
       if (av) {
         Animated.sequence([
-          Animated.timing(av, { toValue: 1.12, duration: 120, useNativeDriver: true }),
-          Animated.spring(av, { toValue: 1, friction: 6, useNativeDriver: true }),
+          Animated.timing(av, { toValue: 1.12, duration: 120, useNativeDriver: !IS_WEB }),
+          Animated.spring(av, { toValue: 1, friction: 6, useNativeDriver: !IS_WEB }),
         ]).start();
       }
     } catch {
@@ -158,7 +160,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
       Animated.timing(av, {
         toValue: idx === target ? 1.04 : 1,
         duration: 120,
-        useNativeDriver: true,
+        useNativeDriver: !IS_WEB,
       }).start();
     });
   }, [hoveredIndex]);
@@ -183,18 +185,13 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
         <View style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContent} scrollEnabled={!dragging}>
             <Text style={styles.title}>Posicione os heróis na missão</Text>
-            {/* grid container */}
             <View
               ref={(r) => {
-                // @ts-ignore
-                gridRef.current = r;
-                // @ts-ignore
+                containerViewRef.current = r;
                 setContainerRef(r);
               }}
               onLayout={() => {
-                // re-measure whenever layout changes
-                // @ts-ignore
-                setContainerRef(gridRef.current);
+                setContainerRef(containerViewRef.current);
               }}
               style={styles.grid}
               {...panHandlers}
@@ -206,10 +203,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                     key={i}
                     style={[styles.cell, hero ? styles.cellFilled : styles.cellEmpty]}
                     onLayout={(e) => {
-                      const layout = e.nativeEvent.layout;
-                      // eslint-disable-next-line no-console
-                      console.log('[MissionHeroSelectionModal] cell layout', i, layout);
-                      setCellLayout(i, layout);
+                      setCellLayout(i, e.nativeEvent.layout);
                     }}
                     onPress={() => {
                       if (hero) removeAt(i);
@@ -247,13 +241,10 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                     style={[styles.heroItem, placed && styles.heroItemPlaced]}
                     onPress={() => placeHero(item.id)}
                     onLongPress={(e) => {
-                      const ev = e.nativeEvent as any;
-                      // eslint-disable-next-line no-console
-                      console.log('[MissionHeroSelectionModal] onLongPress nativeEvent', ev);
-                      // prefer pageX/pageY, fall back to clientX/clientY (web) or locationX/locationY
-                      const x = ev.pageX ?? ev.clientX ?? ev.locationX ?? ev.screenX ?? 0;
-                      const y = ev.pageY ?? ev.clientY ?? ev.locationY ?? ev.screenY ?? 0;
-                      startDrag(item, x, y);
+                      // start drag using page coordinates
+                      const ev = e.nativeEvent;
+                      // @ts-ignore has pageX/pageY
+                      startDrag(item, ev.pageX ?? ev.locationX, ev.pageY ?? ev.locationY);
                     }}
                     // use longPress to start drag; avoid manual responder handlers to prevent conflicts
                     accessibilityRole="button"
@@ -298,9 +289,9 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
         {/* drag ghost rendered at backdrop level so absolute page coords align */}
         {dragging && draggingItem ? (
           <Animated.View
+            pointerEvents="none"
             style={[
               styles.dragGhost,
-              { pointerEvents: 'none' as any },
               {
                 transform: [{ translateX: pan.x }, { translateY: pan.y }],
               },

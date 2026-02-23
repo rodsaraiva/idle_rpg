@@ -1,5 +1,5 @@
-import { useRef, useState, useEffect } from 'react';
-import { Animated, PanResponder, View } from 'react-native';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { Animated, PanResponder, Platform, View } from 'react-native';
 import { lightTap, successNotification } from '../services/haptics';
 
 type CellLayout = { x: number; y: number; width: number; height: number };
@@ -16,6 +16,8 @@ type UseDragDropGridResult<T> = {
   hoveredIndex: number | null;
 };
 
+const IS_WEB = Platform.OS === 'web';
+
 export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => void): UseDragDropGridResult<T> {
   const [dragging, setDragging] = useState(false);
   const [draggingItem, setDraggingItem] = useState<T | null>(null);
@@ -24,48 +26,48 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
   const containerAbsRef = useRef<{ x: number; y: number } | null>(null);
   const cellLayouts = useRef<CellLayout[]>([]);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  // refs to avoid stale closures inside PanResponder callbacks
-  const draggingRef = useRef<boolean>(false);
+
+  const draggingRef = useRef(false);
   const draggingItemRef = useRef<T | null>(null);
   const onDropRef = useRef(onDrop);
+  const webListenersRef = useRef<{ move: (e: MouseEvent) => void; up: (e: MouseEvent) => void } | null>(null);
 
-  const measureContainer = () => {
+  useEffect(() => {
+    onDropRef.current = onDrop;
+  }, [onDrop]);
+
+  const measureContainer = useCallback(() => {
     const r = containerRef.current;
     if (!r) {
       containerAbsRef.current = null;
       return;
     }
-    try {
-      // prefer measureInWindow (native), but fall back to DOM bounding rect on web
-      // @ts-ignore measureInWindow may exist on native view refs
-      if (typeof (r as any).measureInWindow === 'function') {
-        (r as any).measureInWindow((cx: number, cy: number) => {
-          containerAbsRef.current = { x: cx, y: cy };
-        });
-      } else if (typeof (r as any).getBoundingClientRect === 'function') {
-        // web: DOM element
-        const rect = (r as any).getBoundingClientRect();
-        containerAbsRef.current = { x: rect.left, y: rect.top };
-      } else {
+    if (IS_WEB) {
+      try {
+        const el = r as unknown as HTMLElement;
+        const rect = el.getBoundingClientRect();
+        containerAbsRef.current = { x: rect.left + window.scrollX, y: rect.top + window.scrollY };
+      } catch {
         containerAbsRef.current = null;
       }
+      return;
+    }
+    try {
+      // @ts-ignore measureInWindow exists on native
+      r.measureInWindow((cx: number, cy: number) => {
+        containerAbsRef.current = { x: cx, y: cy };
+      });
     } catch {
       containerAbsRef.current = null;
     }
-  };
-
-  useEffect(() => {
-    // re-measure occasionally in case layout changes; caller can call setContainerRef to trigger
-    const t = setTimeout(measureContainer, 60);
-    return () => clearTimeout(t);
   }, []);
 
-  // keep onDrop ref up to date
   useEffect(() => {
-    onDropRef.current = onDrop;
-  }, [onDrop]);
+    const t = setTimeout(measureContainer, 60);
+    return () => clearTimeout(t);
+  }, [measureContainer]);
 
-  const performDropAssign = (mx: number, my: number) => {
+  const performDropAssign = useCallback((mx: number, my: number) => {
     const car = containerAbsRef.current;
     if (!car) return -1;
     for (let i = 0; i < cellLayouts.current.length; i++) {
@@ -77,110 +79,125 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
       }
     }
     return -1;
-  };
+  }, []);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => draggingRef.current,
-      onMoveShouldSetPanResponder: () => draggingRef.current,
-      // allow parent to capture the gesture when dragging starts in a child
-      onStartShouldSetPanResponderCapture: () => draggingRef.current,
-      onMoveShouldSetPanResponderCapture: () => draggingRef.current,
-      onPanResponderMove: (_, gestureState) => {
-        const mx = gestureState.moveX ?? (gestureState as any).clientX ?? 0;
-        const my = gestureState.moveY ?? (gestureState as any).clientY ?? 0;
-        // debug coords
-        // eslint-disable-next-line no-console
-        console.log('[useDragDropGrid] onPanResponderMove', { mx, my });
-        pan.setValue({ x: mx - 40, y: my - 20 });
-        const car = containerAbsRef.current;
-        if (car) {
-          const idx = performDropAssign(mx, my);
-          setHoveredIndex(idx === -1 ? null : idx);
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        const mx = gestureState.moveX ?? (gestureState as any).clientX ?? 0;
-        const my = gestureState.moveY ?? (gestureState as any).clientY ?? 0;
-        // eslint-disable-next-line no-console
-        console.log('[useDragDropGrid] onPanResponderRelease', { mx, my, hoveredIndex });
-        const droppedIndex = performDropAssign(mx, my);
-        const item = draggingItemRef.current;
-        const dropFn = onDropRef.current;
-        if (droppedIndex !== -1 && item && dropFn) {
-          const target = cellLayouts.current[droppedIndex];
-          const car = containerAbsRef.current!;
-          const ghostW = 100;
-          const ghostH = 44;
-          const targetX = car.x + target.x + target.width / 2 - ghostW / 2;
-          const targetY = car.y + target.y + target.height / 2 - ghostH / 2;
-          Animated.timing(pan, {
-            toValue: { x: targetX, y: targetY },
-            duration: 160,
-            useNativeDriver: false,
-          }).start(() => {
-            try {
-              dropFn(item, droppedIndex);
-            } catch {
-              // swallow errors from consumer
-            }
-            try {
-              successNotification();
-            } catch {
-              /* non-critical */
-            }
-            try {
-              const { playSound } = require('../services/sound');
-              if (playSound) playSound('chest_reveal' as any).catch(() => {});
-            } catch {
-              /* non-critical */
-            }
-            // clear refs and state
-            draggingRef.current = false;
-            draggingItemRef.current = null;
-            setDragging(false);
-            setDraggingItem(null);
-            pan.setValue({ x: 0, y: 0 });
-            setHoveredIndex(null);
-          });
-        } else {
-          draggingRef.current = false;
-          draggingItemRef.current = null;
-          setDragging(false);
-          setDraggingItem(null);
-          pan.setValue({ x: 0, y: 0 });
-          setHoveredIndex(null);
-        }
-      },
-    })
-  ).current;
-
-  const startDrag = (item: T, pageX: number, pageY: number) => {
-    // update refs first so PanResponder callbacks read latest values
-    draggingItemRef.current = item;
-    draggingRef.current = true;
-    setDraggingItem(item);
-    setDragging(true);
-    pan.setValue({ x: pageX - 40, y: pageY - 20 });
-    // ensure container absolute is measured
-    measureContainer();
-    // eslint-disable-next-line no-console
-    console.log('[useDragDropGrid] startDrag', { id: (item as any)?.id, pageX, pageY, container: containerAbsRef.current });
-    try {
-      lightTap();
-    } catch {
-      /* non-critical */
+  const finishDrop = useCallback((droppedIndex: number) => {
+    const item = draggingItemRef.current;
+    const dropFn = onDropRef.current;
+    if (droppedIndex !== -1 && item && dropFn) {
+      const target = cellLayouts.current[droppedIndex];
+      const car = containerAbsRef.current;
+      if (target && car) {
+        const ghostW = 100;
+        const ghostH = 44;
+        const targetX = car.x + target.x + target.width / 2 - ghostW / 2;
+        const targetY = car.y + target.y + target.height / 2 - ghostH / 2;
+        Animated.timing(pan, {
+          toValue: { x: targetX, y: targetY },
+          duration: 160,
+          useNativeDriver: false,
+        }).start(() => {
+          try { dropFn(item, droppedIndex); } catch { /* swallow */ }
+          try { successNotification(); } catch { /* non-critical */ }
+          try {
+            const { playSound } = require('../services/sound');
+            if (playSound) playSound('chest_reveal' as any).catch(() => {});
+          } catch { /* non-critical */ }
+          clearDragState();
+        });
+        return;
+      }
+      try { dropFn(item, droppedIndex); } catch { /* swallow */ }
     }
-  };
+    clearDragState();
+  }, [pan]);
 
-  const cancelDrag = () => {
+  const clearDragState = useCallback(() => {
     draggingRef.current = false;
     draggingItemRef.current = null;
     setDragging(false);
     setDraggingItem(null);
     pan.setValue({ x: 0, y: 0 });
     setHoveredIndex(null);
-  };
+  }, [pan]);
+
+  const removeWebListeners = useCallback(() => {
+    if (webListenersRef.current) {
+      window.removeEventListener('mousemove', webListenersRef.current.move);
+      window.removeEventListener('mouseup', webListenersRef.current.up);
+      window.removeEventListener('touchmove', webListenersRef.current.move as any);
+      window.removeEventListener('touchend', webListenersRef.current.up as any);
+      webListenersRef.current = null;
+    }
+  }, []);
+
+  // cleanup on unmount
+  useEffect(() => removeWebListeners, [removeWebListeners]);
+
+  const startWebListeners = useCallback(() => {
+    removeWebListeners();
+
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      const px = 'touches' in e ? e.touches[0].pageX : (e as MouseEvent).pageX;
+      const py = 'touches' in e ? e.touches[0].pageY : (e as MouseEvent).pageY;
+      pan.setValue({ x: px - 40, y: py - 20 });
+      measureContainer();
+      const idx = performDropAssign(px, py);
+      setHoveredIndex(idx === -1 ? null : idx);
+    };
+
+    const onUp = (e: MouseEvent | TouchEvent) => {
+      removeWebListeners();
+      const px = 'changedTouches' in e ? e.changedTouches[0].pageX : (e as MouseEvent).pageX;
+      const py = 'changedTouches' in e ? e.changedTouches[0].pageY : (e as MouseEvent).pageY;
+      measureContainer();
+      const droppedIndex = performDropAssign(px, py);
+      finishDrop(droppedIndex);
+    };
+
+    window.addEventListener('mousemove', onMove as any);
+    window.addEventListener('mouseup', onUp as any);
+    window.addEventListener('touchmove', onMove as any, { passive: false });
+    window.addEventListener('touchend', onUp as any);
+    webListenersRef.current = { move: onMove as any, up: onUp as any };
+  }, [pan, measureContainer, performDropAssign, finishDrop, removeWebListeners]);
+
+  // PanResponder for native only
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => draggingRef.current,
+      onMoveShouldSetPanResponder: () => draggingRef.current,
+      onStartShouldSetPanResponderCapture: () => draggingRef.current,
+      onMoveShouldSetPanResponderCapture: () => draggingRef.current,
+      onPanResponderMove: (_, gs) => {
+        pan.setValue({ x: gs.moveX - 40, y: gs.moveY - 20 });
+        const idx = performDropAssign(gs.moveX, gs.moveY);
+        setHoveredIndex(idx === -1 ? null : idx);
+      },
+      onPanResponderRelease: (_, gs) => {
+        const droppedIndex = performDropAssign(gs.moveX, gs.moveY);
+        finishDrop(droppedIndex);
+      },
+    })
+  ).current;
+
+  const startDrag = useCallback((item: T, pageX: number, pageY: number) => {
+    draggingItemRef.current = item;
+    draggingRef.current = true;
+    setDraggingItem(item);
+    setDragging(true);
+    pan.setValue({ x: pageX - 40, y: pageY - 20 });
+    measureContainer();
+    if (IS_WEB) {
+      startWebListeners();
+    }
+    try { lightTap(); } catch { /* non-critical */ }
+  }, [pan, measureContainer, startWebListeners]);
+
+  const cancelDrag = useCallback(() => {
+    removeWebListeners();
+    clearDragState();
+  }, [removeWebListeners, clearDragState]);
 
   return {
     pan,
@@ -188,7 +205,7 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
     draggingItem,
     startDrag,
     cancelDrag,
-    panHandlers: panResponder.panHandlers,
+    panHandlers: IS_WEB ? {} : panResponder.panHandlers,
     setContainerRef: (r: View | null) => {
       containerRef.current = r;
       measureContainer();
@@ -199,4 +216,3 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
     hoveredIndex,
   };
 }
-
