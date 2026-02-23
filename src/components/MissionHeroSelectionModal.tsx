@@ -254,7 +254,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                 <TouchableOpacity
                     style={[styles.heroItem, placed && styles.heroItemPlaced]}
                     onPress={() => placeHero(item.id)}
-                    delayLongPress={100}
+                    delayLongPress={0}
                     onLongPress={(e) => {
                       // start drag using page coordinates and measured ghost size
                       const ev = e.nativeEvent as any;
