@@ -1,0 +1,206 @@
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Image, Platform, Animated, Easing } from 'react-native';
+import { theme } from '../theme';
+import { on } from '../services/feedback';
+
+interface CombatantCardProps {
+  id: string;
+  name: string;
+  hp: number;
+  maxHp: number;
+  atk?: number;
+  mp?: number;
+  avatarUrl?: string;
+  attackType?: 'MELEE' | 'RANGED';
+  align?: 'left' | 'right';
+  highlighted?: boolean;
+}
+
+export const CombatantCard: React.FC<CombatantCardProps> = ({
+  id,
+  name,
+  hp,
+  maxHp,
+  atk,
+  mp,
+  avatarUrl,
+  attackType,
+  align = 'left',
+  highlighted = false,
+}) => {
+  const hpPct = Math.max(0, Math.min(1, hp / Math.max(1, maxHp)));
+
+  const hpAnim = useRef(new Animated.Value(hpPct)).current;
+  const hitAnim = useRef(new Animated.Value(0)).current; // 0..1
+  const deathAnim = useRef(new Animated.Value(hp > 0 ? 1 : 0)).current; // opacity/scale
+
+  // animate HP bar when hp changes
+  useEffect(() => {
+    const to = Math.max(0, Math.min(1, hp / Math.max(1, maxHp)));
+    Animated.timing(hpAnim, {
+      toValue: to,
+      duration: 220,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false, // animating width/scaleX; width can't use native driver reliably
+    }).start();
+  }, [hp, maxHp, hpAnim]);
+
+  // listen for global hit/death events for this combatant
+  useEffect(() => {
+    function onHit(p: any) {
+      if (!p || p.id !== id) return;
+      // trigger quick hit pulse + shake
+      hitAnim.setValue(0);
+      Animated.sequence([
+        Animated.timing(hitAnim, { toValue: 1, duration: 80, useNativeDriver: true }),
+        Animated.timing(hitAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+      ]).start();
+    }
+    function onDeath(p: any) {
+      if (!p || p.id !== id) return;
+      Animated.timing(deathAnim, { toValue: 0, duration: 360, useNativeDriver: true }).start();
+    }
+    const unsubHit = on('BATTLE_HIT', onHit);
+    const unsubDeath = on('BATTLE_DEATH', onDeath);
+    return () => {
+      unsubHit();
+      unsubDeath();
+    };
+  }, [id, hitAnim, deathAnim]);
+
+  // derived animated styles
+  const translateX = hitAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, -6, 0] });
+  const overlayOpacity = hitAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0.5, 0] });
+  const scale = deathAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] });
+  const hpWidth = hpAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+
+  return (
+    <Animated.View
+      style={[
+        styles.card,
+        highlighted ? styles.highlight : null,
+        align === 'right' ? styles.alignRight : styles.alignLeft,
+        { transform: [{ translateX }, { scale }] },
+      ]}
+    >
+      {avatarUrl ? <Image source={{ uri: avatarUrl }} style={styles.avatar} /> : null}
+      <View style={styles.info}>
+        <Text style={styles.name}>{name}</Text>
+        <View style={styles.hpRow}>
+          <View style={styles.hpBar}>
+            <Animated.View style={[styles.hpFill, { width: hpWidth }]} />
+          </View>
+          <Text style={styles.hpText}>
+            {Math.floor(hp)}/{Math.floor(maxHp)}
+          </Text>
+        </View>
+        <View style={styles.metaRow}>
+          {typeof atk === 'number' ? <Text style={styles.metaText}>ATK {Math.floor(atk)}</Text> : null}
+          {typeof mp === 'number' ? <Text style={styles.metaText}>MP {Math.floor(mp)}</Text> : null}
+          {attackType ? <Text style={styles.typeText}>{attackType === 'RANGED' ? 'R' : 'M'}</Text> : null}
+        </View>
+      </View>
+      {/* hit overlay */}
+      <Animated.View pointerEvents="none" style={[styles.hitOverlay, { opacity: overlayOpacity }]} />
+    </Animated.View>
+  );
+};
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.sm,
+    marginBottom: theme.spacing.sm,
+    minWidth: 120,
+    maxWidth: 220,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceLight,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  alignLeft: {
+    alignSelf: 'flex-start',
+  },
+  alignRight: {
+    alignSelf: 'flex-end',
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    marginRight: theme.spacing.sm,
+    backgroundColor: theme.colors.surfaceLight,
+  },
+  info: {
+    flex: 1,
+  },
+  name: {
+    color: theme.colors.textPrimary,
+    fontWeight: theme.fontWeight.semibold,
+    marginBottom: 4,
+  },
+  hpRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  hpBar: {
+    flex: 1,
+    height: 10,
+    backgroundColor: theme.colors.surfaceLight,
+    borderRadius: 6,
+    overflow: 'hidden',
+    marginRight: 8,
+  },
+  hpFill: {
+    height: '100%',
+    backgroundColor: theme.colors.hp,
+  },
+  hpText: {
+    color: theme.colors.textSecondary,
+    fontSize: 12,
+    minWidth: 56,
+    textAlign: 'right',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    marginTop: 6,
+    alignItems: 'center',
+    gap: 8,
+  },
+  metaText: {
+    color: theme.colors.textSecondary,
+    fontSize: 11,
+  },
+  typeText: {
+    color: theme.colors.textMuted,
+    fontSize: 11,
+    marginLeft: 4,
+  },
+  highlight: {
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    ...Platform.select({
+      web: {
+        boxShadow: `0 0 8px ${theme.colors.primary}`,
+      },
+      default: {
+        shadowColor: theme.colors.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 4,
+      },
+    }),
+  },
+  hitOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#ff7a7a',
+    borderRadius: theme.borderRadius.sm,
+    opacity: 0,
+  },
+});

@@ -331,6 +331,11 @@ export function GameProvider({ children }: GameProviderProps) {
           emit(FEEDBACK_EVENTS.FLOAT, { text: `-${lost} HP`, color: '#ff7a7a' });
           // highlight hero damaged
           emit('BATTLE_HIGHLIGHT', { id: h.id, duration: 800 });
+          // also emit hit/death for more explicit animations
+          emit('BATTLE_HIT', { id: h.id, amount: lost });
+          if ((h.hpCurrent ?? 0) <= 0) {
+            emit('BATTLE_DEATH', { id: h.id });
+          }
         }
         if (h.atk > prevHero.atk) {
           emit(FEEDBACK_EVENTS.FLOAT, { text: `+${h.atk - prevHero.atk} ATK`, color: '#ff8a65' });
@@ -338,6 +343,32 @@ export function GameProvider({ children }: GameProviderProps) {
         if (h.mp > prevHero.mp) {
           emit(FEEDBACK_EVENTS.FLOAT, { text: `+${h.mp - prevHero.mp} MP`, color: '#66b2ff' });
         }
+      });
+
+      // detect enemy damage/death changes inside active missions and emit events
+      const prevMissions = (prev.activeMissions || []) as any[];
+      const curMissions = (state.activeMissions || []) as any[];
+      const prevById = new Map(prevMissions.map((m) => [m.id, m]));
+      curMissions.forEach((cm) => {
+        const pm = prevById.get(cm.id);
+        if (!pm || !pm.enemiesState || !cm.enemiesState) return;
+        const prevEnemies = pm.enemiesState as any[];
+        const curEnemies = cm.enemiesState as any[];
+        const prevByE = new Map(prevEnemies.map((e) => [e.id, e]));
+        curEnemies.forEach((ce) => {
+          const pe = prevByE.get(ce.id);
+          if (!pe) return;
+          const prevHp = (pe.hp ?? 0);
+          const curHp = (ce.hp ?? 0);
+          if (curHp < prevHp) {
+            // enemy was hit
+            emit('BATTLE_HIT', { id: ce.id, amount: prevHp - curHp });
+          }
+          if ((pe.alive ?? true) && !(ce.alive ?? (ce.hp ?? 0) > 0)) {
+            // death transition
+            emit('BATTLE_DEATH', { id: ce.id });
+          }
+        });
       });
     }
     prevStateRef.current = state;

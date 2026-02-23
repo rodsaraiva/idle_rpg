@@ -5,6 +5,7 @@ import { MISSIONS } from '../constants/missions';
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
 import { on, off, FEEDBACK_EVENTS } from '../services/feedback';
+import { CombatantCard } from './CombatantCard';
 
 interface Props {
   mission: ActiveMission;
@@ -48,22 +49,43 @@ export function MissionActiveItem({ mission }: Props) {
         <Text style={styles.title}>{template?.name ?? mission.templateId}</Text>
         <Text style={styles.time}>{formatMs(mission.remainingMs)}</Text>
       </View>
-      <View style={styles.heroesRow}>
-        {heroes.map((h) => (
-          <View key={h.id} style={[styles.heroMini, highlighted === h.id ? styles.highlight : null]}>
-            <Text style={styles.heroMiniName}>{h.name}</Text>
-            <View style={styles.hpRow}>
-              <View style={styles.hpBar}>
-                <View style={[styles.hpFill, { width: `${Math.max(0, Math.min(100, Math.round(((h.hpCurrent ?? 0) / (h.hpMax ?? 1)) * 100)))}%` }]} />
-              </View>
-              <Text style={styles.hpText}>
-                {Math.floor(h.hpCurrent ?? 0)}/{Math.floor(h.hpMax ?? 0)}
-              </Text>
-            </View>
-            <Text style={styles.typeText}>{h.attackType === 'RANGED' ? 'R' : 'M'}</Text>
-          </View>
-        ))}
+
+      <View style={styles.battleRow}>
+        <View style={styles.columnLeft}>
+          {heroes.map((h) => (
+            <CombatantCard
+              key={h.id}
+              id={h.id}
+              name={h.name}
+              hp={h.hpCurrent ?? 0}
+              maxHp={h.hpMax ?? 0}
+              atk={h.atk}
+              mp={h.mp}
+              attackType={h.attackType}
+              align="left"
+              highlighted={highlighted === h.id}
+            />
+          ))}
+        </View>
+
+        <View style={styles.columnRight}>
+          {(mission.enemiesState || []).map((e: any) => (
+            <CombatantCard
+              key={e.id}
+              id={e.id}
+              name={e.id}
+              hp={e.hp ?? 0}
+              maxHp={e.maxHp ?? e.hp ?? 1}
+              atk={e.atk}
+              mp={e.mp}
+              attackType={e.attackType}
+              align="right"
+              highlighted={highlighted === e.id}
+            />
+          ))}
+        </View>
       </View>
+
       <View style={styles.progressBar}>
         <View style={[styles.progressFill, { width: `${Math.min(100, Math.round(progress * 100))}%` }]} />
       </View>
@@ -91,6 +113,24 @@ const styles = StyleSheet.create({
   },
   time: {
     color: theme.colors.textSecondary,
+  },
+  battleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  columnLeft: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    flex: 1,
+    marginRight: 8,
+  },
+  columnRight: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    flex: 1,
+    marginLeft: 8,
   },
   heroesRow: {
     flexDirection: 'row',

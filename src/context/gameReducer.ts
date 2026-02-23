@@ -337,6 +337,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               missionEnemies.push({
                 id: `enemy_${gi}_${i}`,
                 hp: edef.hp,
+                maxHp: edef.hp,
                 atk: edef.atk,
                 mp: edef.mp,
                 alive: true,
@@ -350,6 +351,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             missionEnemies.push({
               id: `orc_${i}`,
               hp: 5,
+              maxHp: 5,
               atk: 2,
               mp: 1,
               alive: true,
