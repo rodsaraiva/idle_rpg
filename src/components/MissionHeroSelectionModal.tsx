@@ -66,6 +66,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
   }, [selectableHeroes]);
 
   const placedSet = useMemo(() => new Set(slots.filter(Boolean) as string[]), [slots]);
+  const gridRef = useRef<View | null>(null);
 
   const placeHero = (heroId: string) => {
     // if already placed, remove it
@@ -145,8 +146,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
   });
 
   // touch tracking to start drag on short touch+move (not only long-press)
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const DRAG_START_THRESHOLD = 6; // pixels
+  // Note: rely on longPress only for drag start to avoid responder conflicts
 
   // animated scale values per cell for hover effect
   const cellScalesRef = useRef<Animated.Value[]>(
@@ -183,10 +183,18 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
         <View style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContent} scrollEnabled={!dragging}>
             <Text style={styles.title}>Posicione os heróis na missão</Text>
+            {/* grid container */}
             <View
               ref={(r) => {
                 // @ts-ignore
+                gridRef.current = r;
+                // @ts-ignore
                 setContainerRef(r);
+              }}
+              onLayout={() => {
+                // re-measure whenever layout changes
+                // @ts-ignore
+                setContainerRef(gridRef.current);
               }}
               style={styles.grid}
               {...panHandlers}
@@ -241,24 +249,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                       // @ts-ignore has pageX/pageY
                       startDrag(item, ev.pageX ?? ev.locationX, ev.pageY ?? ev.locationY);
                     }}
-                    onStartShouldSetResponder={() => true}
-                    onResponderGrant={(e) => {
-                      const ev = e.nativeEvent as any;
-                      touchStartRef.current = { x: ev.pageX ?? ev.locationX, y: ev.pageY ?? ev.locationY };
-                    }}
-                    onResponderMove={(e) => {
-                      const ev = e.nativeEvent as any;
-                      if (!dragging && touchStartRef.current) {
-                        const dx = Math.abs((ev.pageX ?? ev.locationX) - touchStartRef.current.x);
-                        const dy = Math.abs((ev.pageY ?? ev.locationY) - touchStartRef.current.y);
-                        if (dx > DRAG_START_THRESHOLD || dy > DRAG_START_THRESHOLD) {
-                          startDrag(item, ev.pageX ?? ev.locationX, ev.pageY ?? ev.locationY);
-                        }
-                      }
-                    }}
-                    onResponderRelease={() => {
-                      touchStartRef.current = null;
-                    }}
+                    // use longPress to start drag; avoid manual responder handlers to prevent conflicts
                     accessibilityRole="button"
                     accessibilityLabel={`Herói ${item.name}. Toque para posicionar ou pressione e arraste para mover.`}
                   >
@@ -272,22 +263,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
               }}
             />
 
-            {dragging && draggingItem ? (
-              <Animated.View
-                style={[
-                  styles.dragGhost,
-                  { pointerEvents: 'none' as any },
-                  {
-                    transform: [{ translateX: pan.x }, { translateY: pan.y }],
-                  },
-                ]}
-              >
-                <Animated.View style={[styles.dragGhostStyle]}>
-                  <Text style={styles.heroEmojiSmall}>{CLASS_EMOJI[draggingItem.classId ?? ''] ?? '❓'}</Text>
-                  <Text style={styles.heroName}>{draggingItem.name}</Text>
-                </Animated.View>
-              </Animated.View>
-            ) : null}
+            {/* ghost moved outside ScrollView for correct absolute positioning */}
 
             <View style={styles.actions}>
               <Text style={styles.helperText}>
@@ -312,6 +288,24 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
             ) : null}
           </ScrollView>
         </View>
+
+        {/* drag ghost rendered at backdrop level so absolute page coords align */}
+        {dragging && draggingItem ? (
+          <Animated.View
+            style={[
+              styles.dragGhost,
+              { pointerEvents: 'none' as any },
+              {
+                transform: [{ translateX: pan.x }, { translateY: pan.y }],
+              },
+            ]}
+          >
+            <Animated.View style={[styles.dragGhostStyle]}>
+              <Text style={styles.heroEmojiSmall}>{CLASS_EMOJI[draggingItem.classId ?? ''] ?? '❓'}</Text>
+              <Text style={styles.heroName}>{draggingItem.name}</Text>
+            </Animated.View>
+          </Animated.View>
+        ) : null}
       </View>
     </Modal>
   );

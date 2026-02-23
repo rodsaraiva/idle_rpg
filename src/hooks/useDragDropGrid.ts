@@ -24,6 +24,10 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
   const containerAbsRef = useRef<{ x: number; y: number } | null>(null);
   const cellLayouts = useRef<CellLayout[]>([]);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  // refs to avoid stale closures inside PanResponder callbacks
+  const draggingRef = useRef<boolean>(false);
+  const draggingItemRef = useRef<T | null>(null);
+  const onDropRef = useRef(onDrop);
 
   const measureContainer = () => {
     const r = containerRef.current;
@@ -47,6 +51,11 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
     return () => clearTimeout(t);
   }, []);
 
+  // keep onDrop ref up to date
+  useEffect(() => {
+    onDropRef.current = onDrop;
+  }, [onDrop]);
+
   const performDropAssign = (mx: number, my: number) => {
     const car = containerAbsRef.current;
     if (!car) return -1;
@@ -63,11 +72,11 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => dragging,
-      onMoveShouldSetPanResponder: () => dragging,
+      onStartShouldSetPanResponder: () => draggingRef.current,
+      onMoveShouldSetPanResponder: () => draggingRef.current,
       // allow parent to capture the gesture when dragging starts in a child
-      onStartShouldSetPanResponderCapture: () => dragging,
-      onMoveShouldSetPanResponderCapture: () => dragging,
+      onStartShouldSetPanResponderCapture: () => draggingRef.current,
+      onMoveShouldSetPanResponderCapture: () => draggingRef.current,
       onPanResponderMove: (_, gestureState) => {
         pan.setValue({ x: gestureState.moveX - 40, y: gestureState.moveY - 20 });
         const car = containerAbsRef.current;
@@ -82,8 +91,9 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
         const mx = gestureState.moveX;
         const my = gestureState.moveY;
         const droppedIndex = performDropAssign(mx, my);
-        if (droppedIndex !== -1 && draggingItem && onDrop) {
-          // animate to target then call onDrop
+        const item = draggingItemRef.current;
+        const dropFn = onDropRef.current;
+        if (droppedIndex !== -1 && item && dropFn) {
           const target = cellLayouts.current[droppedIndex];
           const car = containerAbsRef.current!;
           const ghostW = 100;
@@ -96,7 +106,7 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
             useNativeDriver: false,
           }).start(() => {
             try {
-              onDrop(draggingItem, droppedIndex);
+              dropFn(item, droppedIndex);
             } catch {
               // swallow errors from consumer
             }
@@ -106,20 +116,22 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
               /* non-critical */
             }
             try {
-              // optionally play a snap sound if available
-              // import dynamically to avoid circular deps in tests
-              // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
               const { playSound } = require('../services/sound');
               if (playSound) playSound('chest_reveal' as any).catch(() => {});
             } catch {
               /* non-critical */
             }
+            // clear refs and state
+            draggingRef.current = false;
+            draggingItemRef.current = null;
             setDragging(false);
             setDraggingItem(null);
             pan.setValue({ x: 0, y: 0 });
             setHoveredIndex(null);
           });
         } else {
+          draggingRef.current = false;
+          draggingItemRef.current = null;
           setDragging(false);
           setDraggingItem(null);
           pan.setValue({ x: 0, y: 0 });
@@ -130,6 +142,9 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
   ).current;
 
   const startDrag = (item: T, pageX: number, pageY: number) => {
+    // update refs first so PanResponder callbacks read latest values
+    draggingItemRef.current = item;
+    draggingRef.current = true;
     setDraggingItem(item);
     setDragging(true);
     pan.setValue({ x: pageX - 40, y: pageY - 20 });
@@ -143,6 +158,8 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
   };
 
   const cancelDrag = () => {
+    draggingRef.current = false;
+    draggingItemRef.current = null;
     setDragging(false);
     setDraggingItem(null);
     pan.setValue({ x: 0, y: 0 });
