@@ -90,7 +90,7 @@ export function MissionsScreen() {
             <View style={{ marginBottom: 10 }}>
               <Text style={{ fontWeight: '700' }}>{item.name}</Text>
               <Text style={{ color: theme.colors.textSecondary }}>
-                Min {item.minHeroes} • Duração {Math.floor(item.durationMs / 1000)}s • Recompensa {item.rewardMin}–{item.rewardMax}
+                Min {item.minHeroes} • Recompensa {item.rewardMin}–{item.rewardMax}
               </Text>
               <View style={{ marginTop: 6 }}>
                 <Button

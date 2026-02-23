@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Image, Platform, Animated, Easing } from 'react-native';
 import { theme } from '../theme';
 import { on } from '../services/feedback';
@@ -33,6 +33,9 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
   const hpAnim = useRef(new Animated.Value(hpPct)).current;
   const hitAnim = useRef(new Animated.Value(0)).current; // 0..1
   const deathAnim = useRef(new Animated.Value(hp > 0 ? 1 : 0)).current; // opacity/scale
+  const [dmgText, setDmgText] = useState<string | null>(null);
+  const dmgAnim = useRef(new Animated.Value(0)).current;
+  const [isTargetLocal, setIsTargetLocal] = useState(false);
 
   // animate HP bar when hp changes
   useEffect(() => {
@@ -51,6 +54,20 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
       if (!p || p.id !== id) return;
       // trigger quick hit pulse + shake
       hitAnim.setValue(0);
+      // show floating damage if provided
+      if (p.amount !== undefined && p.amount !== null) {
+        setDmgText(`${p.amount > 0 ? '-' : ''}${p.amount}`);
+        dmgAnim.setValue(0);
+        Animated.timing(dmgAnim, {
+          toValue: 1,
+          duration: 700,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }).start(() => {
+          setDmgText(null);
+          dmgAnim.setValue(0);
+        });
+      }
       Animated.sequence([
         Animated.timing(hitAnim, { toValue: 1, duration: 80, useNativeDriver: true }),
         Animated.timing(hitAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
@@ -60,11 +77,19 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
       if (!p || p.id !== id) return;
       Animated.timing(deathAnim, { toValue: 0, duration: 360, useNativeDriver: true }).start();
     }
+    function onTarget(p: any) {
+      if (!p || p.id !== id) return;
+      setIsTargetLocal(true);
+      const t = p.duration ?? 800;
+      setTimeout(() => setIsTargetLocal(false), t);
+    }
     const unsubHit = on('BATTLE_HIT', onHit);
     const unsubDeath = on('BATTLE_DEATH', onDeath);
+    const unsubTarget = on('BATTLE_TARGET', onTarget);
     return () => {
       unsubHit();
       unsubDeath();
+      unsubTarget();
     };
   }, [id, hitAnim, deathAnim]);
 
@@ -73,12 +98,14 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
   const overlayOpacity = hitAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0.5, 0] });
   const scale = deathAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] });
   const hpWidth = hpAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  const dmgTranslate = dmgAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -30] });
+  const dmgOpacity = dmgAnim.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 1, 0] });
 
   return (
     <Animated.View
       style={[
         styles.card,
-        highlighted ? styles.highlight : null,
+        (highlighted || isTargetLocal) ? styles.highlight : null,
         align === 'right' ? styles.alignRight : styles.alignLeft,
         { transform: [{ translateX }, { scale }] },
       ]}
@@ -102,6 +129,21 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
       </View>
       {/* hit overlay */}
       <Animated.View pointerEvents="none" style={[styles.hitOverlay, { opacity: overlayOpacity }]} />
+      {/* floating damage near this combatant */}
+      {dmgText ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.dmgFloat,
+            {
+              transform: [{ translateY: dmgTranslate }],
+              opacity: dmgOpacity,
+            },
+          ]}
+        >
+          <Text style={styles.dmgText}>{dmgText}</Text>
+        </Animated.View>
+      ) : null}
     </Animated.View>
   );
 };
@@ -202,5 +244,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff7a7a',
     borderRadius: theme.borderRadius.sm,
     opacity: 0,
+  },
+  dmgFloat: {
+    position: 'absolute',
+    top: -22,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+  },
+  dmgText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#ff7a7a',
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
 });

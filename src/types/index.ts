@@ -81,7 +81,7 @@ export interface ActiveMission {
   id: string;
   templateId: string;
   heroIds: string[];
-  remainingMs: number;
+  remainingMs?: number;
   startedAt: number;
   // modifiers computed at mission start
   healerBuffMultiplier?: number;

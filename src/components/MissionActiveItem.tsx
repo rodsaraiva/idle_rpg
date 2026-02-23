@@ -4,22 +4,11 @@ import { ActiveMission } from '../types';
 import { MISSIONS } from '../constants/missions';
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
-import { on, off, FEEDBACK_EVENTS } from '../services/feedback';
+import { on } from '../services/feedback';
 import { CombatantCard } from './CombatantCard';
 
 interface Props {
   mission: ActiveMission;
-}
-
-function formatMs(ms: number) {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  const mm = Math.floor(total / 60)
-    .toString()
-    .padStart(2, '0');
-  const ss = Math.floor(total % 60)
-    .toString()
-    .padStart(2, '0');
-  return `${mm}:${ss}`;
 }
 
 export function MissionActiveItem({ mission }: Props) {
@@ -39,15 +28,16 @@ export function MissionActiveItem({ mission }: Props) {
   }, []);
 
   const progress = useMemo(() => {
-    if (!template) return 0;
-    return Math.max(0, 1 - mission.remainingMs / template.durationMs);
-  }, [mission.remainingMs, template]);
+    const totalActions = (mission.scheduledActions || []).length;
+    if (totalActions === 0) return 0;
+    const applied = (mission.scheduledActions || []).filter((s: any) => s.applied).length;
+    return Math.max(0, Math.min(1, applied / totalActions));
+  }, [mission.scheduledActions]);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{template?.name ?? mission.templateId}</Text>
-        <Text style={styles.time}>{formatMs(mission.remainingMs)}</Text>
       </View>
 
       <View style={styles.battleRow}>

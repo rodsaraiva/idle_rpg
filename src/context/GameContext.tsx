@@ -201,8 +201,8 @@ export function GameProvider({ children }: GameProviderProps) {
               const tickMs = savedState.tickIntervalMs ?? TICK_INTERVAL_MS;
               const perHeroGold = { ...(newState.perHeroGold ?? {}) };
               savedState.activeMissions.forEach((m: any) => {
-                const remaining = m.remainingMs - ticks * tickMs;
-                if (remaining <= 0) {
+                const remaining = typeof m.remainingMs === 'number' ? m.remainingMs - ticks * tickMs : undefined;
+                if (typeof remaining === 'number' && remaining <= 0) {
                   const template = MISSIONS.find((t) => t.id === m.templateId);
                   if (template) {
                     const heroesForMission = newHeroes.filter((h) => m.heroIds.includes(h.id));
@@ -221,8 +221,12 @@ export function GameProvider({ children }: GameProviderProps) {
                     });
                   }
                 } else {
-                  // mission still in progress, update remaining and keep it
-                  newActiveMissions.push({ ...m, remainingMs: remaining });
+                  // mission still in progress, update remaining and keep it (if undefined, keep as-is)
+                  if (typeof remaining === 'number') {
+                    newActiveMissions.push({ ...m, remainingMs: remaining });
+                  } else {
+                    newActiveMissions.push({ ...m });
+                  }
                 }
               });
               newState.gold += additionalGold;
@@ -331,8 +335,9 @@ export function GameProvider({ children }: GameProviderProps) {
           emit(FEEDBACK_EVENTS.FLOAT, { text: `-${lost} HP`, color: '#ff7a7a' });
           // highlight hero damaged
           emit('BATTLE_HIGHLIGHT', { id: h.id, duration: 800 });
-          // also emit hit/death for more explicit animations
+          // also emit hit/target/death for more explicit animations
           emit('BATTLE_HIT', { id: h.id, amount: lost });
+          emit('BATTLE_TARGET', { id: h.id, duration: 800 });
           if ((h.hpCurrent ?? 0) <= 0) {
             emit('BATTLE_DEATH', { id: h.id });
           }
@@ -362,7 +367,9 @@ export function GameProvider({ children }: GameProviderProps) {
           const curHp = (ce.hp ?? 0);
           if (curHp < prevHp) {
             // enemy was hit
-            emit('BATTLE_HIT', { id: ce.id, amount: prevHp - curHp });
+            const dmg = prevHp - curHp;
+            emit('BATTLE_HIT', { id: ce.id, amount: dmg });
+            emit('BATTLE_TARGET', { id: ce.id, duration: 800 });
           }
           if ((pe.alive ?? true) && !(ce.alive ?? (ce.hp ?? 0) > 0)) {
             // death transition

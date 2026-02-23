@@ -144,55 +144,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
       }
 
-      // process active missions timers
+      // process active missions: apply scheduled actions over time and finish when a team is defeated
       const active = (state.activeMissions || []).map((m) => ({ ...m }));
       const completed: { mission: typeof active[0]; reward: number }[] = [];
-      active.forEach((m) => {
-        m.remainingMs -= tickMs;
-        if (m.remainingMs <= 0) {
-          // compute reward: if precomputed outcome exists use it, otherwise compute now
-          const template = MISSIONS.find((t) => t.id === m.templateId);
-          if (template) {
-            if ((m as any).precomputedOutcome && (m as any).precomputedOutcome.reward !== undefined) {
-              completed.push({ mission: m, reward: (m as any).precomputedOutcome.reward });
-              (m as any).__outcome = {
-                success: (m as any).precomputedOutcome.success,
-                reward: (m as any).precomputedOutcome.reward,
-                rounds: (m as any).precomputedOutcome.rounds,
-                casualties: (m as any).precomputedOutcome.casualties ?? [],
-                enemyCasualties: (m as any).precomputedOutcome.enemyCasualties ?? 0,
-                actions: (m as any).precomputedOutcome.actions ?? [],
-                log: (m as any).precomputedOutcome.log ?? [],
-              };
-            } else {
-              const heroes = state.heroes.filter((h) => m.heroIds.includes(h.id));
-              // run a battle simulation (fallback)
-              const outcome = computeBattleOutcome(template, heroes, {
-                healerBuffMultiplier: (m as any).healerBuffMultiplier,
-                rogueRngBonus: (m as any).rogueRngBonus,
-                ref: template.ref,
-                exponent: template.exponent,
-                synergyK: template.synergyK,
-                scale: template.scale,
-              });
-              completed.push({ mission: m, reward: outcome.reward });
-              (m as any).__outcome = outcome;
-            }
-          }
-        }
-      });
-      // filter out completed missions
-      const remainingMissions = active.filter((m) => m.remainingMs > 0);
-
-      // release heroes from completed missions and add rewards
       let newHeroes = updatedHeroes.map((h) => ({ ...h }));
 
-      // Apply scheduled actions for missions (live playback): update heroes/enemy states when action times are reached
       for (let mi = 0; mi < active.length; mi++) {
         const m = active[mi] as any;
         const tpl = MISSIONS.find((t) => t.id === m.templateId);
         if (!tpl) continue;
-        const elapsed = tpl.durationMs - (m.remainingMs ?? 0);
+
+        // compute elapsed playback time since mission started
+        const startedAt = m.startedAt ?? 0;
+        const elapsed = Math.max(0, Date.now() - startedAt);
+
+        // apply scheduled actions whose time has arrived
         if (m.scheduledActions && Array.isArray(m.scheduledActions)) {
           for (let ai = 0; ai < m.scheduledActions.length; ai++) {
             const sched = m.scheduledActions[ai];
@@ -216,13 +182,55 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
                   (m.enemiesState as any[])[eidx] = { ...(m.enemiesState as any[])[eidx], hp: newHp, alive: newHp > 0 };
                 }
               }
+
               // mark applied
               sched.applied = true;
+
+              // if this action indicates a defeat, schedule mission finish after delay (2000ms)
+              if (act.actionType === 'defeat') {
+                if (!m.finishAt) {
+                  m.finishAt = Date.now() + 2000;
+                }
+                // stop applying further actions for this tick for this mission
+                break;
+              }
             }
           }
         }
+
+        // after applying actions, check if one side has no alive units; finish mission if so
+        const aliveEnemies = (m.enemiesState || []).filter((e: any) => (e.hp ?? 0) > 0);
+        const aliveHeroes = newHeroes.filter((h) => m.heroIds.includes(h.id) && (h.hpCurrent ?? 0) > 0);
+        if (aliveEnemies.length === 0 || aliveHeroes.length === 0) {
+          // schedule finish after delay (2000ms) if not already scheduled
+          if (!m.finishAt) {
+            m.finishAt = Date.now() + 2000;
+          }
+        }
+
+        // if finishAt was scheduled and the time has arrived, finalize mission now
+        if (m.finishAt && Date.now() >= m.finishAt) {
+          if ((m as any).precomputedOutcome && (m as any).precomputedOutcome.reward !== undefined) {
+            completed.push({ mission: m, reward: (m as any).precomputedOutcome.reward });
+            (m as any).__outcome = { ...(m as any).precomputedOutcome, log: (m as any).precomputedOutcome.log ?? [] };
+          } else {
+            const heroesForOutcome = state.heroes.filter((h) => m.heroIds.includes(h.id));
+            const outcome = computeBattleOutcome(tpl, heroesForOutcome, {
+              healerBuffMultiplier: (m as any).healerBuffMultiplier,
+              rogueRngBonus: (m as any).rogueRngBonus,
+              ref: tpl.ref,
+              exponent: tpl.exponent,
+              synergyK: tpl.synergyK,
+              scale: tpl.scale,
+            });
+            completed.push({ mission: m, reward: outcome.reward });
+            (m as any).__outcome = outcome;
+          }
+        }
+
         active[mi] = m;
       }
+      const remainingMissions = active.filter((m) => !completed.find((c) => c.mission.id === m.id));
       const perHeroGold = { ...(state.perHeroGold ?? {}) };
       completed.forEach((c) => {
         const n = c.mission.heroIds.length || 1;
@@ -316,7 +324,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         id: missionId,
         templateId: template.id,
         heroIds: action.heroIds,
-        remainingMs: template.durationMs,
         startedAt: Date.now(),
         healerBuffMultiplier,
         rogueRngBonus,
@@ -359,9 +366,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             });
           }
         }
-        // schedule actions: 2000ms delay before first action, 1000ms between actions
+        // schedule actions: 2000ms delay before first action, 1800ms between actions (slower playback)
         const scheduled = (outcome.actions || []).map((a: any, i: number) => ({
-          atMsFromStart: 2000 + i * 1000,
+          atMsFromStart: 2000 + i * 1800,
           action: a,
           applied: false,
         }));
