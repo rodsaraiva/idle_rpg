@@ -154,6 +154,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
   const cellScalesRef = useRef<Animated.Value[]>(
     Array.from({ length: 9 }, () => new Animated.Value(1))
   ) as React.MutableRefObject<Animated.Value[]>;
+  const [ghostSize, setGhostSize] = useState({ w: 100, h: 44 });
   useEffect(() => {
     const target = hoveredIndex === null ? -1 : hoveredIndex;
     cellScalesRef.current.forEach((av: Animated.Value, idx: number) => {
@@ -185,6 +186,19 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
         <View style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContent} scrollEnabled={!dragging}>
             <Text style={styles.title}>Posicione os heróis na missão</Text>
+            {/* hidden ghost measurer so we know exact ghost size for cursor centering */}
+            <View
+              style={{ position: 'absolute', left: -9999, top: -9999, opacity: 0 }}
+              onLayout={(e) => {
+                const { width, height } = e.nativeEvent.layout;
+                if (width && height) setGhostSize({ w: width, h: height });
+              }}
+            >
+              <View style={[styles.dragGhostStyle, { width: 100, height: 44 }]}>
+                <Text style={styles.heroEmojiSmall}>❓</Text>
+                <Text style={styles.heroName}>Measure</Text>
+              </View>
+            </View>
             <View
               ref={(r) => {
                 containerViewRef.current = r;
@@ -240,11 +254,12 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                 <TouchableOpacity
                     style={[styles.heroItem, placed && styles.heroItemPlaced]}
                     onPress={() => placeHero(item.id)}
+                    delayLongPress={100}
                     onLongPress={(e) => {
-                      // start drag using page coordinates
-                      const ev = e.nativeEvent;
+                      // start drag using page coordinates and measured ghost size
+                      const ev = e.nativeEvent as any;
                       // @ts-ignore has pageX/pageY
-                      startDrag(item, ev.pageX ?? ev.locationX, ev.pageY ?? ev.locationY);
+                      startDrag(item, ev.pageX ?? ev.locationX, ev.pageY ?? ev.locationY, ghostSize);
                     }}
                     // use longPress to start drag; avoid manual responder handlers to prevent conflicts
                     accessibilityRole="button"

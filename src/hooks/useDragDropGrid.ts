@@ -8,7 +8,8 @@ type UseDragDropGridResult<T> = {
   pan: Animated.ValueXY;
   dragging: boolean;
   draggingItem: T | null;
-  startDrag: (item: T, pageX: number, pageY: number) => void;
+  // ghostSize optional for web to align ghost center: { w, h }
+  startDrag: (item: T, pageX: number, pageY: number, ghostSize?: { w: number; h: number }) => void;
   cancelDrag: () => void;
   panHandlers: any;
   setContainerRef: (r: View | null) => void;
@@ -31,6 +32,7 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
   const draggingItemRef = useRef<T | null>(null);
   const onDropRef = useRef(onDrop);
   const webListenersRef = useRef<{ move: (e: MouseEvent) => void; up: (e: MouseEvent) => void } | null>(null);
+  const ghostSizeRef = useRef<{ w: number; h: number }>({ w: 100, h: 44 });
 
   useEffect(() => {
     onDropRef.current = onDrop;
@@ -88,8 +90,8 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
       const target = cellLayouts.current[droppedIndex];
       const car = containerAbsRef.current;
       if (target && car) {
-        const ghostW = 100;
-        const ghostH = 44;
+        const ghostW = ghostSizeRef.current.w;
+        const ghostH = ghostSizeRef.current.h;
         const targetX = car.x + target.x + target.width / 2 - ghostW / 2;
         const targetY = car.y + target.y + target.height / 2 - ghostH / 2;
         Animated.timing(pan, {
@@ -129,6 +131,13 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
       window.removeEventListener('touchend', webListenersRef.current.up as any);
       webListenersRef.current = null;
     }
+    if (IS_WEB) {
+      try {
+        document.body.style.cursor = '';
+      } catch {
+        /* ignore */
+      }
+    }
   }, []);
 
   // cleanup on unmount
@@ -160,6 +169,14 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
     window.addEventListener('touchmove', onMove as any, { passive: false });
     window.addEventListener('touchend', onUp as any);
     webListenersRef.current = { move: onMove as any, up: onUp as any };
+    // show grabbing cursor while dragging
+    if (IS_WEB) {
+      try {
+        document.body.style.cursor = 'grabbing';
+      } catch {
+        /* ignore */
+      }
+    }
   }, [pan, measureContainer, performDropAssign, finishDrop, removeWebListeners]);
 
   // PanResponder for native only
@@ -181,12 +198,15 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
     })
   ).current;
 
-  const startDrag = useCallback((item: T, pageX: number, pageY: number) => {
+  const startDrag = useCallback((item: T, pageX: number, pageY: number, ghostSize?: { w: number; h: number }) => {
     draggingItemRef.current = item;
     draggingRef.current = true;
     setDraggingItem(item);
     setDragging(true);
-    pan.setValue({ x: pageX - 40, y: pageY - 20 });
+    if (ghostSize) ghostSizeRef.current = ghostSize;
+    const gw = ghostSizeRef.current.w;
+    const gh = ghostSizeRef.current.h;
+    pan.setValue({ x: pageX - gw / 2, y: pageY - gh / 2 - 8 });
     measureContainer();
     if (IS_WEB) {
       startWebListeners();
