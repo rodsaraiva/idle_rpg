@@ -119,15 +119,38 @@ export function HeroCard({
         </View>
       </View>
 
-      <View style={styles.stats}>
-        <View style={styles.hpRow}>
-          <Text style={[styles.hpLabel, { color: theme.colors.hp }]}>HP</Text>
-          <Text style={[styles.hpValue, { color: theme.colors.hp }]}>
-            {Math.floor(hero.hpCurrent)}/{Math.floor(hero.hpMax)}
-          </Text>
+      <View style={styles.statsRow}>
+        <View style={styles.hpArea} accessibilityLabel={`HP ${Math.floor(hero.hpCurrent)}/${Math.floor(hero.hpMax)}`}>
+          <View style={styles.hpBarWrap}>
+            <View
+              style={[
+                styles.hpFill,
+                {
+                  width: `${Math.max(0, Math.min(100, Math.round(((hero.hpCurrent ?? 0) / Math.max(1, hero.hpMax ?? 1)) * 100)))}%`,
+                  backgroundColor:
+                    (hero.hpCurrent ?? 0) / Math.max(1, hero.hpMax ?? 1) > 0.6
+                      ? '#3CB371'
+                      : (hero.hpCurrent ?? 0) / Math.max(1, hero.hpMax ?? 1) > 0.3
+                      ? '#FFD24D'
+                      : '#FF7A7A',
+                },
+              ]}
+            />
+            <Text style={styles.hpOverlay}>{Math.floor(hero.hpCurrent)}/{Math.floor(hero.hpMax)}</Text>
+          </View>
         </View>
-        <StatBar label="ATK" value={Math.floor(hero.atk)} color={theme.colors.atk} />
-        <StatBar label="MP" value={Math.floor(hero.mp)} color={theme.colors.mp} />
+
+        <View style={styles.statItem} accessibilityLabel={`ATK ${Math.floor(hero.atk)}`}>
+          <Text style={styles.statIcon}>⚔️</Text>
+          <Text style={styles.statValue}>{Math.floor(hero.atk)}</Text>
+        </View>
+
+        <View style={styles.statItem} accessibilityLabel={`MP ${Math.floor(hero.mp)}`}>
+          <Text style={styles.statIcon}>🔮</Text>
+          <Text style={styles.statValue}>{Math.floor(hero.mp)}</Text>
+        </View>
+
+        {/* attack type removed from card */}
       </View>
 
       {hero.currentTask === HeroTask.TRAIN_HP && hero.trainingProgressMs ? (
@@ -215,6 +238,55 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     gap: 4,
   },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
+  },
+  hpArea: {
+    flex: 1,
+  },
+  hpBarWrap: {
+    width: '100%',
+    height: 14,
+    backgroundColor: theme.colors.surfaceLight,
+    borderRadius: 8,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  hpFill: {
+    height: '100%',
+    alignSelf: 'flex-start',
+  },
+  hpOverlay: {
+    position: 'absolute',
+    alignSelf: 'center',
+    color: '#fff',
+    fontWeight: theme.fontWeight.bold,
+    fontSize: 12,
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: theme.spacing.sm,
+    minWidth: 44,
+    justifyContent: 'center',
+  },
+  statIcon: {
+    fontSize: 14,
+    marginRight: 6,
+  },
+  statValue: {
+    fontSize: 12,
+    color: theme.colors.textPrimary,
+    fontWeight: theme.fontWeight.semibold,
+  },
+  // statBadge removed (attack type no longer shown)
   actions: {
     flexDirection: 'row',
     gap: theme.spacing.sm,

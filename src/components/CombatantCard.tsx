@@ -119,7 +119,7 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
             accessible
             accessibilityLabel={`${name} HP ${Math.floor(hp)}/${Math.floor(maxHp)}`}
           >
-            <Animated.View style={[styles.hpFill, { width: hpWidth, backgroundColor: hpPct > 0.6 ? '#4CD964' : hpPct > 0.3 ? '#FFD24D' : '#FF7A7A' }]} />
+            <Animated.View style={[styles.hpFill, { width: hpWidth, backgroundColor: hpPct > 0.6 ? '#3CB371' : hpPct > 0.3 ? '#FFD24D' : '#FF7A7A' }]} />
             <Text style={styles.hpOverlayText}>{Math.floor(hp)}/{Math.floor(maxHp)}</Text>
           </View>
         </View>
