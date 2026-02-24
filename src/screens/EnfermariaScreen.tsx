@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
+  ScrollView,
 } from 'react-native';
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
@@ -56,7 +57,7 @@ export function EnfermariaScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <ScreenHeader
           title="Enfermaria"
           subtitle={`${injuredIdle.length} herói${injuredIdle.length !== 1 ? 's' : ''} ferido${injuredIdle.length !== 1 ? 's' : ''}`}
@@ -95,6 +96,7 @@ export function EnfermariaScreen() {
               keyExtractor={(i) => i.id}
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
+              nestedScrollEnabled
             />
           )}
         </View>
@@ -102,14 +104,14 @@ export function EnfermariaScreen() {
         <View style={styles.actionsRow}>
           <Button title="Enviar para Enfermaria" onPress={sendToInfirmary} disabled={selectedIds.length === 0} />
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: theme.colors.background },
-  container: { flex: 1, paddingHorizontal: theme.spacing.md },
+  container: { paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md, paddingBottom: theme.spacing.lg },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: theme.colors.textSecondary },
   title: { fontSize: theme.fontSize.xxl, fontWeight: theme.fontWeight.bold, color: theme.colors.textPrimary },

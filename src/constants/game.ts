@@ -11,7 +11,7 @@ export const BASE_TRAIN_TIME_MS = 10000;
 export const TRAIN_INFLATION_FACTOR = 0.1;
 
 /** HP regen: amount and interval */
-export const HP_REGEN_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+export const HP_REGEN_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
 export const HP_REGEN_AMOUNT = 1;
 
 /** Enfermaria (infirmary) regeneration multipliers */

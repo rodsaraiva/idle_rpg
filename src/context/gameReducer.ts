@@ -160,11 +160,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
         // apply scheduled actions whose time has arrived
         if (m.scheduledActions && Array.isArray(m.scheduledActions)) {
-          for (let ai = 0; ai < m.scheduledActions.length; ai++) {
+          // process scheduled actions sequentially; if an action is a "miss", allow the next action
+          // to be executed immediately in the same tick (no delay).
+          let ai = 0;
+          let prevWasMiss = false;
+          while (ai < m.scheduledActions.length) {
             const sched = m.scheduledActions[ai];
-            if (sched.applied) continue;
-            if ((sched.atMsFromStart ?? 0) <= elapsed) {
+            if (sched.applied) {
+              ai++;
+              continue;
+            }
+
+            // allow execution if scheduled time reached OR previous action was a miss
+            if ((sched.atMsFromStart ?? 0) <= elapsed || prevWasMiss) {
               const act = sched.action;
+
               // apply enemy -> hero hits
               if (act.actorType === 'enemy' && act.actionType === 'hit' && act.targetId) {
                 const hid = act.targetId;
@@ -173,6 +183,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
                   newHeroes[idx] = { ...newHeroes[idx], hpCurrent: Math.max(0, (newHeroes[idx].hpCurrent ?? 0) - (act.amount ?? 0)) };
                 }
               }
+
               // apply hero -> enemy hits to mission enemy state if present
               if (act.actorType === 'hero' && act.actionType === 'hit' && act.targetId && m.enemiesState) {
                 const eid = act.targetId;
@@ -186,14 +197,27 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               // mark applied
               sched.applied = true;
 
+              // update prevWasMiss for next iteration
+              prevWasMiss = act.actionType === 'miss';
+
               // if this action indicates a defeat, schedule mission finish after delay (2000ms)
+              // only schedule finish if this defeat results in no remaining alive units on one side
               if (act.actionType === 'defeat') {
-                if (!m.finishAt) {
-                  m.finishAt = Date.now() + 2000;
+                const aliveEnemiesNow = (m.enemiesState || []).filter((e: any) => (e.hp ?? 0) > 0);
+                const aliveHeroesNow = newHeroes.filter((h) => m.heroIds.includes(h.id) && (h.hpCurrent ?? 0) > 0);
+                if (aliveEnemiesNow.length === 0 || aliveHeroesNow.length === 0) {
+                  if (!m.finishAt) {
+                    m.finishAt = Date.now() + 2000;
+                  }
                 }
-                // stop applying further actions for this tick for this mission
-                break;
+                prevWasMiss = false;
               }
+
+              ai++;
+              continue;
+            } else {
+              // neither time reached nor prevWasMiss => can't apply this action now; stop processing further actions this tick
+              break;
             }
           }
         }

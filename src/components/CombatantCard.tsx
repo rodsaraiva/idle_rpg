@@ -113,13 +113,15 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
       {avatarUrl ? <Image source={{ uri: avatarUrl }} style={styles.avatar} /> : null}
       <View style={styles.info}>
         <Text style={styles.name}>{name}</Text>
-        <View style={styles.hpRow}>
-          <View style={styles.hpBar}>
-            <Animated.View style={[styles.hpFill, { width: hpWidth }]} />
+        <View style={styles.hpColumn}>
+          <View
+            style={styles.hpBarContainer}
+            accessible
+            accessibilityLabel={`${name} HP ${Math.floor(hp)}/${Math.floor(maxHp)}`}
+          >
+            <Animated.View style={[styles.hpFill, { width: hpWidth, backgroundColor: hpPct > 0.6 ? '#4CD964' : hpPct > 0.3 ? '#FFD24D' : '#FF7A7A' }]} />
+            <Text style={styles.hpOverlayText}>{Math.floor(hp)}/{Math.floor(maxHp)}</Text>
           </View>
-          <Text style={styles.hpText}>
-            {Math.floor(hp)}/{Math.floor(maxHp)}
-          </Text>
         </View>
         <View style={styles.metaRow}>
           {typeof atk === 'number' ? <Text style={styles.metaText}>ATK {Math.floor(atk)}</Text> : null}
@@ -168,8 +170,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   avatar: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     borderRadius: 8,
     marginRight: theme.spacing.sm,
     backgroundColor: theme.colors.surfaceLight,
@@ -182,28 +184,33 @@ const styles = StyleSheet.create({
     fontWeight: theme.fontWeight.semibold,
     marginBottom: 4,
   },
-  hpRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  hpColumn: {
+    flexDirection: 'column',
+    width: '100%',
   },
-  hpBar: {
-    flex: 1,
-    height: 10,
+  hpBarContainer: {
+    width: '100%',
+    height: 16,
     backgroundColor: theme.colors.surfaceLight,
-    borderRadius: 6,
+    borderRadius: 8,
     overflow: 'hidden',
-    marginRight: 8,
+    justifyContent: 'center',
+    position: 'relative',
+    marginTop: 4,
   },
   hpFill: {
     height: '100%',
     backgroundColor: theme.colors.hp,
   },
-  hpText: {
-    color: theme.colors.textSecondary,
+  hpOverlayText: {
+    position: 'absolute',
+    alignSelf: 'center',
+    color: '#fff',
+    fontWeight: '700',
     fontSize: 12,
-    minWidth: 56,
-    textAlign: 'right',
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   metaRow: {
     flexDirection: 'row',
