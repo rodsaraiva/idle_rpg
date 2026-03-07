@@ -44,12 +44,18 @@ export function AppNavigator() {
         <Tab.Screen
           name="Ferreiro"
           component={BlacksmithScreen}
-          options={{ tabBarButton: () => null }}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
         />
         <Tab.Screen
           name="Panteao"
           component={PantheonScreen}
-          options={{ tabBarButton: () => null }}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
         />
         <Tab.Screen name="Loja" component={ShopScreen} options={{ tabBarLabel: 'Loja' }} />
       </Tab.Navigator>
