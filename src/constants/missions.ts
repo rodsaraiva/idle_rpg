@@ -62,9 +62,6 @@ export const MISSIONS: MissionTemplate[] = [
       { hp: 10, atk: 3, mp: 1, count: 1 },
     ],
     difficulty: 2,
-    requirements: [
-      { type: 'class_needed', classId: 'TANK', label: 'Necessário um Tank' }
-    ]
   },
   {
     id: 'mission_3',
@@ -84,9 +81,6 @@ export const MISSIONS: MissionTemplate[] = [
       { hp: 10, atk: 3, mp: 2, count: 2 },
     ],
     difficulty: 3,
-    requirements: [
-      { type: 'min_avg_stat', stat: 'atk', value: 8, label: 'ATK Médio >= 8' }
-    ]
   },
 ];
 
