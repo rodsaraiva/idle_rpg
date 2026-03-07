@@ -9,6 +9,7 @@ import {
   Easing,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
+import { SOUND_ASSETS, LOTTIE_ASSETS } from '../constants/assets';
 import { Hero, ClassId } from '../types';
 import { theme } from '../theme';
 import { CLASS_DEFS } from '../constants/classes';
@@ -289,7 +290,7 @@ export function ChestRevealModal({
               <View style={styles.chestContainer}>
                 <LottieView
                   ref={chestPulseRef}
-                  source={require('../../assets/lottie/chest_pulse.json')}
+                  source={LOTTIE_ASSETS.CHEST_PULSE}
                   style={styles.lottiePulse}
                   loop
                   autoPlay={false}
@@ -325,14 +326,14 @@ export function ChestRevealModal({
             <>
               <LottieView
                 ref={sparkleBurstRef}
-                source={require('../../assets/lottie/sparkle_burst.json')}
+                source={LOTTIE_ASSETS.SPARKLE_BURST}
                 style={styles.lottieBurst}
                 loop={false}
                 autoPlay={false}
               />
               <LottieView
                 ref={confettiRef}
-                source={require('../../assets/lottie/confetti.json')}
+                source={LOTTIE_ASSETS.CONFETTI}
                 style={styles.lottieConfetti}
                 loop={false}
                 autoPlay={false}

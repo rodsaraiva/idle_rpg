@@ -5,14 +5,15 @@ import React, {
   useCallback,
   useRef,
   ReactNode,
+  useState,
 } from 'react';
 import { GameState, GameAction, HeroTask, OfflineSummaryFull } from '../types';
 import { gameReducer, initialGameState } from './gameReducer';
-import { saveGameState, loadGameState } from '../services/storage';
-import { TICK_INTERVAL_MS, AUTO_SAVE_INTERVAL_MS } from '../constants/game';
+import { loadGameState, saveGameState } from '../services/storage';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { calculateOfflineProgress } from '../utils/offlineProgress';
 import { useGameFeedback } from '../hooks/useGameFeedback';
+import { useGameLoop } from '../hooks/useGameLoop';
 
 interface GameContextValue {
   state: GameState;
@@ -40,73 +41,63 @@ export const GameContext = createContext<GameContextValue>({
   setTrainInflationFactor: () => {},
 });
 
-interface GameProviderProps {
-  children: ReactNode;
-}
-
 export function GameProvider({ children }: GameProviderProps) {
   const [state, dispatch] = useReducer(gameReducer, initialGameState);
-  const [isLoaded, setIsLoaded] = React.useState(false);
-  const [offlineSummary, setOfflineSummary] = React.useState<OfflineSummaryFull | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [offlineSummary, setOfflineSummary] = useState<OfflineSummaryFull | null>(null);
   const stateRef = useRef(state);
 
-  // Mantém a ref sincronizada para o auto-save não usar estado stale
-  stateRef.current = state;
+  // Keep ref in sync for hooks that need the latest state without re-running effects
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
-  // Gerencia feedbacks automáticos baseados no estado
+  // Handle automatic feedback events
   useGameFeedback(state);
 
-  // Carrega o estado salvo ao iniciar e aplica progresso offline
+  // Manage Game Tick and Auto-save
+  const handleTick = useCallback(() => {
+    dispatch({ type: 'TICK' });
+  }, [dispatch]);
+
+  useGameLoop({
+    isLoaded,
+    tickIntervalMs: state.tickIntervalMs,
+    onTick: handleTick,
+    stateRef,
+  });
+
+  // Initialization: Load state and check offline progress
   useEffect(() => {
-    async function loadSavedState() {
-      const savedState = await loadGameState();
-      if (savedState) {
-        const summary = calculateOfflineProgress(savedState);
-        if (summary) {
-          setOfflineSummary(summary);
-          if (typeof __DEV__ !== 'undefined' && __DEV__) {
-            console.log(
-              `Offline progress calculated: ${summary.ticks} ticks, gold +${summary.goldGained}`
-            );
+    async function initialize() {
+      try {
+        const savedState = await loadGameState();
+        if (savedState) {
+          const summary = calculateOfflineProgress(savedState);
+          if (summary) {
+            setOfflineSummary(summary);
+          } else {
+            dispatch({ type: 'LOAD_STATE', state: savedState });
           }
-        } else {
-          dispatch({ type: 'LOAD_STATE', state: savedState });
         }
+      } catch (error) {
+        console.error('GameProvider: Error during initialization', error);
+      } finally {
+        setIsLoaded(true);
       }
-      setIsLoaded(true);
     }
-    loadSavedState();
+    initialize();
   }, []);
-
-  // Game loop — executa a cada tickIntervalMs configurável
-  useEffect(() => {
-    if (!isLoaded) return;
-    const tickMs = state.tickIntervalMs ?? TICK_INTERVAL_MS;
-
-    const tickInterval = setInterval(() => {
-      dispatch({ type: 'TICK' });
-    }, tickMs);
-
-    return () => clearInterval(tickInterval);
-  }, [isLoaded, state.tickIntervalMs]);
-
-  // Auto-save periódico
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    const saveInterval = setInterval(() => {
-      saveGameState(stateRef.current);
-    }, AUTO_SAVE_INTERVAL_MS);
-
-    return () => clearInterval(saveInterval);
-  }, [isLoaded]);
 
   const setHeroTask = useCallback(
     (heroId: string, task: HeroTask) => {
-      const h = stateRef.current.heroes.find((x) => x.id === heroId);
-      if (!h) return;
-      if (h.currentTask === HeroTask.MISSION) {
-        emit(FEEDBACK_EVENTS.TOAST, { text: 'Herói em missão — não pode ser interrompido' });
+      const hero = stateRef.current.heroes.find((h) => h.id === heroId);
+      if (!hero) return;
+      
+      if (hero.currentTask === HeroTask.MISSION) {
+        emit(FEEDBACK_EVENTS.TOAST, { 
+          text: 'Herói em missão — não pode ser interrompido' 
+        });
         return;
       }
       dispatch({ type: 'SET_HERO_TASK', heroId, task });
@@ -120,23 +111,24 @@ export function GameProvider({ children }: GameProviderProps) {
 
   const setTickInterval = useCallback((ms: number) => {
     dispatch({ type: 'SET_TICK_INTERVAL', ms });
-  }, []);
+  }, [dispatch]);
 
   const setTrainInflationFactor = useCallback((inflation: number) => {
     dispatch({ type: 'SET_TRAIN_INFLATION', inflation });
-  }, []);
+  }, [dispatch]);
 
   const clearOfflineSummary = useCallback(() => {
     setOfflineSummary(null);
   }, []);
 
   const applyOfflineSummary = useCallback(async () => {
-    if (!offlineSummary || !offlineSummary.newState) return;
+    if (!offlineSummary?.newState) return;
+    
     try {
       dispatch({ type: 'LOAD_STATE', state: offlineSummary.newState });
       await saveGameState(offlineSummary.newState);
     } catch (err) {
-      console.error('Erro ao aplicar offlineSummary:', err);
+      console.error('GameProvider: Error applying offline summary', err);
     } finally {
       setOfflineSummary(null);
     }
@@ -160,4 +152,8 @@ export function GameProvider({ children }: GameProviderProps) {
       {children}
     </GameContext.Provider>
   );
+}
+
+interface GameProviderProps {
+  children: ReactNode;
 }

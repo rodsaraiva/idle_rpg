@@ -2,45 +2,92 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameState } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
+const CURRENT_VERSION = 2; // Incremented for migrations
 
-/** Salva o estado do jogo no armazenamento local */
-export async function saveGameState(state: GameState): Promise<void> {
-  try {
-    const data = JSON.stringify({ ...state, lastSavedAt: Date.now() });
-    await AsyncStorage.setItem(STORAGE_KEY, data);
-  } catch (error) {
-    console.error('Erro ao salvar estado do jogo:', error);
-  }
+interface SaveData extends GameState {
+  _version: number;
+  lastSavedAt: number;
 }
 
-/** Carrega o estado do jogo do armazenamento local */
-export async function loadGameState(): Promise<GameState | null> {
-  try {
-    const data = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!data) return null;
-    const parsed = JSON.parse(data) as any;
-    // migrate old saves: ensure heroes have training fields
-    if (parsed && Array.isArray(parsed.heroes)) {
-      parsed.heroes = parsed.heroes.map((h: any) => ({
+/**
+ * Migration functions for different versions.
+ * Each function transforms data from version (N-1) to version N.
+ */
+const migrations: Record<number, (data: any) => any> = {
+  2: (data) => {
+    // Version 2 Migration: Ensure training fields and perHeroGold exist
+    if (data && Array.isArray(data.heroes)) {
+      data.heroes = data.heroes.map((h: any) => ({
         trainingProgressMs: h.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 },
         trainingCount: h.trainingCount ?? { hp: 0, atk: 0, mp: 0 },
         ...h,
       }));
-      // ensure perHeroGold exists
-      parsed.perHeroGold = parsed.perHeroGold ?? {};
     }
-    return parsed as GameState;
-  } catch (error) {
-    console.error('Erro ao carregar estado do jogo:', error);
-    return null;
+    data.perHeroGold = data.perHeroGold ?? {};
+    return data;
+  },
+};
+
+/**
+ * Applies migrations to the data based on its version.
+ */
+function applyMigrations(data: any): GameState {
+  let version = data._version || 1;
+
+  while (version < CURRENT_VERSION) {
+    version++;
+    if (migrations[version]) {
+      console.log(`Applying storage migration to version ${version}`);
+      data = migrations[version](data);
+    }
   }
+
+  data._version = version;
+  return data as GameState;
 }
 
-/** Limpa o estado do jogo salvo (útil para debug/reset) */
-export async function clearGameState(): Promise<void> {
-  try {
-    await AsyncStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.error('Erro ao limpar estado do jogo:', error);
-  }
-}
+export const StorageService = {
+  /** Salva o estado do jogo no armazenamento local */
+  async save(state: GameState): Promise<void> {
+    try {
+      const saveData: SaveData = {
+        ...state,
+        _version: CURRENT_VERSION,
+        lastSavedAt: Date.now(),
+      };
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+    } catch (error) {
+      console.error('StorageService: Erro ao salvar estado:', error);
+    }
+  },
+
+  /** Carrega o estado do jogo do armazenamento local */
+  async load(): Promise<GameState | null> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEY);
+      if (!data) return null;
+
+      let parsed = JSON.parse(data);
+      parsed = applyMigrations(parsed);
+      
+      return parsed as GameState;
+    } catch (error) {
+      console.error('StorageService: Erro ao carregar estado:', error);
+      return null;
+    }
+  },
+
+  /** Limpa o estado do jogo salvo */
+  async clear(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error('StorageService: Erro ao limpar estado:', error);
+    }
+  },
+};
+
+// Deprecated functions for backward compatibility with existing imports
+export const saveGameState = StorageService.save;
+export const loadGameState = StorageService.load;
+export const clearGameState = StorageService.clear;
