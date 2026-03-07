@@ -6,68 +6,41 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator,
 } from 'react-native';
-import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
-import { getRecruitCost } from '../utils/math';
 import { GoldDisplay } from '../components/GoldDisplay';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { HeroCard } from '../components/HeroCard';
 import { RecruitButton } from '../components/RecruitButton';
 import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
-import { Hero, HeroTask } from '../types';
+import { Hero } from '../types';
+import { useGuild } from '../hooks/useGuild';
+import { GuildEmptyState } from '../components/GuildEmptyState';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
 
 export function GuildScreen() {
-  const { state, setHeroTask, recruitHero, isLoaded, offlineSummary, clearOfflineSummary } =
-    useGame();
-  const { applyOfflineSummary } = useGame();
+  const {
+    state,
+    isLoaded,
+    offlineSummary,
+    nextRecruitCost,
+    canAfford,
+    recruitHero,
+    clearOfflineSummary,
+    applyOfflineSummary,
+    getHeroActions,
+  } = useGuild();
 
   if (!isLoaded) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Carregando guilda...</Text>
-      </View>
-    );
+    return <LoadingScreen message="Carregando guilda..." />;
   }
-
-  const nextRecruitCost = getRecruitCost(state.heroesRecruited);
-  const canAfford = state.gold >= nextRecruitCost;
 
   const renderHero = ({ item }: { item: Hero }) => (
     <HeroCard
       hero={item}
-      actions={[
-        {
-          label: 'Treinar HP',
-          isActive: item.currentTask === HeroTask.TRAIN_HP,
-          color: theme.colors.hp,
-          onPress: () => setHeroTask(item.id, HeroTask.TRAIN_HP),
-        },
-        {
-          label: 'Treinar ATK',
-          isActive: item.currentTask === HeroTask.TRAIN_ATK,
-          color: theme.colors.atk,
-          onPress: () => setHeroTask(item.id, HeroTask.TRAIN_ATK),
-        },
-        {
-          label: 'Treinar MP',
-          isActive: item.currentTask === HeroTask.TRAIN_MP,
-          color: theme.colors.mp,
-          onPress: () => setHeroTask(item.id, HeroTask.TRAIN_MP),
-        },
-        {
-          label: 'Descansar',
-          isActive: item.currentTask === HeroTask.IDLE,
-          color: theme.colors.textMuted,
-          onPress: () => setHeroTask(item.id, HeroTask.IDLE),
-        },
-      ]}
+      actions={getHeroActions(item)}
     />
   );
-
-  const keyExtractor = (item: Hero) => item.id;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -80,7 +53,6 @@ export function GuildScreen() {
           right={<GoldDisplay gold={state.gold} />}
         />
 
-        {/* Botão de Recrutamento */}
         <View style={styles.recruitSection}>
           <RecruitButton
             cost={nextRecruitCost}
@@ -89,25 +61,19 @@ export function GuildScreen() {
           />
         </View>
 
-        {/* Lista de Heróis */}
         {state.heroes.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>🏰</Text>
-            <Text style={styles.emptyTitle}>Sua guilda está vazia</Text>
-            <Text style={styles.emptySubtitle}>
-              Recrute seu primeiro herói para começar a aventura!
-            </Text>
-          </View>
+          <GuildEmptyState />
         ) : (
           <FlatList
             data={state.heroes}
             renderItem={renderHero}
-            keyExtractor={keyExtractor}
+            keyExtractor={(hero) => hero.id}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           />
         )}
       </View>
+      
       <OfflineSummaryModal
         visible={!!offlineSummary}
         summary={offlineSummary}
@@ -127,60 +93,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: theme.spacing.md,
   },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: theme.spacing.md,
-  },
-  loadingText: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.md,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
-  },
-  title: {
-    fontSize: theme.fontSize.xxl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.textPrimary,
-  },
-  subtitle: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    marginTop: 2,
-  },
   recruitSection: {
     marginBottom: theme.spacing.md,
   },
   listContent: {
     paddingBottom: theme.spacing.xl,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: 100,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: theme.spacing.md,
-  },
-  emptyTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.sm,
-  },
-  emptySubtitle: {
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    paddingHorizontal: theme.spacing.xl,
   },
 });

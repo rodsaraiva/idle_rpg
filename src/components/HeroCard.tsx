@@ -8,6 +8,8 @@ import { AttributeProgress } from './AttributeProgress';
 import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 import { CLASS_DEFS } from '../constants/classes';
 
+import { HPBar } from './HPBar';
+
 export interface HeroCardAction {
   label: string;
   onPress: () => void;
@@ -121,23 +123,7 @@ export function HeroCard({
 
       <View style={styles.statsRow}>
         <View style={styles.hpArea} accessibilityLabel={`HP ${Math.floor(hero.hpCurrent)}/${Math.floor(hero.hpMax)}`}>
-          <View style={styles.hpBarWrap}>
-            <View
-              style={[
-                styles.hpFill,
-                {
-                  width: `${Math.max(0, Math.min(100, Math.round(((hero.hpCurrent ?? 0) / Math.max(1, hero.hpMax ?? 1)) * 100)))}%`,
-                  backgroundColor:
-                    (hero.hpCurrent ?? 0) / Math.max(1, hero.hpMax ?? 1) > 0.6
-                      ? '#3CB371'
-                      : (hero.hpCurrent ?? 0) / Math.max(1, hero.hpMax ?? 1) > 0.3
-                      ? '#FFD24D'
-                      : '#FF7A7A',
-                },
-              ]}
-            />
-            <Text style={styles.hpOverlay}>{Math.floor(hero.hpCurrent)}/{Math.floor(hero.hpMax)}</Text>
-          </View>
+          <HPBar current={hero.hpCurrent} max={hero.hpMax} />
         </View>
 
         <View style={styles.statItem} accessibilityLabel={`ATK ${Math.floor(hero.atk)}`}>
@@ -246,29 +232,6 @@ const styles = StyleSheet.create({
   },
   hpArea: {
     flex: 1,
-  },
-  hpBarWrap: {
-    width: '100%',
-    height: 14,
-    backgroundColor: theme.colors.surfaceLight,
-    borderRadius: 8,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  hpFill: {
-    height: '100%',
-    alignSelf: 'flex-start',
-  },
-  hpOverlay: {
-    position: 'absolute',
-    alignSelf: 'center',
-    color: '#fff',
-    fontWeight: theme.fontWeight.bold,
-    fontSize: 12,
-    textShadowColor: 'rgba(0,0,0,0.35)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
   },
   statItem: {
     flexDirection: 'row',

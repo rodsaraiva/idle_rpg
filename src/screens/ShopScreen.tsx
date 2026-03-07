@@ -1,56 +1,24 @@
-import React, { useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, ScrollView } from 'react-native';
+import React from 'react';
+import { SafeAreaView, View, StyleSheet, ScrollView } from 'react-native';
 import { theme } from '../theme';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { GoldDisplay } from '../components/GoldDisplay';
 import { RecruitButton } from '../components/RecruitButton';
 import { ChestRevealModal } from '../components/ChestRevealModal';
-import { useGame } from '../hooks/useGame';
-import { getRecruitCost } from '../utils/math';
 import { SHOP_ITEMS } from '../constants/shop';
-import { Hero } from '../types';
-import { emit, FEEDBACK_EVENTS } from '../services/feedback';
+import { useShop } from '../hooks/useShop';
 
 export function ShopScreen() {
-  const { state, dispatch } = useGame();
-  const cost = getRecruitCost(state.heroesRecruited);
-  const canAfford = state.gold >= cost;
-
-  const [revealVisible, setRevealVisible] = useState(false);
-  const [activeChestLabel, setActiveChestLabel] = useState('');
-
-  const handleBuyChest = (chestId: string, label: string) => {
-    if (state.gold < cost) {
-      emit(FEEDBACK_EVENTS.TOAST, { text: 'Ouro insuficiente' });
-      return;
-    }
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      console.log('[ShopScreen] BUY_CHEST dispatch, before:', { gold: state.gold, chestId, label });
-    }
-    dispatch({ type: 'BUY_CHEST', chestId });
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      console.log('[ShopScreen] BUY_CHEST dispatched, after (approx):', { chestId });
-    }
-    setActiveChestLabel(label);
-    setRevealVisible(true);
-  };
-
-  const handleRevealComplete = (hero: Hero) => {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      console.log('[ShopScreen] CONFIRM_CHEST_REVEAL received hero:', hero);
-    }
-    dispatch({ type: 'CONFIRM_CHEST_REVEAL', hero });
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      console.log('[ShopScreen] CONFIRM_CHEST_REVEAL dispatched for hero id:', hero?.id);
-    }
-    setRevealVisible(false);
-    setActiveChestLabel('');
-  };
-
-  const handleRevealCancel = () => {
-    setRevealVisible(false);
-    setActiveChestLabel('');
-  };
+  const {
+    state,
+    cost,
+    canAfford,
+    revealVisible,
+    activeChestLabel,
+    handleBuyChest,
+    handleRevealComplete,
+    handleRevealCancel,
+  } = useShop();
 
   return (
     <SafeAreaView style={styles.safeArea}>
