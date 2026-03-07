@@ -1,7 +1,9 @@
 import { GameState, HeroTask, Hero, ActiveMission } from '../types';
-import { MISSIONS } from '../constants/missions';
+import { MISSIONS, MissionTemplate } from '../constants/missions';
 import { v4 as uuidv4 } from 'uuid';
 import { computeBattleOutcome } from '../utils/battleSim';
+import { BattleEngine } from '../utils/battleEngine';
+import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { 
   HEALER_BUFF_PER_HERO, 
   HEALER_BUFF_CAP, 
@@ -11,6 +13,30 @@ import {
   MISSION_ACTION_INTERVAL_MS
 } from '../constants/game';
 
+function validateMissionRequirements(template: MissionTemplate, heroes: Hero[]): string | null {
+  if (!template.requirements) return null;
+
+  for (const req of template.requirements) {
+    if (req.type === 'class_needed') {
+      if (!heroes.some((h) => h.classId === req.classId)) {
+        return req.label;
+      }
+    } else if (req.type === 'min_stat') {
+      const statKey = req.stat === 'hp' ? 'hpMax' : req.stat!;
+      if (!heroes.some((h) => (h[statKey as keyof Hero] as number) >= req.value!)) {
+        return req.label;
+      }
+    } else if (req.type === 'min_avg_stat') {
+      const statKey = req.stat === 'hp' ? 'hpMax' : req.stat!;
+      const avg = heroes.reduce((acc, h) => acc + (h[statKey as keyof Hero] as number), 0) / heroes.length;
+      if (avg < req.value!) {
+        return req.label;
+      }
+    }
+  }
+  return null;
+}
+
 export function handleStartMission(state: GameState, templateId: string, heroIds: string[]): GameState {
   const template = MISSIONS.find((t) => t.id === templateId);
   if (!template) return state;
@@ -18,15 +44,24 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
 
   const heroesMap = new Map(state.heroes.map((h) => [h.id, h]));
   const now = Date.now();
+  const heroesForMission: Hero[] = [];
+
   for (const hid of heroIds) {
     const h = heroesMap.get(hid);
-    if (!h) return state;
-    if (h.currentTask === HeroTask.MISSION) return state;
-    if (h.incapacitatedUntilMs && h.incapacitatedUntilMs > now) return state;
+    if (!h || h.currentTask === HeroTask.MISSION || (h.incapacitatedUntilMs && h.incapacitatedUntilMs > now)) {
+      return state;
+    }
+    heroesForMission.push(h);
+  }
+
+  // Validação de requisitos da missão
+  const error = validateMissionRequirements(template, heroesForMission);
+  if (error) {
+    emit(FEEDBACK_EVENTS.TOAST, { text: `Requisito não atendido: ${error}` });
+    return state;
   }
 
   const missionId = uuidv4();
-  const heroesForMission = heroIds.map((id) => heroesMap.get(id)!).filter(Boolean) as Hero[];
   const countHealers = heroesForMission.filter((h) => h.classId === 'HEALER').length;
   const countRogues = heroesForMission.filter((h) => h.classId === 'ROGUE').length;
   const healerBuffMultiplier = 1 + Math.min(HEALER_BUFF_CAP, countHealers * HEALER_BUFF_PER_HERO);
@@ -36,7 +71,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     id: missionId,
     templateId: template.id,
     heroIds: heroIds,
-    startedAt: Date.now(),
+    startedAt: now,
     healerBuffMultiplier,
     rogueRngBonus,
   };
@@ -47,38 +82,8 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
       rogueRngBonus,
     });
     
-    const missionEnemies: Required<ActiveMission>['enemiesState'] = [];
-    if (template.enemies && template.enemies.length > 0) {
-      template.enemies.forEach((edef, gi) => {
-        const cnt = edef.count ?? 1;
-        for (let i = 0; i < cnt; i++) {
-          missionEnemies.push({
-            id: `enemy_${gi}_${i}`,
-            hp: edef.hp,
-            maxHp: edef.hp,
-            atk: edef.atk,
-            mp: edef.mp,
-            alive: true,
-            attackType: Math.random() < 0.5 ? 'MELEE' : 'RANGED',
-          });
-        }
-      });
-    } else {
-      const enemyCount = template.minHeroes;
-      for (let i = 0; i < enemyCount; i++) {
-        missionEnemies.push({
-          id: `orc_${i}`,
-          hp: 5,
-          maxHp: 5,
-          atk: 2,
-          mp: 1,
-          alive: true,
-          attackType: i % 2 === 0 ? 'MELEE' : 'RANGED',
-        });
-      }
-    }
-
-    const scheduled = (outcome.actions || []).map((a: any, i: number) => ({
+    const missionEnemies = BattleEngine.createEnemies(template);
+    const scheduled = (outcome.actions || []).map((a, i) => ({
       atMsFromStart: MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS,
       action: a,
       applied: false,
@@ -88,6 +93,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     newMission.enemiesState = missionEnemies;
     newMission.precomputedOutcome = outcome;
   } catch (err) {
+    console.error('Erro ao processar batalha da missão:', err);
     newMission.scheduledActions = [];
   }
 

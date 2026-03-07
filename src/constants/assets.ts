@@ -1,7 +1,11 @@
-export const SOUND_ASSETS = {
+// SOUND_ASSETS commented out because files are missing in assets/sounds/
+// This prevents bundling errors in Metro.
+export const SOUND_ASSETS: Record<string, any> = {
+  /*
   CHEST_SUSPENSE: require('../../assets/sounds/chest_suspense.mp3'),
   CHEST_OPEN: require('../../assets/sounds/chest_open.mp3'),
   CHEST_REVEAL: require('../../assets/sounds/chest_reveal.mp3'),
+  */
 };
 
 export const LOTTIE_ASSETS = {

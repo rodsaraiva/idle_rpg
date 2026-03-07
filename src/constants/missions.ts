@@ -1,3 +1,13 @@
+import { ClassId } from '../types';
+
+export interface MissionRequirement {
+  type: 'min_stat' | 'class_needed' | 'min_avg_stat';
+  stat?: 'hp' | 'atk' | 'mp';
+  value?: number;
+  classId?: ClassId;
+  label: string;
+}
+
 export interface MissionTemplate {
   id: string;
   name: string;
@@ -13,6 +23,8 @@ export interface MissionTemplate {
   synergyK?: number;
   // optional explicit enemy composition for battle simulation
   enemies?: { hp: number; atk: number; mp: number; count?: number }[];
+  requirements?: MissionRequirement[];
+  difficulty?: number; // 1-5
 }
 
 export const MISSIONS: MissionTemplate[] = [
@@ -30,6 +42,7 @@ export const MISSIONS: MissionTemplate[] = [
     exponent: 2.2,
     synergyK: 0.055,
     enemies: [{ hp: 5, atk: 1, mp: 1, count: 2 }],
+    difficulty: 1,
   },
   {
     id: 'mission_2',
@@ -48,6 +61,10 @@ export const MISSIONS: MissionTemplate[] = [
       { hp: 6, atk: 2, mp: 1, count: 2 },
       { hp: 10, atk: 3, mp: 1, count: 1 },
     ],
+    difficulty: 2,
+    requirements: [
+      { type: 'class_needed', classId: 'TANK', label: 'Necessário um Tank' }
+    ]
   },
   {
     id: 'mission_3',
@@ -64,8 +81,12 @@ export const MISSIONS: MissionTemplate[] = [
     synergyK: 0.02,
     enemies: [
       { hp: 6, atk: 2, mp: 1, count: 3 },
-      { hp: 10, atk: 3, mp: 1, count: 2 },
+      { hp: 10, atk: 3, mp: 2, count: 2 },
     ],
+    difficulty: 3,
+    requirements: [
+      { type: 'min_avg_stat', stat: 'atk', value: 8, label: 'ATK Médio >= 8' }
+    ]
   },
 ];
 

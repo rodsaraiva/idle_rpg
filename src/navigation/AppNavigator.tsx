@@ -9,7 +9,6 @@ import { VillageScreen } from '../screens/VillageScreen';
 import { BlacksmithScreen } from '../screens/BlacksmithScreen';
 import { PantheonScreen } from '../screens/PantheonScreen';
 import { theme } from '../theme';
-import { Text } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -62,4 +61,3 @@ export function AppNavigator() {
     </NavigationContainer>
   );
 }
-

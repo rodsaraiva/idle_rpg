@@ -35,27 +35,31 @@ export function useGameFeedback(state: GameState) {
         const prevHero = prev.heroes.find((ph) => ph.id === h.id);
         if (!prevHero) return;
 
-        if (h.hp > prevHero.hp) {
-          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${h.hp - prevHero.hp} HP`, color: FEEDBACK_HP_GAIN_COLOR });
+        // Check hpMax increase
+        if (h.hpMax > prevHero.hpMax) {
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor(h.hpMax - prevHero.hpMax)} HP Máx`, color: FEEDBACK_HP_GAIN_COLOR });
         }
 
+        // Check hpCurrent decrease (damage)
         if ((h.hpCurrent ?? 0) < (prevHero.hpCurrent ?? 0)) {
           const lost = Math.max(0, (prevHero.hpCurrent ?? 0) - (h.hpCurrent ?? 0));
-          emit(FEEDBACK_EVENTS.FLOAT, { text: `-${lost} HP`, color: FEEDBACK_HP_LOSS_COLOR });
-          emit('BATTLE_HIGHLIGHT', { id: h.id, duration: BATTLE_HIGHLIGHT_DURATION_MS });
-          emit('BATTLE_HIT', { id: h.id, amount: lost });
-          emit('BATTLE_TARGET', { id: h.id, duration: BATTLE_HIGHLIGHT_DURATION_MS });
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `-${Math.floor(lost)} HP`, color: FEEDBACK_HP_LOSS_COLOR });
+          emit(FEEDBACK_EVENTS.BATTLE_HIGHLIGHT, { id: h.id, duration: BATTLE_HIGHLIGHT_DURATION_MS });
+          emit(FEEDBACK_EVENTS.BATTLE_HIT, { id: h.id, amount: lost });
+          emit(FEEDBACK_EVENTS.BATTLE_TARGET, { id: h.id, duration: BATTLE_HIGHLIGHT_DURATION_MS });
           if ((h.hpCurrent ?? 0) <= 0) {
-            emit('BATTLE_DEATH', { id: h.id });
+            emit(FEEDBACK_EVENTS.BATTLE_DEATH, { id: h.id });
           }
         }
 
+        // Check atk increase
         if (h.atk > prevHero.atk) {
-          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${h.atk - prevHero.atk} ATK`, color: FEEDBACK_ATK_GAIN_COLOR });
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor(h.atk - prevHero.atk)} ATK`, color: FEEDBACK_ATK_GAIN_COLOR });
         }
 
+        // Check mp increase
         if (h.mp > prevHero.mp) {
-          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${h.mp - prevHero.mp} MP`, color: FEEDBACK_MP_GAIN_COLOR });
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor(h.mp - prevHero.mp)} MP`, color: FEEDBACK_MP_GAIN_COLOR });
         }
       });
 
@@ -81,12 +85,12 @@ export function useGameFeedback(state: GameState) {
 
           if (curHp < prevHp) {
             const dmg = prevHp - curHp;
-            emit('BATTLE_HIT', { id: ce.id, amount: dmg });
-            emit('BATTLE_TARGET', { id: ce.id, duration: BATTLE_HIGHLIGHT_DURATION_MS });
+            emit(FEEDBACK_EVENTS.BATTLE_HIT, { id: ce.id, amount: dmg });
+            emit(FEEDBACK_EVENTS.BATTLE_TARGET, { id: ce.id, duration: BATTLE_HIGHLIGHT_DURATION_MS });
           }
 
           if ((pe.alive ?? true) && !(ce.alive ?? (ce.hp ?? 0) > 0)) {
-            emit('BATTLE_DEATH', { id: ce.id });
+            emit(FEEDBACK_EVENTS.BATTLE_DEATH, { id: ce.id });
           }
         });
       });
