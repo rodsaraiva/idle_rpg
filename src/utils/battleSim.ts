@@ -2,6 +2,18 @@ import { MissionTemplate } from '../constants/missions';
 import { Hero /*AttackType*/ } from '../types';
 import { calcMissionReward } from './missionMath';
 
+import { 
+  MAX_BATTLE_ROUNDS, 
+  CRIT_BASE_CHANCE, 
+  CRIT_MULTIPLIER, 
+  BASE_HIT_CHANCE, 
+  HIT_CHANCE_PER_ATK, 
+  ENEMY_HIT_CHANCE, 
+  TANK_MITIGATION_PER_HERO, 
+  TANK_MITIGATION_CAP, 
+  INCAPACITATED_DURATION_MS 
+} from '../constants/game';
+
 export interface BattleOutcome {
   success: boolean;
   reward: number;
@@ -74,7 +86,7 @@ export function computeBattleOutcome(
     }
   }
 
-  const maxRounds = 12;
+  const maxRounds = MAX_BATTLE_ROUNDS;
   const log: string[] = [];
   const actions: {
     round: number;
@@ -87,10 +99,10 @@ export function computeBattleOutcome(
     isCrit?: boolean;
     text: string;
   }[] = [];
-  const critBase = 0.05;
-  const critMult = 1.5;
-  const baseHit = 0.75;
-  const hitPerAtk = 0.02;
+  const critBase = CRIT_BASE_CHANCE;
+  const critMult = CRIT_MULTIPLIER;
+  const baseHit = BASE_HIT_CHANCE;
+  const hitPerAtk = HIT_CHANCE_PER_ATK;
 
   // helper to check alive lists
   const aliveEnemies = () => enemies.filter((e) => e.hp > 0);
@@ -139,7 +151,7 @@ export function computeBattleOutcome(
 
   // count tanks for mitigation
   const tankCount = heroes.filter((h) => h.classId === 'TANK' && h.hpCurrent > 0).length;
-  const tankMitigation = Math.min(0.5, 0.15 * tankCount); // % damage reduced to non-tanks
+  const tankMitigation = Math.min(TANK_MITIGATION_CAP, TANK_MITIGATION_PER_HERO * tankCount); // % damage reduced to non-tanks
 
   let rounds = 0;
   while (rounds < maxRounds && aliveEnemies().length > 0 && aliveHeroes().length > 0) {
@@ -171,7 +183,7 @@ export function computeBattleOutcome(
       }
 
       // choose target based on attackType
-      const attackerType = (hero as any).attackType ?? 'MELEE';
+      const attackerType = hero.attackType ?? 'MELEE';
       const target = chooseTarget(attackerType, aliveEnemies(), rng);
       if (!target) continue;
 
@@ -235,7 +247,7 @@ export function computeBattleOutcome(
       let target = heroTarget ?? alive[0];
 
       // enemy attack
-      const hitChance = 0.8;
+      const hitChance = ENEMY_HIT_CHANCE;
       if (rng() <= hitChance) {
         let dmg = Math.max(1, Math.floor(enemy.atk));
         if (target.classId !== 'TANK' && tankMitigation > 0) {
@@ -310,7 +322,7 @@ export function computeBattleOutcome(
       hpAfter: h.hpCurrent,
     };
     if (h.hpCurrent <= 0) {
-      res.incapacitatedUntilMs = Date.now() + 30 * 60 * 1000; // 30 minutes
+      res.incapacitatedUntilMs = Date.now() + INCAPACITATED_DURATION_MS;
     }
     return res;
   });

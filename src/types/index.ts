@@ -77,37 +77,51 @@ export type GameAction =
   | { type: 'DISMISS_MISSION_RESULT'; missionId: string }
   | { type: 'LOAD_STATE'; state: GameState };
 
+export type MissionActorType = 'hero' | 'enemy';
+export type MissionActionType = 'hit' | 'miss' | 'heal' | 'defeat' | 'victory';
+
+export interface MissionAction {
+  actorType: MissionActorType;
+  actionType: MissionActionType;
+  actorId: string;
+  actorName?: string;
+  targetId?: string;
+  amount?: number;
+  isCrit?: boolean;
+  text: string;
+}
+
 export interface ActiveMission {
   id: string;
   templateId: string;
   heroIds: string[];
   remainingMs?: number;
   startedAt: number;
+  finishAt?: number;
   // modifiers computed at mission start
   healerBuffMultiplier?: number;
   rogueRngBonus?: number;
-  // scheduled actions for live playback: { atMsFromStart, action, applied }
-  scheduledActions?: { atMsFromStart: number; action: any; applied?: boolean }[];
+  // scheduled actions for live playback
+  scheduledActions?: { atMsFromStart: number; action: MissionAction; applied?: boolean }[];
   // track mission enemies state for visualization (hp, id)
-  enemiesState?: { id: string; hp: number; atk: number; mp: number; alive?: boolean; attackType?: 'MELEE' | 'RANGED' }[];
+  enemiesState?: { id: string; hp: number; maxHp?: number; atk: number; mp: number; alive?: boolean; attackType?: 'MELEE' | 'RANGED' }[];
   // precomputed reward/summary to avoid recomputing on completion
-  precomputedOutcome?: {
-    reward?: number;
-    rounds?: number;
-    actions?: any[];
-    log?: string[];
-  };
+  precomputedOutcome?: MissionOutcome;
 }
 
-export interface MissionResult {
-  missionId: string;
-  templateId: string;
-  success: boolean;
+export interface MissionOutcome {
   reward: number;
+  rounds: number;
+  actions: MissionAction[];
+  log: string[];
+  success: boolean;
   casualties: { heroId: string; hpLost: number; hpAfter: number; incapacitatedUntilMs?: number }[];
   enemyCasualties: number;
-  rounds: number;
-  log?: string[];
+}
+
+export interface MissionResult extends MissionOutcome {
+  missionId: string;
+  templateId: string;
 }
 
 /** Resumo do progresso offline aplicado ao carregar o save */ 

@@ -28,17 +28,56 @@ export const ATK_TRAIN_PER_TICK = 1;
 /** Ganho de MP por segundo ao treinar MP */
 export const MP_TRAIN_PER_TICK = 0.3;
 
+/** Battle related constants */
+export const MAX_BATTLE_ROUNDS = 12;
+export const CRIT_BASE_CHANCE = 0.05;
+export const CRIT_MULTIPLIER = 1.5;
+export const BASE_HIT_CHANCE = 0.75;
+export const HIT_CHANCE_PER_ATK = 0.02;
+export const ENEMY_HIT_CHANCE = 0.8;
+export const TANK_MITIGATION_PER_HERO = 0.15;
+export const TANK_MITIGATION_CAP = 0.5;
+export const INCAPACITATED_DURATION_MS = 30 * 60 * 1000; // 30 minutes
+
+/** Mission related constants */
+export const MISSION_START_DELAY_MS = 2000;
+export const MISSION_ACTION_INTERVAL_MS = 1800;
+export const MISSION_FINISH_DELAY_MS = 2000;
+
+export const HEALER_BUFF_PER_HERO = 0.1;
+export const HEALER_BUFF_CAP = 0.3;
+export const ROGUE_RNG_BONUS_PER_HERO = 0.02;
+export const ROGUE_RNG_BONUS_CAP = 0.08;
+
 /** Multiplicador base de ouro por ponto de ATK em missão */
 export const GOLD_PER_ATK = 0.3;
 
 /** Ouro base ganho por tick em missão (antes do bônus de ATK) */
 export const MISSION_BASE_GOLD = 1;
 
+/** Reward calculation constants */
+export const REWARD_REF_STAT_SUM = 250;
+export const REWARD_CURVE_EXPONENT = 2;
+export const TEAM_SYNERGY_COEFFICIENT = 0.05;
+export const MIN_TEAM_SCALE_MULTIPLIER = 0.1;
+export const TEAM_SIZE_SCALE_IMPACT = 0.1;
+
 /** Custo base para recrutar o primeiro herói */
 export const RECRUIT_BASE_COST = 10;
 
+/** Offline progress constants */
+export const MAX_OFFLINE_MS = 1000 * 60 * 60 * 24 * 3; // 72h
+
 /** Fator de inflação para cada herói recrutado */
 export const RECRUIT_COST_MULTIPLIER = 1.5;
+
+/** UI related constants */
+export const BATTLE_HIGHLIGHT_DURATION_MS = 800;
+export const FEEDBACK_GOLD_COLOR = '#ffd34d';
+export const FEEDBACK_HP_GAIN_COLOR = '#7ed957';
+export const FEEDBACK_HP_LOSS_COLOR = '#ff7a7a';
+export const FEEDBACK_ATK_GAIN_COLOR = '#ff8a65';
+export const FEEDBACK_MP_GAIN_COLOR = '#66b2ff';
 
 /** Stats iniciais de um herói recém-recrutado */
 export const INITIAL_HERO_STATS = {

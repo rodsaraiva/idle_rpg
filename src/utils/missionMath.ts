@@ -1,5 +1,12 @@
 import { MissionTemplate } from '../constants/missions';
 import { Hero } from '../types';
+import { 
+  REWARD_REF_STAT_SUM, 
+  REWARD_CURVE_EXPONENT, 
+  TEAM_SYNERGY_COEFFICIENT, 
+  MIN_TEAM_SCALE_MULTIPLIER, 
+  TEAM_SIZE_SCALE_IMPACT 
+} from '../constants/game';
 
 export interface MissionRewardOptions {
   healerBuffMultiplier?: number; // multiplicative buff to statSum (e.g. 1.1)
@@ -22,7 +29,7 @@ export function calcMissionReward(
 
   // base stat sum (weighted)
   const statSumBase = heroes.reduce((acc, h) => {
-    const hpForCalc = (h as any).hpMax ?? (h as any).hpCurrent ?? 0;
+    const hpForCalc = h.hpMax || h.hpCurrent || 0;
     return (
       acc +
       (hpForCalc * (weights.hp ?? 0)) +
@@ -35,20 +42,19 @@ export function calcMissionReward(
   const statSum = statSumBase * healerBuff;
 
   // non-linear mapping parameters (defaults)
-  const ref = opts?.ref ?? 250;
-  const exponent = opts?.exponent ?? 2;
+  const ref = opts?.ref ?? REWARD_REF_STAT_SUM;
+  const exponent = opts?.exponent ?? REWARD_CURVE_EXPONENT;
 
-  // apply team composition adjustment: use average stat + synergy bonus based on team size
   // apply team composition adjustment: use average stat + synergy bonus based on team size
   const n = Math.max(1, heroes.length);
   const statAvg = statSum / n;
-  const synergyK = opts?.synergyK ?? 0.05; // default synergy coefficient
+  const synergyK = opts?.synergyK ?? TEAM_SYNERGY_COEFFICIENT; // default synergy coefficient
   const synergy = 1 + synergyK * (n > 1 ? Math.log(n) : 0); // small bonus as team grows
   const effectiveStat = statAvg * synergy;
   const normalized = Math.max(0, Math.min(effectiveStat / ref, 1));
   const curved = Math.pow(normalized, exponent); // 0..1
   // dynamic scale decreases with team size: scaleMultiplier = max(0.1, 1 - 0.1 * n)
-  const scaleMultiplier = Math.max(0.1, 1 - 0.1 * n);
+  const scaleMultiplier = Math.max(MIN_TEAM_SCALE_MULTIPLIER, 1 - TEAM_SIZE_SCALE_IMPACT * n);
   const dynamicScale = (template.scale ?? 1) * scaleMultiplier;
 
   // base mapped reward in [rewardMin, rewardMax] before RNG (apply dynamicScale)

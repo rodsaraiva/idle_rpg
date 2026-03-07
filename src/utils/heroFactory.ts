@@ -21,9 +21,7 @@ export function createHero(classId?: ClassId): Hero {
     mp,
     currentTask: HeroTask.IDLE,
     classId,
-    // attack type based on class (Tank, Warrior, Rogue => MELEE; Mage, Archer, Healer => RANGED)
-    attackType:
-      classId === 'TANK' || classId === 'WARRIOR' || classId === 'ROGUE' ? 'MELEE' : 'RANGED',
+    attackType: classDef?.attackType ?? 'MELEE',
     // training progress in milliseconds and counts for inflation
     trainingProgressMs: { hp: 0, atk: 0, mp: 0 },
     trainingCount: { hp: 0, atk: 0, mp: 0 },
