@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skills": {
+    "game-engine": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "20057f62cf7a8b2d9f940b3de0b18e5426e8f4bb50e236d36b1033aa0d42c4d8"
+    },
+    "git-commit": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21"
+    },
+    "mobile-android-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "a3d9006fb0c2a6e0b7ca76eff43e7b6ea166959c74e0bc9fbd1de934666d08c0"
+    },
+    "refactor": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "87789a786b96f99ba0680e89345a975106e10e7db1071c7cdc2e76d507c449d6"
+    },
+    "solid": {
+      "source": "ramziddin/solid-skills",
+      "sourceType": "github",
+      "computedHash": "fd066a27d0d3e2dff7e987b49a4a3b936049abb40b292d1e96df4c3990209f77"
+    }
+  }
+}

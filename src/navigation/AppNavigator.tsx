@@ -5,6 +5,9 @@ import { TrainingScreen } from '../screens/TrainingScreen';
 import { MissionsScreen } from '../screens/MissionsScreen';
 import { EnfermariaScreen } from '../screens/EnfermariaScreen';
 import { ShopScreen } from '../screens/ShopScreen';
+import { VillageScreen } from '../screens/VillageScreen';
+import { BlacksmithScreen } from '../screens/BlacksmithScreen';
+import { PantheonScreen } from '../screens/PantheonScreen';
 import { theme } from '../theme';
 import { Text } from 'react-native';
 
@@ -35,6 +38,18 @@ export function AppNavigator() {
           name="Enfermaria"
           component={EnfermariaScreen}
           options={{ tabBarLabel: 'Enfermaria' }}
+        />
+        <Tab.Screen name="Vila" component={VillageScreen} options={{ tabBarLabel: 'Vila' }} />
+        {/* Hidden routes for Ferreiro and Panteão - navigated to from Vila but not shown as tabs */}
+        <Tab.Screen
+          name="Ferreiro"
+          component={BlacksmithScreen}
+          options={{ tabBarButton: () => null }}
+        />
+        <Tab.Screen
+          name="Panteao"
+          component={PantheonScreen}
+          options={{ tabBarButton: () => null }}
         />
         <Tab.Screen name="Loja" component={ShopScreen} options={{ tabBarLabel: 'Loja' }} />
       </Tab.Navigator>
