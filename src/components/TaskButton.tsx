@@ -46,17 +46,16 @@ export function TaskButton({
 const styles = StyleSheet.create({
   button: {
     flex: 1,
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.xs,
-    borderRadius: theme.borderRadius.sm,
-    borderWidth: 1.5,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.semibold,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontWeight: '700',
+    textAlign: 'center',
   },
 });

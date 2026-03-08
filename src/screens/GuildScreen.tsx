@@ -61,6 +61,15 @@ export function GuildScreen() {
           />
         </View>
 
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryText}>
+            ⚔️ {state.heroes.filter(h => h.currentTask !== 'IDLE').length} Ativos
+          </Text>
+          <Text style={styles.summaryText}>
+            💤 {state.heroes.filter(h => h.currentTask === 'IDLE').length} Ociosos
+          </Text>
+        </View>
+
         {state.heroes.length === 0 ? (
           <GuildEmptyState />
         ) : (
@@ -95,6 +104,17 @@ const styles = StyleSheet.create({
   },
   recruitSection: {
     marginBottom: theme.spacing.md,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
+  },
+  summaryText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    fontWeight: '600',
   },
   listContent: {
     paddingBottom: theme.spacing.xl,

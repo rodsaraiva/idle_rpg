@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { theme } from '../theme';
 import { MISSIONS } from '../constants/missions';
 import { MissionActiveItem } from '../components/MissionActiveItem';
@@ -35,22 +35,41 @@ export function MissionsScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <MissionResultModal />
         <ScreenHeader
-          title="Missões"
-          subtitle={`Heróis em missão: ${missionHeroes.length}`}
+          title="Quadro de Missões"
+          subtitle={`${missionHeroes.length} heróis em campo`}
           right={<GoldDisplay gold={state.gold} />}
         />
 
+        {state.activeMissions && state.activeMissions.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Missões em Andamento</Text>
+              <View style={styles.activeBadge}>
+                <Text style={styles.activeBadgeText}>{state.activeMissions.length}</Text>
+              </View>
+            </View>
+            {state.activeMissions.map((m) => (
+              <MissionActiveItem key={m.id} mission={m} />
+            ))}
+          </View>
+        )}
+
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Missões disponíveis</Text>
-          <Text style={styles.sectionSubtitle}>Heróis disponíveis: {availableCount}</Text>
-          {MISSIONS.map((mission) => (
-            <MissionListItem
-              key={mission.id}
-              mission={mission}
-              onSend={openSelectionModal}
-              disabled={availableCount < mission.minHeroes}
-            />
-          ))}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Missões Disponíveis</Text>
+            <Text style={styles.availableCount}>{availableCount} heróis prontos</Text>
+          </View>
+          
+          <View style={styles.missionList}>
+            {MISSIONS.map((mission) => (
+              <MissionListItem
+                key={mission.id}
+                mission={mission}
+                onSend={openSelectionModal}
+                disabled={availableCount < mission.minHeroes}
+              />
+            ))}
+          </View>
         </View>
 
         <MissionHeroSelectionModal
@@ -64,27 +83,18 @@ export function MissionsScreen() {
 
         {missionHeroes.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Heróis em missão</Text>
-            {missionHeroes.map((hero) => (
-              <MissionHeroRow 
-                key={hero.id} 
-                hero={hero} 
-                perHeroGold={state.perHeroGold} 
-              />
-            ))}
+            <Text style={styles.sectionTitle}>Equipe em Campo</Text>
+            <View style={styles.heroGrid}>
+              {missionHeroes.map((hero) => (
+                <MissionHeroRow 
+                  key={hero.id} 
+                  hero={hero} 
+                  perHeroGold={state.perHeroGold} 
+                />
+              ))}
+            </View>
           </View>
         )}
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Missões ativas</Text>
-          {state.activeMissions && state.activeMissions.length > 0 ? (
-            state.activeMissions.map((m) => (
-              <MissionActiveItem key={m.id} mission={m} />
-            ))
-          ) : (
-            <Text style={styles.emptyText}>Nenhuma missão ativa</Text>
-          )}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -96,25 +106,57 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background 
   },
   container: { 
-    padding: theme.spacing.md 
+    paddingHorizontal: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
   },
   section: {
     marginTop: theme.spacing.lg,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+    gap: 8,
+  },
   sectionTitle: { 
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: theme.colors.textPrimary, 
-    marginBottom: 4 
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  sectionSubtitle: { 
-    color: theme.colors.textSecondary, 
-    marginBottom: theme.spacing.md,
-    fontSize: 14,
+  activeBadge: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  activeBadgeText: {
+    color: theme.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  availableCount: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginLeft: 'auto',
+  },
+  missionList: {
+    gap: 12,
+  },
+  heroGrid: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceLight,
   },
   emptyText: { 
     color: theme.colors.textSecondary, 
     marginTop: theme.spacing.sm,
     fontStyle: 'italic',
+    textAlign: 'center',
+    padding: 20,
   },
 });

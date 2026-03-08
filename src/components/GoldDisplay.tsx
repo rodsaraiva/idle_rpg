@@ -10,7 +10,9 @@ interface GoldDisplayProps {
 export function GoldDisplay({ gold }: GoldDisplayProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>💰</Text>
+      <View style={styles.iconCircle}>
+        <Text style={styles.icon}>💰</Text>
+      </View>
       <Text
         style={styles.value}
         accessibilityLabel={`Ouro da guilda: ${formatNumber(gold)}`}
@@ -26,23 +28,30 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.borderRadius.xl,
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    paddingRight: 12,
+    paddingLeft: 4,
+    paddingVertical: 4,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: theme.colors.goldDark,
     alignSelf: 'flex-end',
-    maxWidth: 220,
-    minWidth: 80,
+  },
+  iconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: theme.colors.gold,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 6,
   },
   icon: {
-    fontSize: theme.fontSize.xl,
-    marginRight: theme.spacing.sm,
+    fontSize: 14,
   },
   value: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 16,
+    fontWeight: '900',
     color: theme.colors.gold,
     textAlign: 'right',
   },

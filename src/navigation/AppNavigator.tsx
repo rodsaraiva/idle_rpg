@@ -9,6 +9,7 @@ import { VillageScreen } from '../screens/VillageScreen';
 import { BlacksmithScreen } from '../screens/BlacksmithScreen';
 import { PantheonScreen } from '../screens/PantheonScreen';
 import { theme } from '../theme';
+import { Ionicons } from '@expo/vector-icons';
 
 const Tab = createBottomTabNavigator();
 
@@ -16,17 +17,44 @@ export function AppNavigator() {
   return (
     <NavigationContainer>
       <Tab.Navigator
-        screenOptions={{
+        screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarStyle: { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.surfaceLight },
+          tabBarStyle: { 
+            backgroundColor: theme.colors.surface, 
+            borderTopColor: theme.colors.surfaceLight,
+            height: 60,
+            paddingBottom: 10,
+          },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textMuted,
-        }}
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName: any;
+
+            if (route.name === 'Treinamento') {
+              iconName = focused ? 'fitness' : 'fitness-outline';
+            } else if (route.name === 'Missões') {
+              iconName = focused ? 'map' : 'map-outline';
+            } else if (route.name === 'Enfermaria') {
+              iconName = focused ? 'medkit' : 'medkit-outline';
+            } else if (route.name === 'Vila') {
+              iconName = focused ? 'home' : 'home-outline';
+            } else if (route.name === 'Loja') {
+              iconName = focused ? 'cart' : 'cart-outline';
+            }
+
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+        })}
       >
+        <Tab.Screen
+          name="Vila"
+          component={VillageScreen}
+          options={{ tabBarLabel: 'Vila' }}
+        />
         <Tab.Screen
           name="Treinamento"
           component={TrainingScreen}
-          options={{ tabBarLabel: 'Treinamento' }}
+          options={{ tabBarLabel: 'Treino' }}
         />
         <Tab.Screen
           name="Missões"
@@ -36,9 +64,14 @@ export function AppNavigator() {
         <Tab.Screen
           name="Enfermaria"
           component={EnfermariaScreen}
-          options={{ tabBarLabel: 'Enfermaria' }}
+          options={{ tabBarLabel: 'Saúde' }}
         />
-        <Tab.Screen name="Vila" component={VillageScreen} options={{ tabBarLabel: 'Vila' }} />
+        <Tab.Screen 
+          name="Loja" 
+          component={ShopScreen} 
+          options={{ tabBarLabel: 'Loja' }} 
+        />
+        
         {/* Hidden routes for Ferreiro and Panteão - navigated to from Vila but not shown as tabs */}
         <Tab.Screen
           name="Ferreiro"
@@ -56,7 +89,6 @@ export function AppNavigator() {
             tabBarItemStyle: { display: 'none' },
           }}
         />
-        <Tab.Screen name="Loja" component={ShopScreen} options={{ tabBarLabel: 'Loja' }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

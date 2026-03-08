@@ -98,8 +98,9 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
   const overlayOpacity = hitAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0.5, 0] });
   const scale = deathAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] });
   const hpWidth = hpAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
-  const dmgTranslate = dmgAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -30] });
-  const dmgOpacity = dmgAnim.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 1, 0] });
+  const dmgTranslate = dmgAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -40] });
+  const dmgOpacity = dmgAnim.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: [0, 1, 1, 0] });
+  const glowOpacity = isTargetLocal ? 1 : 0;
 
   return (
     <Animated.View
@@ -228,19 +229,9 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   highlight: {
-    borderWidth: 1,
     borderColor: theme.colors.primary,
-    ...Platform.select({
-      web: {
-        boxShadow: `0 0 8px ${theme.colors.primary}`,
-      },
-      default: {
-        shadowColor: theme.colors.primary,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.8,
-        shadowRadius: 4,
-      },
-    }),
+    borderWidth: 2,
+    backgroundColor: 'rgba(255, 215, 0, 0.05)',
   },
   hitOverlay: {
     position: 'absolute',
@@ -248,23 +239,25 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#ff7a7a',
+    backgroundColor: '#ff4d4d',
     borderRadius: theme.borderRadius.sm,
     opacity: 0,
+    zIndex: 10,
   },
   dmgFloat: {
     position: 'absolute',
-    top: -22,
-    left: 16,
-    right: 16,
+    top: -10,
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    zIndex: 100,
   },
   dmgText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#ff7a7a',
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#ff4d4d',
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 3,
   },
 });

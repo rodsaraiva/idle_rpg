@@ -1,19 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { theme } from '../theme';
+import { ComingSoon } from '../components/ui/ComingSoon';
 
 export function BlacksmithScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Ferreiro</Text>
-      <Text style={styles.text}>Aqui você poderá forjar e reparar equipamentos (em desenvolvimento).</Text>
-    </View>
+    <ComingSoon 
+      title="Ferreiro Real" 
+      icon="⚒️" 
+      description="Em breve você poderá forjar armas épicas e armaduras lendárias para seus heróis."
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: theme.colors.background },
-  title: { fontSize: 20, fontWeight: '700', color: theme.colors.textPrimary, marginBottom: 8 },
-  text: { color: theme.colors.textSecondary },
-});
-

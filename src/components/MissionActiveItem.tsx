@@ -40,6 +40,12 @@ export function MissionActiveItem({ mission }: Props) {
         <Text style={styles.title}>{template?.name ?? mission.templateId}</Text>
       </View>
 
+      <View style={styles.battleHeader}>
+        <Text style={styles.battleHeaderText}>Aliados</Text>
+        <Text style={styles.battleHeaderText}>VS</Text>
+        <Text style={styles.battleHeaderText}>Inimigos</Text>
+      </View>
+
       <View style={styles.battleRow}>
         <View style={styles.columnLeft}>
           {heroes.map((h) => (
@@ -196,6 +202,19 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     backgroundColor: theme.colors.primary,
+    borderRadius: 6,
+  },
+  battleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    marginBottom: 8,
+  },
+  battleHeaderText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
   },
 });
 

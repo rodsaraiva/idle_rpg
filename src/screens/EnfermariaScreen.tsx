@@ -2,7 +2,7 @@ import React from 'react';
 import {
   View,
   Text,
-  Button,
+  TouchableOpacity,
   FlatList,
   SafeAreaView,
   StatusBar,
@@ -47,15 +47,23 @@ export function EnfermariaScreen() {
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
       <ScrollView contentContainerStyle={styles.container}>
         <ScreenHeader
-          title="Enfermaria"
-          subtitle={`${injuredIdle.length} herói${injuredIdle.length !== 1 ? 's' : ''} ferido${injuredIdle.length !== 1 ? 's' : ''}`}
+          title="Enfermaria Real"
+          subtitle={`${injuredIdle.length} herói${injuredIdle.length !== 1 ? 's' : ''} aguardando cuidados`}
           right={<GoldDisplay gold={state.gold} />}
         />
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Na Enfermaria</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Em Tratamento</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{inInfirmary.length}</Text>
+            </View>
+          </View>
+          
           {inInfirmary.length === 0 ? (
-            <Text style={styles.empty}>Nenhum herói na enfermaria</Text>
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyText}>Nenhum herói ocupando leitos no momento.</Text>
+            </View>
           ) : (
             inInfirmary.map((h) => (
               <HeroCard
@@ -63,7 +71,7 @@ export function EnfermariaScreen() {
                 hero={h}
                 actions={[
                   {
-                    label: 'Retirar',
+                    label: 'Dar Alta',
                     color: theme.colors.textMuted,
                     onPress: () => releaseFromInfirmary(h.id),
                   },
@@ -74,9 +82,17 @@ export function EnfermariaScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Heróis feridos e ociosos</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Fila de Espera</Text>
+            {selectedIds.length > 0 && (
+              <Text style={styles.selectionCount}>{selectedIds.length} selecionados</Text>
+            )}
+          </View>
+
           {injuredIdle.length === 0 ? (
-            <Text style={styles.empty}>Nenhum herói precisa de tratamento</Text>
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyText}>Todos os heróis ociosos estão saudáveis!</Text>
+            </View>
           ) : (
             <>
               <FlatList
@@ -85,15 +101,20 @@ export function EnfermariaScreen() {
                 keyExtractor={(i) => i.id}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
-                scrollEnabled={false} // Since we are inside a ScrollView
+                scrollEnabled={false}
               />
-              <View style={styles.actionsRow}>
-                <Button 
-                  title="Enviar para Enfermaria" 
-                  onPress={sendToInfirmary} 
-                  disabled={selectedIds.length === 0} 
-                />
-              </View>
+              
+              <TouchableOpacity 
+                style={[
+                  styles.submitButton, 
+                  selectedIds.length === 0 && styles.submitButtonDisabled
+                ]} 
+                onPress={sendToInfirmary} 
+                disabled={selectedIds.length === 0}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.submitButtonText}>Internar Heróis</Text>
+              </TouchableOpacity>
             </>
           )}
         </View>
@@ -103,11 +124,83 @@ export function EnfermariaScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: theme.colors.background },
-  container: { paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md, paddingBottom: theme.spacing.lg },
-  section: { marginTop: theme.spacing.md },
-  sectionTitle: { fontWeight: theme.fontWeight.semibold, color: theme.colors.textPrimary, marginBottom: theme.spacing.sm },
-  empty: { color: theme.colors.textSecondary },
-  listContent: { paddingBottom: theme.spacing.sm },
-  actionsRow: { marginTop: theme.spacing.md },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: theme.colors.background 
+  },
+  container: { 
+    paddingHorizontal: theme.spacing.md, 
+    paddingTop: theme.spacing.md, 
+    paddingBottom: theme.spacing.xl 
+  },
+  section: { 
+    marginTop: theme.spacing.lg 
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+    gap: 8,
+  },
+  sectionTitle: { 
+    fontSize: 16,
+    fontWeight: '700', 
+    color: theme.colors.textPrimary, 
+  },
+  badge: {
+    backgroundColor: theme.colors.surfaceLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  badgeText: {
+    color: theme.colors.textSecondary,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  selectionCount: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    marginLeft: 'auto',
+  },
+  emptyCard: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  emptyText: { 
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  listContent: { 
+    paddingBottom: theme.spacing.sm 
+  },
+  submitButton: { 
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  submitButtonDisabled: {
+    backgroundColor: theme.colors.surfaceLight,
+    opacity: 0.5,
+  },
+  submitButtonText: {
+    color: theme.colors.textPrimary,
+    fontWeight: '800',
+    fontSize: 14,
+    textTransform: 'uppercase',
+  },
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Hero, HeroTask } from '../types';
 import { theme } from '../theme';
 import { StatBar } from './StatBar';
@@ -194,6 +194,21 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.surfaceLight,
+    // Subtle shadow for depth
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      },
+    }),
   },
   header: {
     flexDirection: 'row',
