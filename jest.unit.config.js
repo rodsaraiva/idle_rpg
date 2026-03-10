@@ -1,22 +1,14 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', {
-      tsconfig: {
-        jsx: 'react-jsx',
-      },
-    }],
-  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@testing-library/react-native|@lottiefiles/.*|lottie-react-native)',
+  ],
   testMatch: ['**/src/__tests__/**/?(*.)+(test).[jt]s?(x)'],
   testPathIgnorePatterns: [
     '/node_modules/', 
     '/dist/', 
     '/src/__tests__/context/gameContext.offline.test.tsx',
-    '/src/__tests__/components/',
-    '/src/__tests__/hooks/useDragDropGrid.test.tsx',
-    '/src/__tests__/hooks/useDragDropGrid.gridmove.test.tsx',
-    '/src/__tests__/hooks/useDragDropGrid.measure_fail.test.tsx'
   ],
   moduleNameMapper: {
     '^uuid$': '<rootDir>/jest-mocks/uuid.cjs.js',

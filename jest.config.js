@@ -13,7 +13,7 @@ module.exports = {
     '^react-native/src/private/specs_DEPRECATED/modules/NativePlatformConstantsIOS$': '<rootDir>/jest-mocks/NativePlatformConstantsIOS.js',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|@react-navigation|expo-.*|@testing-library/react-native)/)',
+    'node_modules/(?!(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@testing-library/react-native|@lottiefiles/.*|lottie-react-native)/)',
   ],
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/src/__tests__/context/gameContext.offline.test.tsx'],
 };
