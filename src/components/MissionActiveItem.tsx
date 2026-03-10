@@ -181,17 +181,7 @@ const styles = StyleSheet.create({
   highlight: {
     borderWidth: 1,
     borderColor: theme.colors.primary,
-    ...Platform.select({
-      web: {
-        boxShadow: `0 0 8px ${theme.colors.primary}`,
-      },
-      default: {
-        shadowColor: theme.colors.primary,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.8,
-        shadowRadius: 4,
-      },
-    }),
+    boxShadow: `0px 0px 8px ${theme.colors.primary}`,
   },
   progressBar: {
     height: 8,

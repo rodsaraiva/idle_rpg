@@ -381,15 +381,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderRadius: 8,
     padding: 6,
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0px 4px 6px rgba(0,0,0,0.15)' }
-      : {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 6,
-          elevation: 8,
-        }),
+    boxShadow: '0px 4px 6px rgba(0,0,0,0.15)',
+    elevation: 8,
   },
 });
 

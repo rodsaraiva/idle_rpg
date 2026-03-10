@@ -209,9 +209,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 12,
-    textShadowColor: 'rgba(0,0,0,0.45)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadow: '0px 1px 2px rgba(0,0,0,0.45)',
   },
   metaRow: {
     flexDirection: 'row',
@@ -256,8 +254,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '900',
     color: '#ff4d4d',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 3,
+    textShadow: '0px 2px 3px rgba(0,0,0,0.5)',
   },
 });

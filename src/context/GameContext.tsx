@@ -49,7 +49,7 @@ export function GameProvider({ children }: GameProviderProps) {
 
   // Keep ref in sync for hooks that need the latest state without re-running effects
   useEffect(() => {
-    stateRef.current = state;
+  stateRef.current = state;
   }, [state]);
 
   // Handle automatic feedback events
@@ -71,8 +71,8 @@ export function GameProvider({ children }: GameProviderProps) {
   useEffect(() => {
     async function initialize() {
       try {
-        const savedState = await loadGameState();
-        if (savedState) {
+      const savedState = await loadGameState();
+      if (savedState) {
           const summary = calculateOfflineProgress(savedState);
           if (summary) {
             setOfflineSummary(summary);

@@ -35,6 +35,9 @@ export function useGameFeedback(state: GameState) {
         const prevHero = prev.heroes.find((ph) => ph.id === h.id);
         if (!prevHero) return;
 
+        // SKIP FEEDBACK FOR "Jareth #48" or specific ID if debugging
+        // if (h.id === 'debug_id') return;
+
         // Check hpMax increase
         if (h.hpMax > prevHero.hpMax) {
           emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor(h.hpMax - prevHero.hpMax)} HP Máx`, color: FEEDBACK_HP_GAIN_COLOR });

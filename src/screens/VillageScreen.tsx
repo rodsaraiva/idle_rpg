@@ -1,11 +1,22 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ImageBackground } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  ImageBackground, 
+  StatusBar 
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
 import { IMAGE_ASSETS } from '../constants/assets';
+import { ScreenHeader } from '../components/ui/ScreenHeader';
 
 export function VillageScreen() {
   const nav = useNavigation<any>();
+  const insets = useSafeAreaInsets();
 
   const VillageCard = ({ title, icon, description, screen }: { title: string; icon: string; description: string; screen: string }) => (
     <TouchableOpacity
@@ -24,19 +35,34 @@ export function VillageScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <ImageBackground 
-        source={IMAGE_ASSETS.VILLAGE_MAP} 
-        style={styles.header}
-        imageStyle={styles.headerImage}
-      >
-        <View style={styles.headerOverlay}>
-          <Text style={styles.title}>Vila de Ouro</Text>
-          <Text style={styles.subtitle}>O coração da sua guilda</Text>
-        </View>
-      </ImageBackground>
+    <View style={[styles.root, { paddingTop: insets.top }]}>
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
+      
+      {/* Header Padronizado e Totalmente Opaco */}
+      <View style={styles.headerWrapper}>
+        <ScreenHeader 
+          title="Vila de Ouro" 
+          subtitle="O coração da sua guilda"
+          showGold={false} 
+        />
+      </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Banner de Destaque da Vila */}
+        {/* <View style={styles.bannerContainer}>
+          <ImageBackground 
+            source={IMAGE_ASSETS.VILLAGE_MAP} 
+            style={styles.bannerImage}
+            imageStyle={styles.bannerImageStyle}
+          >
+            <View style={styles.bannerOverlay} />
+          </ImageBackground>
+        </View> */}
+
         <View style={styles.grid}>
           <VillageCard 
             title="Treinamento" 
@@ -69,72 +95,72 @@ export function VillageScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: theme.colors.background 
+  root: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
   },
-  header: {
-    height: 180,
-    justifyContent: 'flex-end',
+  headerWrapper: {
+    paddingHorizontal: theme.spacing.md,
+    backgroundColor: theme.colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.surfaceLight,
   },
-  headerImage: {
-    opacity: 0.6,
-  },
-  headerOverlay: {
-    padding: 20,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  title: { 
-    fontSize: 28, 
-    fontWeight: '800', 
-    color: '#fff',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 4,
+  scrollView: {
+    flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
   },
-  grid: { 
+  bannerContainer: {
+    height: 120,
+    borderRadius: theme.borderRadius.lg,
+    overflow: 'hidden',
+    marginBottom: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+  },
+  bannerImage: {
+    flex: 1,
+  },
+  bannerImageStyle: {
+    opacity: 0.4,
+  },
+  bannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 13, 35, 0.2)',
+  },
+  grid: {
     gap: 12,
   },
   card: {
     flexDirection: 'row',
     backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: theme.colors.surfaceLight,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    elevation: 2,
+    boxShadow: '0px 2px 4px rgba(0,0,0,0.1)',
   },
   cardIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 10,
     backgroundColor: theme.colors.surfaceLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: theme.spacing.md,
   },
   cardIcon: {
-    fontSize: 28,
+    fontSize: 22,
   },
   cardContent: {
     flex: 1,
   },
-  cardTitle: { 
-    color: theme.colors.textPrimary, 
-    fontSize: 18,
+  cardTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: 16,
     fontWeight: '700',
     marginBottom: 2,
   },

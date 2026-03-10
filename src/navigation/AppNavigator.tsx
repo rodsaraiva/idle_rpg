@@ -19,6 +19,7 @@ export function AppNavigator() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
+          sceneContainerStyle: { backgroundColor: theme.colors.background },
           tabBarStyle: { 
             backgroundColor: theme.colors.surface, 
             borderTopColor: theme.colors.surfaceLight,

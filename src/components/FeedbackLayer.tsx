@@ -162,16 +162,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     color: '#ffd34d',
-    ...Platform.select({
-      web: {
-        textShadow: '0px 2px 4px rgba(0,0,0,0.5)',
-      },
-      default: {
-        textShadowColor: 'rgba(0,0,0,0.5)',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 4,
-      },
-    }),
+    textShadow: '0px 2px 4px rgba(0,0,0,0.5)',
   },
   toasts: {
     position: 'absolute',
@@ -185,10 +176,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 10,
     width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    boxShadow: '0px 4px 6px rgba(0,0,0,0.3)',
     elevation: 8,
   },
   toastText: {
