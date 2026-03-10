@@ -48,7 +48,8 @@ describe('gameReducer', () => {
       templateId: 'mission_1',
       heroIds: ['h1'],
       remainingMs: 0,
-      startedAt: Date.now(),
+      startedAt: Date.now() - 5000,
+      finishAt: Date.now() - 1000,
     };
     const state = { ...initialGameState, heroes: [hero], gold: 0, activeMissions: [activeMission] };
     const next = gameReducer(state, { type: 'TICK' });

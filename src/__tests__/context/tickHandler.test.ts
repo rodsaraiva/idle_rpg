@@ -29,7 +29,8 @@ describe('tickHandler', () => {
 
   test('handleTick should handle regeneration for heroes', () => {
     const hero = createHero({ hpCurrent: 5, hpMax: 10, currentTask: HeroTask.IDLE });
-    const state = { ...initialGameState, heroes: [hero] };
+    // tick for longer than regen interval
+    const state = { ...initialGameState, heroes: [hero], tickIntervalMs: 20 * 60 * 1000 };
     
     const next = handleTick(state);
     

@@ -11,15 +11,15 @@ test('START_MISSION rejects missing, incapacitated, or mission heroes', () => {
 
   // missing hero id should abort
   const s1 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['nope'] });
-  expect(s1.activeMissions).toBeUndefined();
+  expect(s1.activeMissions?.length || 0).toBe(0);
 
   // incapacitated should abort
   const s2 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h2'] });
-  expect(s2.activeMissions).toBeUndefined();
+  expect(s2.activeMissions?.length || 0).toBe(0);
 
   // already in mission should abort
   const s3 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h3'] });
-  expect(s3.activeMissions).toBeUndefined();
+  expect(s3.activeMissions?.length || 0).toBe(0);
 
   // valid should proceed
   const s4 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'] });

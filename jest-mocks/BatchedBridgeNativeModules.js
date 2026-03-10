@@ -12,5 +12,7 @@ const mockNativeModules = {
   NativeModules: {},
 };
 
-module.exports = mockNativeModules;
-
+module.exports = {
+  default: mockNativeModules,
+  __esModule: true,
+};

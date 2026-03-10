@@ -31,10 +31,15 @@ const modules = {
   ReactNativeFeatureFlags: { commonTestFlags: {} },
   DeviceInfo: { getConstants: () => deviceInfoConstants },
   UIManager: { getConstants: () => uiManagerConstants },
+  SourceCode: { getConstants: () => ({ scriptURL: 'http://localhost:8081/index.bundle' }) },
+  StatusBarManager: { getConstants: () => ({ HEIGHT: 20 }) },
+  NativeAnimatedModule: {},
+  Timing: {},
+  I18nManager: { getConstants: () => ({ isRTL: false, doLeftAndRightSwapInRTL: false }) },
+  KeyboardObserver: {},
 };
 
 module.exports = {
   get: (name) => modules[name] ?? null,
-  getEnforcing: (name) => modules[name] ?? modules.PlatformConstants,
+  getEnforcing: (name) => modules[name] ?? modules.PlatformConstants, // Using PlatformConstants as a generic fallback mock
 };
-

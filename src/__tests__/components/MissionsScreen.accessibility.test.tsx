@@ -19,7 +19,7 @@ test('MissionsScreen opens modal and modal is accessible', async () => {
   };
   const dispatch = jest.fn();
 
-  const { getByText, getByA11yLabel } = render(
+  const { getByText, getByLabelText } = render(
     <GameContext.Provider
       value={{
         state: state as any,
@@ -44,7 +44,7 @@ test('MissionsScreen opens modal and modal is accessible', async () => {
   await waitFor(() => getByText('Posicione os heróis na missão'));
 
   // Accessibility labels inside modal exist
-  expect(getByA11yLabel('Fechar modal de seleção')).toBeTruthy();
-  expect(getByA11yLabel('Iniciar missão com heróis selecionados')).toBeTruthy();
+  expect(getByLabelText('Fechar modal de seleção')).toBeTruthy();
+  expect(getByLabelText('Iniciar missão com heróis selecionados')).toBeTruthy();
 });
 

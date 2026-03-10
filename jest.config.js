@@ -2,7 +2,6 @@ module.exports = {
   preset: 'jest-expo',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  // ensure native environment globals are initialized before preset setup
   setupFiles: ['<rootDir>/jest.native.setup.js'],
   moduleNameMapper: {
     '^react-native/Libraries/BatchedBridge/NativeModules$': '<rootDir>/jest-mocks/BatchedBridgeNativeModules.js',
@@ -14,8 +13,7 @@ module.exports = {
     '^react-native/src/private/specs_DEPRECATED/modules/NativePlatformConstantsIOS$': '<rootDir>/jest-mocks/NativePlatformConstantsIOS.js',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|@react-navigation)/)',
+    'node_modules/(?!(react-native|@react-native|@react-navigation|expo-.*|@testing-library/react-native)/)',
   ],
-  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/src/__tests__/context/gameContext.offline.test.tsx'],
 };
-

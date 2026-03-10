@@ -81,6 +81,7 @@ export type MissionActorType = 'hero' | 'enemy';
 export type MissionActionType = 'hit' | 'miss' | 'heal' | 'defeat' | 'victory';
 
 export interface MissionAction {
+  round?: number;
   actorType: MissionActorType;
   actionType: MissionActionType;
   actorId: string;

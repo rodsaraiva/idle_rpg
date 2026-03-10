@@ -65,8 +65,9 @@ export const FeedbackService = {
   },
 
   off<T extends FeedbackEvent>(event: T, cb: Callback<T>) {
-    if (!listeners[event]) return;
-    listeners[event] = listeners[event]!.filter((c) => c !== cb);
+    const list = listeners[event];
+    if (!list) return;
+    (listeners[event] as any) = list.filter((c: any) => c !== cb);
   },
 
   emit<T extends FeedbackEvent>(event: T, payload: PayloadMap[T]) {

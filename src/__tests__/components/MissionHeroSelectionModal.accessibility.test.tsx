@@ -19,7 +19,7 @@ function makeHero(id: string, name = 'Hero', classId = 'WARRIOR'): Hero {
 test('modal exposes accessibility labels for controls and cells', () => {
   const h1 = makeHero('h1', 'Alpha');
   const h2 = makeHero('h2', 'Beta');
-  const { getByA11yLabel, getByText } = render(
+  const { getByLabelText, getByText } = render(
     <MissionHeroSelectionModal
       visible
       onClose={() => {}}
@@ -31,14 +31,14 @@ test('modal exposes accessibility labels for controls and cells', () => {
   );
 
   // Buttons have accessibility labels
-  expect(getByA11yLabel('Fechar modal de seleção')).toBeTruthy();
-  expect(getByA11yLabel('Iniciar missão com heróis selecionados')).toBeTruthy();
+  expect(getByLabelText('Fechar modal de seleção')).toBeTruthy();
+  expect(getByLabelText('Iniciar missão com heróis selecionados')).toBeTruthy();
 
   // Cells (positions) have accessibility labels for empty positions
-  expect(getByA11yLabel('Posição 1, vazia')).toBeTruthy();
+  expect(getByLabelText('Posição 1, vazia')).toBeTruthy();
 
   // Items have accessibility labels
-  expect(getByA11yLabel('Herói Alpha. Toque para posicionar ou pressione e arraste para mover.')).toBeTruthy();
+  expect(getByLabelText('Herói Alpha. Toque para posicionar ou pressione e arraste para mover.')).toBeTruthy();
 
   // Interact: place hero by pressing Alpha, check that a cell now has label with her name
   fireEvent.press(getByText('Alpha'));

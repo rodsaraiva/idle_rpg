@@ -22,10 +22,17 @@ describe('gameReducer mission integration', () => {
     // run ticks until missions complete (safety cap)
     let s = afterStart;
     let steps = 0;
+    
+    // We need to mock Date.now because mission completion depends on real time
+    const realDateNow = Date.now;
+    Date.now = jest.fn(() => realDateNow() + steps * 5000);
+
     while ((s.activeMissions?.length ?? 0) > 0 && steps < 50) {
       s = gameReducer(s as any, { type: 'TICK' });
       steps++;
     }
+    
+    Date.now = realDateNow;
 
     expect((s.recentMissionResults ?? []).length).toBeGreaterThanOrEqual(1);
     const res = s.recentMissionResults![0];

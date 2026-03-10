@@ -65,7 +65,7 @@ test('START_MISSION rejects incapacitated heroes', () => {
   const state = { ...initialGameState, heroes: [{ ...hero, incapacitatedUntilMs: now + 60_000 }], activeMissions: [] };
   const next = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'] });
   // should be unchanged (cannot start mission with incapacitated hero)
-  expect(next.activeMissions).toBeUndefined() || expect(next.activeMissions && next.activeMissions.length).toBe(0);
+  expect(next.activeMissions?.length || 0).toBe(0);
   expect(next.heroes.find((h) => h.id === 'h1')?.currentTask).toBe(HeroTask.IDLE);
 });
 
@@ -76,7 +76,8 @@ test('COMPLETE mission applies casualties and sets incapacitatedUntilMs when pre
     templateId: 'mission_1',
     heroIds: ['h1'],
     remainingMs: 0,
-    startedAt: Date.now(),
+    startedAt: Date.now() - 5000,
+    finishAt: Date.now() - 1000,
     precomputedOutcome: {
       reward: 5,
       casualties: [{ heroId: 'h1', hpLost: 7, hpAfter: 3, incapacitatedUntilMs: Date.now() + 30 * 60 * 1000 }],
