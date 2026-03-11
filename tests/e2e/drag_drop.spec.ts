@@ -22,7 +22,7 @@ test('drag hero from list into matrix and start mission', async ({ page }) => {
 
   // write to localStorage before app loads
   await page.goto('about:blank');
-  await page.evaluate((k, v) => localStorage.setItem(k, v), '@idle_rpg_game_state', JSON.stringify(savedState));
+  await page.evaluate(({ k, v }) => localStorage.setItem(k, v), { k: '@idle_rpg_game_state', v: JSON.stringify(savedState) });
 
   // open app
   await page.goto('/');
@@ -77,4 +77,3 @@ test('drag hero from list into matrix and start mission', async ({ page }) => {
   // optionally, check that a mission active item appears on screen
   await expect(page.locator('text=Missões ativas').first()).toBeVisible();
 });
-

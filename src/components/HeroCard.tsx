@@ -23,8 +23,10 @@ interface HeroCardProps {
   variant?: 'compact' | 'detailed';
   actions?: HeroCardAction[];
   selected?: boolean;
+  showSecondaryStats?: boolean;
   onToggle?: (id: string) => void;
   onSetTask?: (heroId: string, task: HeroTask) => void;
+  onPress?: (hero: Hero) => void;
 }
 
 const TASK_LABEL_MAP: Record<HeroTask, string> = {
@@ -41,8 +43,10 @@ export function HeroCard({
   variant = 'detailed',
   actions = [],
   selected = false,
+  showSecondaryStats = true,
   onToggle,
   onSetTask,
+  onPress,
 }: HeroCardProps) {
   if (variant === 'compact') {
     return (
@@ -106,7 +110,7 @@ export function HeroCard({
 
   const renderedActions = actions.length > 0 ? actions : defaultActions;
 
-  return (
+  const CardContent = (
     <View style={styles.card}>
       <View style={styles.header}>
         <View>
@@ -135,9 +139,24 @@ export function HeroCard({
           <Text style={styles.statIcon}>🔮</Text>
           <Text style={styles.statValue}>{Math.floor(hero.mp)}</Text>
         </View>
-
-        {/* attack type removed from card */}
       </View>
+
+      {showSecondaryStats && (
+        <View style={styles.secondaryStatsRow}>
+          <View style={styles.statItem} accessibilityLabel={`DEF ${Math.floor(hero.defense || 0)}`}>
+            <Text style={styles.statIcon}>🛡️</Text>
+            <Text style={styles.statValue}>{Math.floor(hero.defense || 0)}</Text>
+          </View>
+          <View style={styles.statItem} accessibilityLabel={`CRIT ${Math.floor(hero.crit || 0)}%`}>
+            <Text style={styles.statIcon}>🎯</Text>
+            <Text style={styles.statValue}>{Math.floor(hero.crit || 0)}%</Text>
+          </View>
+          <View style={styles.statItem} accessibilityLabel={`AGI ${Math.floor(hero.agility || 0)}`}>
+            <Text style={styles.statIcon}>🏃</Text>
+            <Text style={styles.statValue}>{Math.floor(hero.agility || 0)}</Text>
+          </View>
+        </View>
+      )}
 
       {hero.currentTask === HeroTask.TRAIN_HP && hero.trainingProgressMs ? (
         <AttributeProgress
@@ -184,6 +203,16 @@ export function HeroCard({
       </View>
     </View>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity activeOpacity={0.9} onPress={() => onPress(hero)}>
+        {CardContent}
+      </TouchableOpacity>
+    );
+  }
+
+  return CardContent;
 }
 
 const styles = StyleSheet.create({
@@ -230,7 +259,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
+  },
+  secondaryStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
     marginBottom: theme.spacing.sm,
+    opacity: 0.8,
   },
   hpArea: {
     flex: 1,

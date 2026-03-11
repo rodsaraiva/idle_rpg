@@ -10,6 +10,9 @@ interface CombatantCardProps {
   maxHp: number;
   atk?: number;
   mp?: number;
+  defense?: number;
+  agility?: number;
+  crit?: number;
   avatarUrl?: string;
   attackType?: 'MELEE' | 'RANGED';
   align?: 'left' | 'right';
@@ -23,6 +26,9 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
   maxHp,
   atk,
   mp,
+  defense,
+  agility,
+  crit,
   avatarUrl,
   attackType,
   align = 'left',
@@ -125,8 +131,9 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
           </View>
         </View>
         <View style={styles.metaRow}>
-          {typeof atk === 'number' ? <Text style={styles.metaText}>ATK {Math.floor(atk)}</Text> : null}
-          {typeof mp === 'number' ? <Text style={styles.metaText}>MP {Math.floor(mp)}</Text> : null}
+          {typeof atk === 'number' ? <Text style={styles.metaText}>⚔️ {Math.floor(atk)}</Text> : null}
+          {typeof mp === 'number' ? <Text style={styles.metaText}>🔮 {Math.floor(mp)}</Text> : null}
+          {typeof defense === 'number' ? <Text style={styles.metaText}>🛡️ {Math.floor(defense)}</Text> : null}
           {attackType ? <Text style={styles.typeText}>{attackType === 'RANGED' ? 'R' : 'M'}</Text> : null}
         </View>
       </View>

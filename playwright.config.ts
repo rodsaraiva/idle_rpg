@@ -9,8 +9,13 @@ export default defineConfig({
     headless: true,
     baseURL: 'http://localhost:8081',
   },
+  webServer: {
+    command: 'npm run web',
+    url: 'http://localhost:8081',
+    reuseExistingServer: true,
+    timeout: 120000,
+  },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],
 });
-

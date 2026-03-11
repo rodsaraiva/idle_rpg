@@ -22,7 +22,7 @@ export interface MissionTemplate {
   exponent?: number;
   synergyK?: number;
   // optional explicit enemy composition for battle simulation
-  enemies?: { hp: number; atk: number; mp: number; count?: number }[];
+  enemies?: { hp: number; atk: number; mp: number; defense?: number; crit?: number; agility?: number; count?: number }[];
   requirements?: MissionRequirement[];
   difficulty?: number; // 1-5
 }
@@ -41,7 +41,7 @@ export const MISSIONS: MissionTemplate[] = [
     ref: 75,
     exponent: 2.2,
     synergyK: 0.055,
-    enemies: [{ hp: 5, atk: 1, mp: 1, count: 2 }],
+    enemies: [{ hp: 5, atk: 1, mp: 1, defense: 1, crit: 2, agility: 5, count: 2 }],
     difficulty: 1,
   },
   {
@@ -58,8 +58,8 @@ export const MISSIONS: MissionTemplate[] = [
     exponent: 1.9,
     synergyK: 0.04,
     enemies: [
-      { hp: 6, atk: 2, mp: 1, count: 2 },
-      { hp: 10, atk: 3, mp: 1, count: 1 },
+      { hp: 6, atk: 2, mp: 1, defense: 2, crit: 5, agility: 8, count: 2 },
+      { hp: 10, atk: 3, mp: 1, defense: 4, crit: 2, agility: 5, count: 1 },
     ],
     difficulty: 2,
   },
@@ -77,8 +77,8 @@ export const MISSIONS: MissionTemplate[] = [
     exponent: 1.6,
     synergyK: 0.02,
     enemies: [
-      { hp: 6, atk: 2, mp: 1, count: 3 },
-      { hp: 10, atk: 3, mp: 2, count: 2 },
+      { hp: 6, atk: 2, mp: 1, defense: 2, crit: 5, agility: 10, count: 3 },
+      { hp: 10, atk: 3, mp: 2, defense: 5, crit: 10, agility: 5, count: 2 },
     ],
     difficulty: 3,
   },

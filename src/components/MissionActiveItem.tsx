@@ -57,6 +57,9 @@ export function MissionActiveItem({ mission }: Props) {
               maxHp={h.hpMax ?? 0}
               atk={h.atk}
               mp={h.mp}
+              defense={h.defense}
+              agility={h.agility}
+              crit={h.crit}
               attackType={h.attackType}
               align="left"
               highlighted={highlighted === h.id}
@@ -74,6 +77,9 @@ export function MissionActiveItem({ mission }: Props) {
               maxHp={e.maxHp ?? e.hp ?? 1}
               atk={e.atk}
               mp={e.mp}
+              defense={e.defense}
+              agility={e.agility}
+              crit={e.crit}
               attackType={e.attackType}
               align="right"
               highlighted={highlighted === e.id}

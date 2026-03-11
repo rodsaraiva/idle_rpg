@@ -4,6 +4,7 @@ import { theme } from '../theme';
 import { GoldDisplay } from '../components/GoldDisplay';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { HeroCard } from '../components/HeroCard';
+import { HeroDetailsModal } from '../components/HeroDetailsModal';
 import { useNavigation } from '@react-navigation/native';
 import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
 import { Hero, HeroTask } from '../types';
@@ -21,6 +22,7 @@ export function TrainingScreen() {
     clearOfflineSummary,
   } = useTraining();
   
+  const [selectedHero, setSelectedHero] = React.useState<Hero | null>(null);
   const navigation = useNavigation<any>();
 
   if (!isLoaded) {
@@ -31,6 +33,8 @@ export function TrainingScreen() {
     <HeroCard
       hero={item}
       actions={getHeroActions(item)}
+      showSecondaryStats={false}
+      onPress={setSelectedHero}
     />
   );
 
@@ -105,6 +109,11 @@ export function TrainingScreen() {
         summary={offlineSummary} 
         onApply={applyOfflineSummary} 
         onDismiss={clearOfflineSummary} 
+      />
+      <HeroDetailsModal
+        visible={!!selectedHero}
+        hero={selectedHero}
+        onClose={() => setSelectedHero(null)}
       />
     </SafeAreaView>
   );

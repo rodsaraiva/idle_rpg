@@ -18,6 +18,9 @@ export interface Hero {
   hpCurrent: number;
   atk: number;
   mp: number;
+  defense: number;
+  crit: number; // Percentual base ou flat valor convertido para % no combate
+  agility: number; // Agilidade, pode influenciar em esquiva
   currentTask: HeroTask;
   classId?: ClassId;
   // optional avatar image URL for UI
@@ -105,7 +108,18 @@ export interface ActiveMission {
   // scheduled actions for live playback
   scheduledActions?: { atMsFromStart: number; action: MissionAction; applied?: boolean }[];
   // track mission enemies state for visualization (hp, id)
-  enemiesState?: { id: string; hp: number; maxHp?: number; atk: number; mp: number; alive?: boolean; attackType?: 'MELEE' | 'RANGED' }[];
+  enemiesState?: { 
+    id: string; 
+    hp: number; 
+    maxHp?: number; 
+    atk: number; 
+    mp: number; 
+    defense?: number;
+    crit?: number;
+    agility?: number;
+    alive?: boolean; 
+    attackType?: 'MELEE' | 'RANGED' 
+  }[];
   // precomputed reward/summary to avoid recomputing on completion
   precomputedOutcome?: MissionOutcome;
 }
@@ -144,6 +158,13 @@ export interface PerHeroChange {
   atkAfter: number;
   mpBefore: number;
   mpAfter: number;
+  // A princípio, defense/crit/agility não mudam via treinamento base, mas adicionamos para consistência se no futuro mudarem.
+  defenseBefore?: number;
+  defenseAfter?: number;
+  critBefore?: number;
+  critAfter?: number;
+  agilityBefore?: number;
+  agilityAfter?: number;
 }
 
 export interface OfflineSummaryFull extends OfflineSummary {

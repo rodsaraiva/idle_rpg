@@ -11,6 +11,9 @@ export function createHero(classId?: ClassId): Hero {
   const hp = INITIAL_HERO_STATS.hp + (classDef?.baseStatDelta?.hp ?? 0);
   const atk = INITIAL_HERO_STATS.atk + (classDef?.baseStatDelta?.atk ?? 0);
   const mp = INITIAL_HERO_STATS.mp + (classDef?.baseStatDelta?.mp ?? 0);
+  const defense = INITIAL_HERO_STATS.defense + (classDef?.baseStatDelta?.defense ?? 0);
+  const crit = INITIAL_HERO_STATS.crit + (classDef?.baseStatDelta?.crit ?? 0);
+  const agility = INITIAL_HERO_STATS.agility + (classDef?.baseStatDelta?.agility ?? 0);
 
   return {
     id: uuidv4(),
@@ -19,6 +22,9 @@ export function createHero(classId?: ClassId): Hero {
     hpCurrent: hp,
     atk,
     mp,
+    defense,
+    crit,
+    agility,
     currentTask: HeroTask.IDLE,
     classId,
     attackType: classDef?.attackType ?? 'MELEE',

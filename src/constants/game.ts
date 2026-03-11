@@ -84,6 +84,9 @@ export const INITIAL_HERO_STATS = {
   hp: 10,
   atk: 5,
   mp: 3,
+  defense: 5,
+  crit: 5,
+  agility: 10,
 };
 
 /** Nomes aleatórios para heróis */

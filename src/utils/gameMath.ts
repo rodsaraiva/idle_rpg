@@ -10,7 +10,8 @@ import {
   TEAM_SIZE_SCALE_IMPACT,
   BASE_HIT_CHANCE,
   HIT_CHANCE_PER_ATK,
-  CRIT_BASE_CHANCE
+  CRIT_BASE_CHANCE,
+  CRIT_MULTIPLIER
 } from '../constants/game';
 import { Hero } from '../types';
 import { MissionTemplate } from '../constants/missions';
@@ -82,12 +83,23 @@ export const GameMath = {
   },
 
   // --- Combat ---
-  calcHitChance(atk: number): number {
-    return Math.min(0.98, BASE_HIT_CHANCE + atk * HIT_CHANCE_PER_ATK);
+  calcHitChance(atk: number, targetAgility: number = 0): number {
+    const baseChance = Math.min(0.98, BASE_HIT_CHANCE + atk * HIT_CHANCE_PER_ATK);
+    // Cada ponto de agilidade reduz a chance de acerto em 0.5%
+    const evasion = targetAgility * 0.005;
+    return Math.max(0.1, baseChance - evasion);
   },
 
-  calcCritChance(classId?: string): number {
-    return CRIT_BASE_CHANCE + (classId === 'ROGUE' ? 0.05 : 0);
+  calcCritChance(classId?: string, critAttribute: number = 0): number {
+    const base = CRIT_BASE_CHANCE + (classId === 'ROGUE' ? 0.05 : 0);
+    // Cada ponto de atributo crítico adiciona 0.5% de chance
+    return base + critAttribute * 0.005;
+  },
+
+  calcDamage(atk: number, targetDefense: number = 0, isCrit: boolean = false): number {
+    const baseDmg = isCrit ? atk * CRIT_MULTIPLIER : atk;
+    // Defesa reduz o dano diretamente, mínimo de 1
+    return Math.max(1, Math.floor(baseDmg - targetDefense));
   },
 
   // --- Formatting ---

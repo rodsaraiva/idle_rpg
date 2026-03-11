@@ -11,6 +11,9 @@ export interface BattleEnemy {
   maxHp: number;
   atk: number;
   mp: number;
+  defense: number;
+  crit: number;
+  agility: number;
   alive: boolean;
   attackType: 'MELEE' | 'RANGED';
 }
@@ -31,6 +34,9 @@ export const BattleEngine = {
             maxHp: edef.hp,
             atk: edef.atk,
             mp: edef.mp,
+            defense: (edef as any).defense ?? 2,
+            crit: (edef as any).crit ?? 5,
+            agility: (edef as any).agility ?? 5,
             alive: true,
             attackType: Math.random() < 0.5 ? 'MELEE' : 'RANGED',
           });
@@ -45,6 +51,9 @@ export const BattleEngine = {
           maxHp: 5,
           atk: 2,
           mp: 1,
+          defense: 1,
+          crit: 2,
+          agility: 2,
           alive: true,
           attackType: i % 2 === 0 ? 'MELEE' : 'RANGED',
         });
@@ -91,14 +100,20 @@ export const BattleEngine = {
    * Calcula o resultado de um ataque.
    */
   calculateAttack(
-    attacker: { id: string; name?: string; atk: number; classId?: string; attackType?: 'MELEE' | 'RANGED' },
-    target: { id: string; name?: string; hp?: number; hpCurrent?: number },
-    hitChance: number,
+    attacker: { id: string; name?: string; atk: number; crit?: number; classId?: string; attackType?: 'MELEE' | 'RANGED' },
+    target: { id: string; name?: string; hp?: number; hpCurrent?: number; defense?: number; agility?: number },
+    hitChance: number, // Este valor agora será tratado como a chance base de acerto
     actorType: MissionActorType,
     round: number,
     rng: () => number
   ): { action: MissionAction; dmg: number } | null {
-    if (rng() > hitChance) {
+    // Se hitChance for 1.0 (testes), ignoramos a agilidade para garantir o acerto se desejado,
+    // mas o ideal é que o hitChance base já venha do GameMath.calcHitChance(attacker.atk)
+    // Para manter o comportamento da Agilidade, subtraímos a evasão do hitChance fornecido.
+    const evasion = (target.agility ?? 0) * 0.005;
+    const effectiveHitChance = Math.max(0.1, hitChance - evasion);
+
+    if (rng() > effectiveHitChance) {
       return {
         action: {
           round,
@@ -113,9 +128,9 @@ export const BattleEngine = {
       };
     }
 
-    const critChance = GameMath.calcCritChance(attacker.classId);
+    const critChance = GameMath.calcCritChance(attacker.classId, attacker.crit);
     const isCrit = rng() < critChance;
-    const dmg = Math.max(1, Math.floor(attacker.atk * (isCrit ? CRIT_MULTIPLIER : 1)));
+    const dmg = GameMath.calcDamage(attacker.atk, target.defense, isCrit);
 
     return {
       action: {

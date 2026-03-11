@@ -2,6 +2,7 @@ import { MissionTemplate } from '../constants/missions';
 import { Hero, MissionOutcome, MissionAction } from '../types';
 import { calcMissionReward } from './missionMath';
 import { BattleEngine, BattleEnemy } from './battleEngine';
+import { GameMath } from './gameMath';
 
 import { 
   MAX_BATTLE_ROUNDS, 
@@ -85,7 +86,7 @@ export function computeBattleOutcome(
       const target = BattleEngine.selectTarget(hero.attackType ?? 'MELEE', currentEnemies, rng);
       if (!target) continue;
 
-      const hitChance = Math.min(0.98, BASE_HIT_CHANCE + hero.atk * HIT_CHANCE_PER_ATK);
+      const hitChance = GameMath.calcHitChance(hero.atk); // Passamos apenas o ATK, o BattleEngine cuida da Agilidade do alvo
       const result = BattleEngine.calculateAttack(hero, target, hitChance, 'hero', rounds, rng);
       
       if (result) {
