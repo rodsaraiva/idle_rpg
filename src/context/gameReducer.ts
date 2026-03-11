@@ -36,7 +36,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return handleTick(state);
 
     case 'START_MISSION':
-      return handleStartMission(state, action.templateId, action.heroIds);
+      return handleStartMission(state, action.templateId, action.heroIds, action.heroPositions);
 
     case 'DISMISS_MISSION_RESULT':
       return handleDismissMissionResult(state, action.missionId);

@@ -37,7 +37,7 @@ function validateMissionRequirements(template: MissionTemplate, heroes: Hero[]):
   return null;
 }
 
-export function handleStartMission(state: GameState, templateId: string, heroIds: string[]): GameState {
+export function handleStartMission(state: GameState, templateId: string, heroIds: string[], heroPositions?: Record<string, number>): GameState {
   const template = MISSIONS.find((t) => t.id === templateId);
   if (!template) return state;
   if ((heroIds?.length ?? 0) < template.minHeroes) return state;
@@ -71,6 +71,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     id: missionId,
     templateId: template.id,
     heroIds: heroIds,
+    heroPositions,
     startedAt: now,
     healerBuffMultiplier,
     rogueRngBonus,

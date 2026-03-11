@@ -1,7 +1,9 @@
 import { Hero, MissionAction, MissionActorType } from '../types';
 import { MissionTemplate } from '../constants/missions';
 import { 
-  CRIT_MULTIPLIER 
+  CRIT_MULTIPLIER,
+  ENEMY_ROWS,
+  GRID_COLUMNS 
 } from '../constants/game';
 import { GameMath } from './gameMath';
 
@@ -24,6 +26,17 @@ export const BattleEngine = {
    */
   createEnemies(template: MissionTemplate): BattleEnemy[] {
     const enemies: BattleEnemy[] = [];
+    const enemyPositions = [...ENEMY_ROWS].flatMap(r => 
+      Array.from({ length: GRID_COLUMNS }, (_, c) => r * GRID_COLUMNS + c)
+    );
+    // Shuffle positions to place enemies randomly in the enemy zone
+    for (let i = enemyPositions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [enemyPositions[i], enemyPositions[j]] = [enemyPositions[j], enemyPositions[i]];
+    }
+
+    let posIdx = 0;
+
     if (template.enemies && template.enemies.length > 0) {
       template.enemies.forEach((edef, gi) => {
         const cnt = edef.count ?? 1;
@@ -39,6 +52,7 @@ export const BattleEngine = {
             agility: (edef as any).agility ?? 5,
             alive: true,
             attackType: Math.random() < 0.5 ? 'MELEE' : 'RANGED',
+            position: enemyPositions[posIdx++] ?? 0,
           });
         }
       });
@@ -56,6 +70,7 @@ export const BattleEngine = {
           agility: 2,
           alive: true,
           attackType: i % 2 === 0 ? 'MELEE' : 'RANGED',
+          position: enemyPositions[posIdx++] ?? 0,
         });
       }
     }

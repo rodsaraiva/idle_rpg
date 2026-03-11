@@ -75,7 +75,7 @@ export type GameAction =
   | { type: 'CONFIRM_CHEST_REVEAL'; hero: Hero }
   | { type: 'SET_TICK_INTERVAL'; ms: number }
   | { type: 'SET_TRAIN_INFLATION'; inflation: number }
-  | { type: 'START_MISSION'; templateId: string; heroIds: string[] }
+  | { type: 'START_MISSION'; templateId: string; heroIds: string[]; heroPositions?: Record<string, number> }
   | { type: 'COMPLETE_MISSION'; missionId: string; reward: number }
   | { type: 'DISMISS_MISSION_RESULT'; missionId: string }
   | { type: 'LOAD_STATE'; state: GameState };
@@ -99,6 +99,7 @@ export interface ActiveMission {
   id: string;
   templateId: string;
   heroIds: string[];
+  heroPositions?: Record<string, number>; // Mapping from heroId to grid index (0-49)
   remainingMs?: number;
   startedAt: number;
   finishAt?: number;
@@ -118,7 +119,8 @@ export interface ActiveMission {
     crit?: number;
     agility?: number;
     alive?: boolean; 
-    attackType?: 'MELEE' | 'RANGED' 
+    attackType?: 'MELEE' | 'RANGED';
+    position?: number; // Grid index (0-14 for enemies)
   }[];
   // precomputed reward/summary to avoid recomputing on completion
   precomputedOutcome?: MissionOutcome;

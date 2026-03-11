@@ -31,7 +31,7 @@ export function useMissions() {
     setPendingTemplate(null);
   };
 
-  const handleConfirmMission = (templateId: string, heroIds: string[]) => {
+  const handleConfirmMission = (templateId: string, heroIds: string[], heroPositions?: Record<string, number>) => {
     if (!templateId) return;
     
     const now = Date.now();
@@ -46,7 +46,7 @@ export function useMissions() {
       return;
     }
 
-    dispatch({ type: 'START_MISSION', templateId, heroIds: valid });
+    dispatch({ type: 'START_MISSION', templateId, heroIds: valid, heroPositions });
     closeSelectionModal();
   };
 

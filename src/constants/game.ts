@@ -44,6 +44,13 @@ export const MISSION_START_DELAY_MS = 2000;
 export const MISSION_ACTION_INTERVAL_MS = 1800;
 export const MISSION_FINISH_DELAY_MS = 2000;
 
+/** Grid constants for mission positioning */
+export const GRID_COLUMNS = 5;
+export const GRID_ROWS = 10;
+export const TOTAL_GRID_SLOTS = GRID_COLUMNS * GRID_ROWS;
+export const ENEMY_ROWS = [0, 1, 2];
+export const HERO_ROWS = [7, 8, 9];
+
 export const HEALER_BUFF_PER_HERO = 0.1;
 export const HEALER_BUFF_CAP = 0.3;
 export const ROGUE_RNG_BONUS_PER_HERO = 0.02;
