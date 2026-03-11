@@ -3,9 +3,11 @@ import { useGame } from './useGame';
 import { getRecruitCost } from '../utils/math';
 import { Hero } from '../types';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
+import { useNavigation } from '@react-navigation/native';
 
 export function useShop() {
   const { state, dispatch } = useGame();
+  const navigation = useNavigation<any>();
   const cost = getRecruitCost(state.heroesRecruited);
   const canAfford = state.gold >= cost;
 
@@ -27,6 +29,9 @@ export function useShop() {
     dispatch({ type: 'CONFIRM_CHEST_REVEAL', hero });
     setRevealVisible(false);
     setActiveChestLabel('');
+    
+    // Redireciona para a tela de treinamento após contratar um herói
+    navigation.navigate('Treinamento');
   };
 
   const handleRevealCancel = () => {

@@ -2,20 +2,28 @@ import { useGame } from './useGame';
 import { getRecruitCost } from '../utils/math';
 import { Hero, HeroTask } from '../types';
 import { theme } from '../theme';
+import { useNavigation } from '@react-navigation/native';
 
 export function useGuild() {
   const { 
     state, 
     setHeroTask, 
-    recruitHero, 
+    recruitHero: recruitHeroAction, 
     isLoaded, 
     offlineSummary, 
     clearOfflineSummary,
     applyOfflineSummary 
   } = useGame();
+  
+  const navigation = useNavigation<any>();
 
   const nextRecruitCost = getRecruitCost(state.heroesRecruited);
   const canAfford = state.gold >= nextRecruitCost;
+
+  const recruitHero = () => {
+    recruitHeroAction();
+    navigation.navigate('Treinamento');
+  };
 
   const getHeroActions = (hero: Hero) => [
     {
