@@ -51,6 +51,12 @@ export const TOTAL_GRID_SLOTS = GRID_COLUMNS * GRID_ROWS;
 export const ENEMY_ROWS = [0, 1, 2];
 export const HERO_ROWS = [7, 8, 9];
 
+/** Hexagonal grid specific constants */
+export const HEX_SIZE = 40; // Raio do hexágono
+export const HEX_WIDTH = Math.sqrt(3) * HEX_SIZE;
+export const HEX_HEIGHT = 2 * HEX_SIZE;
+export const HEX_VERTICAL_SPACING = (3 / 4) * HEX_HEIGHT;
+
 export const HEALER_BUFF_PER_HERO = 0.1;
 export const HEALER_BUFF_CAP = 0.3;
 export const ROGUE_RNG_BONUS_PER_HERO = 0.02;

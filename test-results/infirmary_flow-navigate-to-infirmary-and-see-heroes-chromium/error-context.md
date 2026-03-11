@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e8]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: Vila de Ouro
+        - generic [ref=e13]: O coração da sua guilda
+      - generic [ref=e16]:
+        - generic [ref=e17] [cursor=pointer]:
+          - generic [ref=e19]: ⚔️
+          - generic [ref=e20]:
+            - generic [ref=e21]: Treinamento
+            - generic [ref=e22]: Melhore os atributos dos seus heróis
+        - generic [ref=e23] [cursor=pointer]:
+          - generic [ref=e25]: 🩺
+          - generic [ref=e26]:
+            - generic [ref=e27]: Enfermaria
+            - generic [ref=e28]: Recupere heróis feridos em batalha
+        - generic [ref=e29] [cursor=pointer]:
+          - generic [ref=e31]: ⚒️
+          - generic [ref=e32]:
+            - generic [ref=e33]: Ferreiro
+            - generic [ref=e34]: Forje e melhore equipamentos (Em breve)
+        - generic [ref=e35] [cursor=pointer]:
+          - generic [ref=e37]: 🏛️
+          - generic [ref=e38]:
+            - generic [ref=e39]: Panteão
+            - generic [ref=e40]: Honre seus heróis lendários (Em breve)
+    - tablist [ref=e42]:
+      - tab " Vila" [selected] [ref=e44] [cursor=pointer]:
+        - generic [ref=e48]: 
+        - generic [ref=e49]: Vila
+      - tab "  Treino" [ref=e51] [cursor=pointer]:
+        - generic [ref=e52]:
+          - generic [ref=e54]: 
+          - generic [ref=e56]: 
+        - generic [ref=e57]: Treino
+      - tab "  Missões" [ref=e59] [cursor=pointer]:
+        - generic [ref=e60]:
+          - generic [ref=e62]: 
+          - generic [ref=e64]: 
+        - generic [ref=e65]: Missões
+      - tab "  Saúde" [ref=e67] [cursor=pointer]:
+        - generic [ref=e68]:
+          - generic [ref=e70]: 
+          - generic [ref=e72]: 
+        - generic [ref=e73]: Saúde
+      - tab "  Loja" [ref=e75] [cursor=pointer]:
+        - generic [ref=e76]:
+          - generic [ref=e78]: 
+          - generic [ref=e80]: 
+        - generic [ref=e81]: Loja
+  - generic:
+    - img
+```

@@ -3,7 +3,8 @@ import { MissionTemplate } from '../constants/missions';
 import { 
   CRIT_MULTIPLIER,
   ENEMY_ROWS,
-  GRID_COLUMNS 
+  GRID_COLUMNS,
+  GRID_ROWS 
 } from '../constants/game';
 import { GameMath } from './gameMath';
 
@@ -79,34 +80,57 @@ export const BattleEngine = {
 
   /**
    * Lógica de seleção de alvo.
-   * MELEE: Prefere alvos com mais vida (tanking) ou aleatório.
-   * RANGED: Prefere alvos com menos vida (sniping).
+   * Agora considera a distância em um grid hexagonal.
+   * MELEE: Prefere alvos adjacentes ou mais próximos.
+   * RANGED: Pode atacar qualquer alvo, mas prefere os com menos HP.
    */
-  selectTarget<T extends { hp?: number; hpCurrent?: number }>(
+  selectTarget<T extends { id: string; hp?: number; hpCurrent?: number; position?: number }>(
     attackerType: 'MELEE' | 'RANGED',
+    attackerPos: number,
     candidates: T[],
     rng: () => number
   ): T | undefined {
     if (!candidates || candidates.length === 0) return undefined;
 
-    const hpOf = (c: T) => (typeof c.hp === 'number' ? c.hp : c.hpCurrent ?? 0);
-    const sorted = [...candidates].sort((a, b) => hpOf(a) - hpOf(b));
-    const min = sorted[0];
-    const max = sorted[sorted.length - 1];
-    const roll = Math.floor(rng() * 100);
-
-    const chooseAmongEquals = (value: number) => {
-      const group = candidates.filter((x) => hpOf(x) === value);
-      return group[Math.floor(rng() * group.length)];
+    const getHexCoords = (pos: number) => {
+      const r = Math.floor(pos / GRID_COLUMNS);
+      const c = pos % GRID_COLUMNS;
+      // Convert axial coordinates for easier distance calculation
+      const x = c - (r + (r & 1)) / 2;
+      const z = r;
+      const y = -x - z;
+      return { x, y, z };
     };
 
+    const getDistance = (p1: number, p2: number) => {
+      const a = getHexCoords(p1);
+      const b = getHexCoords(p2);
+      return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y), Math.abs(a.z - b.z));
+    };
+
+    const hpOf = (c: T) => (typeof c.hp === 'number' ? c.hp : c.hpCurrent ?? 0);
+
     if (attackerType === 'MELEE') {
-      if (roll < 70) return chooseAmongEquals(hpOf(max));
-      if (roll < 90) return chooseAmongEquals(hpOf(min));
-      return candidates[Math.floor(rng() * candidates.length)];
+      // MELEE: prioritize closer targets
+      const sortedByDistance = [...candidates].sort((a, b) => {
+        const distA = getDistance(attackerPos, a.position ?? 0);
+        const distB = getDistance(attackerPos, b.position ?? 0);
+        if (distA !== distB) return distA - distB;
+        return hpOf(b) - hpOf(a); // then prioritize higher HP (tanking)
+      });
+
+      const closestDist = getDistance(attackerPos, sortedByDistance[0].position ?? 0);
+      const closestGroup = sortedByDistance.filter(c => getDistance(attackerPos, c.position ?? 0) === closestDist);
+      
+      return closestGroup[Math.floor(rng() * closestGroup.length)];
     } else {
-      if (roll < 60) return chooseAmongEquals(hpOf(min));
-      if (roll < 90) return chooseAmongEquals(hpOf(max));
+      // RANGED: can reach further, prioritize low HP
+      const sortedByHp = [...candidates].sort((a, b) => hpOf(a) - hpOf(b));
+      const minHp = hpOf(sortedByHp[0]);
+      const minHpGroup = sortedByHp.filter(c => hpOf(c) === minHp);
+
+      const roll = Math.floor(rng() * 100);
+      if (roll < 70) return minHpGroup[Math.floor(rng() * minHpGroup.length)];
       return candidates[Math.floor(rng() * candidates.length)];
     }
   },

@@ -1,0 +1,82 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e8]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: Vila de Ouro
+        - generic [ref=e13]: O coração da sua guilda
+      - generic [ref=e16]:
+        - generic [active] [ref=e17] [cursor=pointer]:
+          - generic [ref=e19]: ⚔️
+          - generic [ref=e20]:
+            - generic [ref=e21]: Treinamento
+            - generic [ref=e22]: Melhore os atributos dos seus heróis
+        - generic [ref=e23] [cursor=pointer]:
+          - generic [ref=e25]: 🩺
+          - generic [ref=e26]:
+            - generic [ref=e27]: Enfermaria
+            - generic [ref=e28]: Recupere heróis feridos em batalha
+        - generic [ref=e29] [cursor=pointer]:
+          - generic [ref=e31]: ⚒️
+          - generic [ref=e32]:
+            - generic [ref=e33]: Ferreiro
+            - generic [ref=e34]: Forje e melhore equipamentos (Em breve)
+        - generic [ref=e35] [cursor=pointer]:
+          - generic [ref=e37]: 🏛️
+          - generic [ref=e38]:
+            - generic [ref=e39]: Panteão
+            - generic [ref=e40]: Honre seus heróis lendários (Em breve)
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]: Campo de Treino
+          - generic [ref=e49]: 0 heróis em prontidão
+        - generic [ref=e51]:
+          - generic [ref=e53]: 💰
+          - 'generic "Ouro da guilda: 20" [ref=e54]': "20"
+      - generic [ref=e55]:
+        - generic [ref=e56]: Ordens Coletivas
+        - generic [ref=e57]:
+          - generic [ref=e58] [cursor=pointer]:
+            - generic [ref=e59]: ❤️
+            - generic [ref=e60]: HP
+          - generic [ref=e61] [cursor=pointer]:
+            - generic [ref=e62]: ⚔️
+            - generic [ref=e63]: ATK
+          - generic [ref=e64] [cursor=pointer]:
+            - generic [ref=e65]: 🔮
+            - generic [ref=e66]: MP
+      - generic [ref=e67]:
+        - generic [ref=e68]: 🏋️
+        - generic [ref=e69]: Campo de Treino Vazio
+        - generic [ref=e70]: Não há ninguém aqui para treinar. Recrute heróis na loja!
+        - generic [ref=e72] [cursor=pointer]: Ir à Loja
+  - tablist [ref=e74]:
+    - tab "  Vila" [ref=e76] [cursor=pointer]:
+      - generic [ref=e77]:
+        - generic [ref=e79]: 
+        - generic [ref=e81]: 
+      - generic [ref=e82]: Vila
+    - tab "  Treino" [selected] [ref=e84] [cursor=pointer]:
+      - generic [ref=e85]:
+        - generic [ref=e87]: 
+        - generic [ref=e89]: 
+      - generic [ref=e90]: Treino
+    - tab "  Missões" [ref=e92] [cursor=pointer]:
+      - generic [ref=e93]:
+        - generic [ref=e95]: 
+        - generic [ref=e97]: 
+      - generic [ref=e98]: Missões
+    - tab "  Saúde" [ref=e100] [cursor=pointer]:
+      - generic [ref=e101]:
+        - generic [ref=e103]: 
+        - generic [ref=e105]: 
+      - generic [ref=e106]: Saúde
+    - tab "  Loja" [ref=e108] [cursor=pointer]:
+      - generic [ref=e109]:
+        - generic [ref=e111]: 
+        - generic [ref=e113]: 
+      - generic [ref=e114]: Loja
+```

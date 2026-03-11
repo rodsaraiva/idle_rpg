@@ -17,11 +17,17 @@ import { theme } from '../theme';
 import { 
   TOTAL_GRID_SLOTS, 
   GRID_COLUMNS, 
+  GRID_ROWS,
   ENEMY_ROWS, 
-  HERO_ROWS 
+  HERO_ROWS,
+  HEX_WIDTH,
+  HEX_HEIGHT,
+  HEX_VERTICAL_SPACING
 } from '../constants/game';
 import { MISSIONS } from '../constants/missions';
 import { BattleEngine, BattleEnemy } from '../utils/battleEngine';
+
+import { Hexagon } from './Hexagon';
 
 const IS_WEB = Platform.OS === 'web';
 
@@ -223,10 +229,12 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
 
     const cellStyle = [
       styles.cell,
-      hero ? styles.cellFilled : styles.cellEmpty,
-      isHeroRow && !hero && styles.cellHeroRow,
-      isEnemyRow && styles.cellEnemyRow,
-      enemy && styles.cellEnemyFilled,
+      {
+        position: 'absolute',
+        left: (i % GRID_COLUMNS) * HEX_WIDTH + ((row % 2) * HEX_WIDTH) / 2,
+        top: row * HEX_VERTICAL_SPACING,
+      },
+      hero && styles.cellFilled,
     ];
 
     return (
@@ -250,19 +258,37 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
         accessibilityLabel={hero ? `${hero.name}, posição ${i + 1}` : `Posição ${i + 1}, vazia`}
       >
         <Animated.View style={{ transform: [{ scale: cellScalesRef.current[i] }] }}>
-          {hero ? (
-            <>
-              <Text style={styles.cellEmoji}>{CLASS_EMOJI[hero.classId ?? ''] ?? '❓'}</Text>
-              <Text style={styles.cellTextSmall}>{hero.name}</Text>
-            </>
-          ) : enemy ? (
-            <>
-              <Text style={styles.cellEmoji}>👹</Text>
-              <Text style={styles.cellTextEnemy}>Inimigo</Text>
-            </>
-          ) : isHeroRow ? (
-            <Text style={styles.cellText}>+</Text>
-          ) : null}
+          <Hexagon
+            fill={
+              hero
+                ? theme.colors.primary
+                : enemy
+                ? 'rgba(255, 0, 0, 0.3)'
+                : isHeroRow
+                ? 'rgba(100, 149, 237, 0.15)'
+                : isEnemyRow
+                ? 'rgba(255, 0, 0, 0.05)'
+                : theme.colors.surfaceLight
+            }
+            stroke={
+              isHeroRow && !hero ? '#6495ed' : theme.colors.border
+            }
+            strokeWidth={isHeroRow && !hero ? 1 : 1}
+          >
+            {hero ? (
+              <>
+                <Text style={styles.cellEmoji}>{CLASS_EMOJI[hero.classId ?? ''] ?? '❓'}</Text>
+                <Text style={styles.cellTextSmall}>{hero.name}</Text>
+              </>
+            ) : enemy ? (
+              <>
+                <Text style={styles.cellEmoji}>👹</Text>
+                <Text style={styles.cellTextEnemy}>Inimigo</Text>
+              </>
+            ) : isHeroRow ? (
+              <Text style={styles.cellText}>+</Text>
+            ) : null}
+          </Hexagon>
         </Animated.View>
       </TouchableOpacity>
     );
@@ -381,7 +407,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  container: { width: '98%', backgroundColor: theme.colors.surface, borderRadius: 8, padding: 8, maxHeight: '90%' },
+  container: { width: '98%', backgroundColor: theme.colors.surface, borderRadius: 8, padding: 4, maxHeight: '95%' },
   scrollContent: { paddingBottom: 20 },
   title: { fontSize: 18, fontWeight: '700', marginBottom: 8, color: theme.colors.textPrimary, textAlign: 'center' },
   grid: { 
@@ -390,14 +416,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     marginBottom: 8,
     width: '100%',
+    height: GRID_ROWS * HEX_VERTICAL_SPACING + HEX_HEIGHT / 4,
   },
   cell: {
-    width: '18%', // 5 columns
-    aspectRatio: 1,
-    margin: '0.5%',
+    width: HEX_WIDTH,
+    height: HEX_HEIGHT,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 4,
   },
   cellEmpty: { backgroundColor: theme.colors.surfaceLight, borderWidth: 1, borderColor: theme.colors.border },
   cellFilled: { backgroundColor: theme.colors.primary, borderWidth: 0 },

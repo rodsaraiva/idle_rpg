@@ -1,0 +1,56 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e8]:
+    - generic [ref=e11]:
+      - generic [ref=e12]: Vila de Ouro
+      - generic [ref=e13]: O coração da sua guilda
+    - generic [ref=e16]:
+      - generic [ref=e17] [cursor=pointer]:
+        - generic [ref=e19]: ⚔️
+        - generic [ref=e20]:
+          - generic [ref=e21]: Treinamento
+          - generic [ref=e22]: Melhore os atributos dos seus heróis
+      - generic [ref=e23] [cursor=pointer]:
+        - generic [ref=e25]: 🩺
+        - generic [ref=e26]:
+          - generic [ref=e27]: Enfermaria
+          - generic [ref=e28]: Recupere heróis feridos em batalha
+      - generic [ref=e29] [cursor=pointer]:
+        - generic [ref=e31]: ⚒️
+        - generic [ref=e32]:
+          - generic [ref=e33]: Ferreiro
+          - generic [ref=e34]: Forje e melhore equipamentos (Em breve)
+      - generic [ref=e35] [cursor=pointer]:
+        - generic [ref=e37]: 🏛️
+        - generic [ref=e38]:
+          - generic [ref=e39]: Panteão
+          - generic [ref=e40]: Honre seus heróis lendários (Em breve)
+  - tablist [ref=e42]:
+    - tab "  Vila" [selected] [ref=e44] [cursor=pointer]:
+      - generic [ref=e45]:
+        - generic [ref=e47]: 
+        - generic [ref=e49]: 
+      - generic [ref=e50]: Vila
+    - tab "  Treino" [ref=e52] [cursor=pointer]:
+      - generic [ref=e53]:
+        - generic [ref=e55]: 
+        - generic [ref=e57]: 
+      - generic [ref=e58]: Treino
+    - tab "  Missões" [ref=e60] [cursor=pointer]:
+      - generic [ref=e61]:
+        - generic [ref=e63]: 
+        - generic [ref=e65]: 
+      - generic [ref=e66]: Missões
+    - tab "  Saúde" [ref=e68] [cursor=pointer]:
+      - generic [ref=e69]:
+        - generic [ref=e71]: 
+        - generic [ref=e73]: 
+      - generic [ref=e74]: Saúde
+    - tab "  Loja" [ref=e76] [cursor=pointer]:
+      - generic [ref=e77]:
+        - generic [ref=e79]: 
+        - generic [ref=e81]: 
+      - generic [ref=e82]: Loja
+```

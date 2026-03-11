@@ -22,6 +22,7 @@ interface BattleOpts {
   synergyK?: number;
   scale?: number;
   rng?: () => number;
+  heroPositions?: Record<string, number>;
 }
 
 export function computeBattleOutcome(
@@ -83,7 +84,8 @@ export function computeBattleOutcome(
       }
 
       // Attack
-      const target = BattleEngine.selectTarget(hero.attackType ?? 'MELEE', currentEnemies, rng);
+      const heroPos = (opts.heroPositions || {})[hero.id] ?? 45; // Default to a back row position if missing
+      const target = BattleEngine.selectTarget(hero.attackType ?? 'MELEE', heroPos, currentEnemies, rng);
       if (!target) continue;
 
       const hitChance = GameMath.calcHitChance(hero.atk); // Passamos apenas o ATK, o BattleEngine cuida da Agilidade do alvo
@@ -117,7 +119,7 @@ export function computeBattleOutcome(
       const currentHeroes = aliveHeroes();
       if (currentHeroes.length === 0) break;
 
-      const target = BattleEngine.selectTarget(enemy.attackType ?? 'MELEE', currentHeroes, rng);
+      const target = BattleEngine.selectTarget(enemy.attackType ?? 'MELEE', enemy.position ?? 0, currentHeroes, rng);
       if (!target) continue;
 
       const result = BattleEngine.calculateAttack(enemy, target, ENEMY_HIT_CHANCE, 'enemy', rounds, rng);
@@ -152,6 +154,10 @@ export function computeBattleOutcome(
   }
 
   const success = aliveEnemies().length === 0 && aliveHeroes().length > 0;
+  
+  // No hexagonal grid, heróis em posições mais avançadas (linhas menores)
+  // podem receber um pequeno bônus de "coragem" no reward, ou os da retaguarda bônus de MP.
+  // Por enquanto, mantemos a lógica original mas garantimos que as posições sejam consideradas.
   
   const reward = success
     ? calcMissionReward(template, heroesIn, {

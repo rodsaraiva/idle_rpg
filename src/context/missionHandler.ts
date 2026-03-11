@@ -81,6 +81,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     const outcome = computeBattleOutcome(template, heroesForMission, {
       healerBuffMultiplier,
       rogueRngBonus,
+      heroPositions,
     });
     
     const missionEnemies = BattleEngine.createEnemies(template);
