@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Text, ViewStyle } from 'react-native';
+import Svg, { Polygon } from 'react-native-svg';
 import { HEX_WIDTH, HEX_HEIGHT } from '../constants/game';
 import { theme } from '../theme';
 
@@ -9,14 +10,11 @@ interface HexagonProps {
   stroke?: string;
   strokeWidth?: number;
   style?: ViewStyle | ViewStyle[];
-  label?: string;
-  labelColor?: string;
 }
 
 /**
- * Componente Hexagon usando CSS puro para criar o formato.
- * Formato: Ponta para cima (Flat-top variation) ou Lados retos (Pointy-top).
- * Usaremos Pointy-top (ponta para cima) para melhor encaixe lateral 5x10.
+ * Componente Hexagon usando SVG para evitar artefatos visuais e garantir cores sólidas.
+ * Pointy-top layout.
  */
 export const Hexagon: React.FC<HexagonProps> = ({ 
   children, 
@@ -24,24 +22,43 @@ export const Hexagon: React.FC<HexagonProps> = ({
   stroke = theme.colors.border, 
   strokeWidth = 1,
   style,
-  label,
-  labelColor = theme.colors.textSecondary
 }) => {
+  // Coordenadas dos pontos para um hexágono "pointy-top" (ponta para cima)
+  // O SVG usa um sistema de coordenadas 0,0 no topo esquerdo.
+  const w = HEX_WIDTH;
+  const h = HEX_HEIGHT;
+  
+  // Pontos (x,y):
+  // 1: Topo Central
+  // 2: Médio Direita Superior
+  // 3: Médio Direita Inferior
+  // 4: Base Central
+  // 5: Médio Esquerda Inferior
+  // 6: Médio Esquerda Superior
+  const points = `
+    ${w / 2},0 
+    ${w},${h / 4} 
+    ${w},${(3 * h) / 4} 
+    ${w / 2},${h} 
+    0,${(3 * h) / 4} 
+    0,${h / 4}
+  `;
+
   return (
     <View style={[styles.container, style]}>
-      {/* Parte superior (triângulo) */}
-      <View style={[styles.before, { borderBottomColor: stroke }]} />
-      <View style={[styles.before, { borderBottomColor: fill, top: strokeWidth, borderBottomWidth: HEX_HEIGHT / 4 - strokeWidth }]} />
-      
-      {/* Corpo central (retângulo) */}
-      <View style={[styles.body, { backgroundColor: fill, borderColor: stroke, borderLeftWidth: strokeWidth, borderRightWidth: strokeWidth }]}>
-        {children}
-        {label && <Text style={[styles.label, { color: labelColor }]}>{label}</Text>}
+      <View style={styles.svgWrapper}>
+        <Svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+          <Polygon
+            points={points}
+            fill={fill}
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+          />
+        </Svg>
       </View>
-      
-      {/* Parte inferior (triângulo invertido) */}
-      <View style={[styles.after, { borderTopColor: stroke }]} />
-      <View style={[styles.after, { borderTopColor: fill, bottom: strokeWidth, borderTopWidth: HEX_HEIGHT / 4 - strokeWidth }]} />
+      <View style={styles.content}>
+        {children}
+      </View>
     </View>
   );
 };
@@ -53,41 +70,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  body: {
-    width: HEX_WIDTH,
-    height: HEX_HEIGHT / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-    zIndex: 2,
-  },
-  before: {
+  svgWrapper: {
     position: 'absolute',
     top: 0,
-    width: 0,
-    height: 0,
-    borderLeftWidth: HEX_WIDTH / 2,
-    borderLeftColor: 'transparent',
-    borderRightWidth: HEX_WIDTH / 2,
-    borderRightColor: 'transparent',
-    borderBottomWidth: HEX_HEIGHT / 4,
-    zIndex: 1,
+    left: 0,
+    width: HEX_WIDTH,
+    height: HEX_HEIGHT,
   },
-  after: {
-    position: 'absolute',
-    bottom: 0,
-    width: 0,
-    height: 0,
-    borderLeftWidth: HEX_WIDTH / 2,
-    borderLeftColor: 'transparent',
-    borderRightWidth: HEX_WIDTH / 2,
-    borderRightColor: 'transparent',
-    borderTopWidth: HEX_HEIGHT / 4,
-    zIndex: 1,
+  content: {
+    width: HEX_WIDTH,
+    height: HEX_HEIGHT * 0.5, // Foca o conteúdo na parte central retangular
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
   },
-  label: {
-    fontSize: 10,
-    textAlign: 'center',
-    marginTop: 4,
-  }
 });
