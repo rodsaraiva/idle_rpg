@@ -17,9 +17,12 @@ export interface BattleEnemy {
   defense: number;
   crit: number;
   agility: number;
-  alive: boolean;
-  attackType: 'MELEE' | 'RANGED';
-}
+    alive: boolean;
+    attackType: 'MELEE' | 'RANGED';
+    position?: number;
+    range: number;
+    movement: number;
+  }
 
 export const BattleEngine = {
   /**
@@ -54,6 +57,8 @@ export const BattleEngine = {
             alive: true,
             attackType: Math.random() < 0.5 ? 'MELEE' : 'RANGED',
             position: enemyPositions[posIdx++] ?? 0,
+            range: edef.range ?? (Math.random() < 0.5 ? 1 : 3),
+            movement: edef.movement ?? 2,
           });
         }
       });
@@ -72,6 +77,8 @@ export const BattleEngine = {
           alive: true,
           attackType: i % 2 === 0 ? 'MELEE' : 'RANGED',
           position: enemyPositions[posIdx++] ?? 0,
+          range: i % 2 === 0 ? 1 : 3,
+          movement: 2,
         });
       }
     }
@@ -79,10 +86,48 @@ export const BattleEngine = {
   },
 
   /**
+   * Encontra a melhor posição para se mover em direção ao alvo.
+   */
+  findMovePath(
+    currentPos: number,
+    targetPos: number,
+    movement: number,
+    occupiedPositions: Set<number>
+  ): number {
+    if (movement <= 0) return currentPos;
+    
+    let bestPos = currentPos;
+    let minDistance = GameMath.getHexDistance(currentPos, targetPos);
+
+    // BFS simplificada para encontrar a célula dentro do alcance de movimento que está mais próxima do alvo
+    const queue: { pos: number; dist: number }[] = [{ pos: currentPos, dist: 0 }];
+    const visited = new Set<number>([currentPos]);
+
+    while (queue.length > 0) {
+      const { pos, dist } = queue.shift()!;
+
+      if (dist < movement) {
+        const neighbors = GameMath.getHexNeighbors(pos, GRID_ROWS, GRID_COLUMNS);
+        for (const neighbor of neighbors) {
+          if (!visited.has(neighbor) && !occupiedPositions.has(neighbor)) {
+            visited.add(neighbor);
+            const dToTarget = GameMath.getHexDistance(neighbor, targetPos);
+            if (dToTarget < minDistance) {
+              minDistance = dToTarget;
+              bestPos = neighbor;
+            }
+            queue.push({ pos: neighbor, dist: dist + 1 });
+          }
+        }
+      }
+    }
+
+    return bestPos;
+  },
+
+  /**
    * Lógica de seleção de alvo.
    * Agora considera a distância em um grid hexagonal.
-   * MELEE: Prefere alvos adjacentes ou mais próximos.
-   * RANGED: Pode atacar qualquer alvo, mas prefere os com menos HP.
    */
   selectTarget<T extends { id: string; hp?: number; hpCurrent?: number; position?: number }>(
     attackerType: 'MELEE' | 'RANGED',
@@ -92,46 +137,27 @@ export const BattleEngine = {
   ): T | undefined {
     if (!candidates || candidates.length === 0) return undefined;
 
-    const getHexCoords = (pos: number) => {
-      const r = Math.floor(pos / GRID_COLUMNS);
-      const c = pos % GRID_COLUMNS;
-      // Convert axial coordinates for easier distance calculation
-      const x = c - (r + (r & 1)) / 2;
-      const z = r;
-      const y = -x - z;
-      return { x, y, z };
-    };
-
-    const getDistance = (p1: number, p2: number) => {
-      const a = getHexCoords(p1);
-      const b = getHexCoords(p2);
-      return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y), Math.abs(a.z - b.z));
-    };
-
     const hpOf = (c: T) => (typeof c.hp === 'number' ? c.hp : c.hpCurrent ?? 0);
 
+    // Prioriza alvos mais próximos
+    const sortedByDistance = [...candidates].sort((a, b) => {
+      const distA = GameMath.getHexDistance(attackerPos, a.position ?? 0);
+      const distB = GameMath.getHexDistance(attackerPos, b.position ?? 0);
+      if (distA !== distB) return distA - distB;
+      return hpOf(a) - hpOf(b); // Then lower HP (to finish off)
+    });
+
     if (attackerType === 'MELEE') {
-      // MELEE: prioritize closer targets
-      const sortedByDistance = [...candidates].sort((a, b) => {
-        const distA = getDistance(attackerPos, a.position ?? 0);
-        const distB = getDistance(attackerPos, b.position ?? 0);
-        if (distA !== distB) return distA - distB;
-        return hpOf(b) - hpOf(a); // then prioritize higher HP (tanking)
-      });
-
-      const closestDist = getDistance(attackerPos, sortedByDistance[0].position ?? 0);
-      const closestGroup = sortedByDistance.filter(c => getDistance(attackerPos, c.position ?? 0) === closestDist);
-      
-      return closestGroup[Math.floor(rng() * closestGroup.length)];
+      return sortedByDistance[0];
     } else {
-      // RANGED: can reach further, prioritize low HP
-      const sortedByHp = [...candidates].sort((a, b) => hpOf(a) - hpOf(b));
-      const minHp = hpOf(sortedByHp[0]);
-      const minHpGroup = sortedByHp.filter(c => hpOf(c) === minHp);
-
+      // RANGED: Pode escolher alvos um pouco mais longe se tiverem menos HP
       const roll = Math.floor(rng() * 100);
-      if (roll < 70) return minHpGroup[Math.floor(rng() * minHpGroup.length)];
-      return candidates[Math.floor(rng() * candidates.length)];
+      if (roll < 60) {
+         // Escolhe entre os 2 mais próximos o com menor HP
+         const near = sortedByDistance.slice(0, 3);
+         return near.sort((a, b) => hpOf(a) - hpOf(b))[0];
+      }
+      return sortedByDistance[0];
     }
   },
 

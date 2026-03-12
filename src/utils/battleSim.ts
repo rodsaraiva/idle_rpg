@@ -11,7 +11,9 @@ import {
   TANK_MITIGATION_CAP, 
   INCAPACITATED_DURATION_MS,
   BASE_HIT_CHANCE,
-  HIT_CHANCE_PER_ATK
+  HIT_CHANCE_PER_ATK,
+  GRID_COLUMNS,
+  GRID_ROWS
 } from '../constants/game';
 
 interface BattleOpts {
@@ -39,6 +41,12 @@ export function computeBattleOutcome(
 
   const aliveEnemies = () => enemies.filter((e) => e.hp > 0);
   const aliveHeroes = () => heroes.filter((h) => h.hpCurrent > 0);
+
+  const heroPositions = { ...(opts.heroPositions || {}) };
+  const enemyPositions: Record<string, number> = {};
+  enemies.forEach(e => { if (e.position !== undefined) enemyPositions[e.id] = e.position; });
+
+  const getOccupied = () => new Set([...Object.values(heroPositions), ...Object.values(enemyPositions)]);
 
   // Mitigation logic
   const tankCount = heroes.filter((h) => h.classId === 'TANK' && h.hpCurrent > 0).length;
@@ -83,32 +91,69 @@ export function computeBattleOutcome(
         }
       }
 
-      // Attack
-      const heroPos = (opts.heroPositions || {})[hero.id] ?? 45; // Default to a back row position if missing
-      const target = BattleEngine.selectTarget(hero.attackType ?? 'MELEE', heroPos, currentEnemies, rng);
-      if (!target) continue;
-
-      const hitChance = GameMath.calcHitChance(hero.atk); // Passamos apenas o ATK, o BattleEngine cuida da Agilidade do alvo
-      const result = BattleEngine.calculateAttack(hero, target, hitChance, 'hero', rounds, rng);
+      // 1. Move logic
+      const currentPos = heroPositions[hero.id] ?? 45;
+      const target = BattleEngine.selectTarget(hero.attackType ?? 'MELEE', currentPos, currentEnemies, rng);
       
-      if (result) {
-        actions.push(result.action);
-        log.push(result.action.text);
-        target.hp = Math.max(0, target.hp - result.dmg);
+      if (target) {
+        const targetPos = enemyPositions[target.id];
+        const dist = GameMath.getHexDistance(currentPos, targetPos);
+        const range = hero.range ?? (hero.attackType === 'RANGED' ? 3 : 1);
+
+        if (dist > range) {
+          const move = hero.movement ?? 2;
+          const nextPos = BattleEngine.findMovePath(currentPos, targetPos, move, getOccupied());
+          
+          if (nextPos !== currentPos) {
+            const moveTxt = `${hero.name} moveu-se para a posição ${nextPos}`;
+            log.push(moveTxt);
+            actions.push({
+              round: rounds,
+              actorType: 'hero',
+              actorId: hero.id,
+              actorName: hero.name,
+              actionType: 'move',
+              text: moveTxt,
+              fromPosition: currentPos,
+              toPosition: nextPos,
+            });
+            heroPositions[hero.id] = nextPos;
+          }
+        }
+      }
+
+      // 2. Attack logic (re-check distance after move)
+      const updatedPos = heroPositions[hero.id];
+      const finalTarget = BattleEngine.selectTarget(hero.attackType ?? 'MELEE', updatedPos, currentEnemies, rng);
+      if (!finalTarget) continue;
+
+      const finalDist = GameMath.getHexDistance(updatedPos, enemyPositions[finalTarget.id]);
+      const finalRange = hero.range ?? (hero.attackType === 'RANGED' ? 3 : 1);
+
+      if (finalDist <= finalRange) {
+        const hitChance = GameMath.calcHitChance(hero.atk); 
+        const result = BattleEngine.calculateAttack(hero, finalTarget, hitChance, 'hero', rounds, rng);
         
-        if (target.hp <= 0) {
-          target.alive = false;
-          const defeatTxt = `${target.id} foi derrotado!`;
-          log.push(defeatTxt);
-          actions.push({
-            round: rounds,
-            actorType: 'hero',
-            actorId: hero.id,
-            actorName: hero.name,
-            actionType: 'defeat',
-            targetId: target.id,
-            text: defeatTxt,
-          });
+        if (result) {
+          actions.push(result.action);
+          log.push(result.action.text);
+          finalTarget.hp = Math.max(0, finalTarget.hp - result.dmg);
+          
+          if (finalTarget.hp <= 0) {
+            finalTarget.alive = false;
+            delete enemyPositions[finalTarget.id]; // Remove from grid
+            const defeatTxt = `${finalTarget.id} foi derrotado!`;
+            log.push(defeatTxt);
+            actions.push({
+              round: rounds,
+              actorType: 'hero',
+              actorId: hero.id,
+              actorName: hero.name,
+              actionType: 'defeat',
+              targetId: finalTarget.id,
+              text: defeatTxt,
+            });
+          }
         }
       }
     }
@@ -119,35 +164,74 @@ export function computeBattleOutcome(
       const currentHeroes = aliveHeroes();
       if (currentHeroes.length === 0) break;
 
-      const target = BattleEngine.selectTarget(enemy.attackType ?? 'MELEE', enemy.position ?? 0, currentHeroes, rng);
-      if (!target) continue;
-
-      const result = BattleEngine.calculateAttack(enemy, target, ENEMY_HIT_CHANCE, 'enemy', rounds, rng);
+      // 1. Enemy Move
+      const currentPos = enemyPositions[enemy.id] ?? 0;
+      const target = BattleEngine.selectTarget(enemy.attackType ?? 'MELEE', currentPos, currentHeroes, rng);
       
-      if (result) {
-        let finalDmg = result.dmg;
-        if (target.classId !== 'TANK' && tankMitigation > 0) {
-          finalDmg = Math.max(1, Math.floor(finalDmg * (1 - tankMitigation)));
-          result.action.amount = finalDmg;
-          result.action.text = `${enemy.id} causou ${finalDmg} de dano em ${target.name} (Reduzido por Tank)`;
+      if (target) {
+        const targetPos = heroPositions[target.id] ?? 45;
+        const dist = GameMath.getHexDistance(currentPos, targetPos);
+        const range = enemy.range ?? (enemy.attackType === 'RANGED' ? 3 : 1);
+
+        if (dist > range) {
+          const move = enemy.movement ?? 2;
+          const nextPos = BattleEngine.findMovePath(currentPos, targetPos, move, getOccupied());
+          
+          if (nextPos !== currentPos) {
+            const moveTxt = `${enemy.id} moveu-se para a posição ${nextPos}`;
+            log.push(moveTxt);
+            actions.push({
+              round: rounds,
+              actorType: 'enemy',
+              actorId: enemy.id,
+              actorName: enemy.id,
+              actionType: 'move',
+              text: moveTxt,
+              fromPosition: currentPos,
+              toPosition: nextPos,
+            });
+            enemyPositions[enemy.id] = nextPos;
+          }
         }
+      }
 
-        actions.push(result.action);
-        log.push(result.action.text);
-        target.hpCurrent = Math.max(0, target.hpCurrent - finalDmg);
+      // 2. Enemy Attack
+      const updatedPos = enemyPositions[enemy.id];
+      const finalTarget = BattleEngine.selectTarget(enemy.attackType ?? 'MELEE', updatedPos, currentHeroes, rng);
+      if (!finalTarget) continue;
 
-        if (target.hpCurrent <= 0) {
-          const incapTxt = `${target.name} está incapacitado!`;
-          log.push(incapTxt);
-          actions.push({
-            round: rounds,
-            actorType: 'enemy',
-            actorId: enemy.id,
-            actorName: enemy.id,
-            actionType: 'defeat',
-            targetId: target.id,
-            text: incapTxt,
-          });
+      const finalDist = GameMath.getHexDistance(updatedPos, heroPositions[finalTarget.id]);
+      const finalRange = enemy.range ?? (enemy.attackType === 'RANGED' ? 3 : 1);
+
+      if (finalDist <= finalRange) {
+        const result = BattleEngine.calculateAttack(enemy, finalTarget, ENEMY_HIT_CHANCE, 'enemy', rounds, rng);
+        
+        if (result) {
+          let finalDmg = result.dmg;
+          if (finalTarget.classId !== 'TANK' && tankMitigation > 0) {
+            finalDmg = Math.max(1, Math.floor(finalDmg * (1 - tankMitigation)));
+            result.action.amount = finalDmg;
+            result.action.text = `${enemy.id} causou ${finalDmg} de dano em ${finalTarget.name} (Reduzido por Tank)`;
+          }
+
+          actions.push(result.action);
+          log.push(result.action.text);
+          finalTarget.hpCurrent = Math.max(0, finalTarget.hpCurrent - finalDmg);
+
+          if (finalTarget.hpCurrent <= 0) {
+            delete heroPositions[finalTarget.id]; // Remove from grid
+            const incapTxt = `${finalTarget.name} está incapacitado!`;
+            log.push(incapTxt);
+            actions.push({
+              round: rounds,
+              actorType: 'enemy',
+              actorId: enemy.id,
+              actorName: enemy.id,
+              actionType: 'defeat',
+              targetId: finalTarget.id,
+              text: incapTxt,
+            });
+          }
         }
       }
     }

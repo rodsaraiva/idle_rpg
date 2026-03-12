@@ -27,6 +27,8 @@ export interface Hero {
   avatarUrl?: string;
   // attack style for targeting behavior
   attackType?: 'MELEE' | 'RANGED';
+  range?: number; // Distance in hex grid
+  movement?: number; // Cells per round
   trainingProgressMs?: TrainingProgress;
   trainingCount?: TrainingCount;
   // if set, hero is incapacitated until this timestamp (ms since epoch)
@@ -81,7 +83,7 @@ export type GameAction =
   | { type: 'LOAD_STATE'; state: GameState };
 
 export type MissionActorType = 'hero' | 'enemy';
-export type MissionActionType = 'hit' | 'miss' | 'heal' | 'defeat' | 'victory';
+export type MissionActionType = 'hit' | 'miss' | 'heal' | 'defeat' | 'victory' | 'move';
 
 export interface MissionAction {
   round?: number;
@@ -93,6 +95,8 @@ export interface MissionAction {
   amount?: number;
   isCrit?: boolean;
   text: string;
+  fromPosition?: number;
+  toPosition?: number;
 }
 
 export interface ActiveMission {

@@ -22,7 +22,17 @@ export interface MissionTemplate {
   exponent?: number;
   synergyK?: number;
   // optional explicit enemy composition for battle simulation
-  enemies?: { hp: number; atk: number; mp: number; defense?: number; crit?: number; agility?: number; count?: number }[];
+  enemies?: { 
+    hp: number; 
+    atk: number; 
+    mp: number; 
+    defense?: number; 
+    crit?: number; 
+    agility?: number; 
+    count?: number;
+    range?: number;
+    movement?: number;
+  }[];
   requirements?: MissionRequirement[];
   difficulty?: number; // 1-5
 }

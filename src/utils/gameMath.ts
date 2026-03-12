@@ -11,7 +11,8 @@ import {
   BASE_HIT_CHANCE,
   HIT_CHANCE_PER_ATK,
   CRIT_BASE_CHANCE,
-  CRIT_MULTIPLIER
+  CRIT_MULTIPLIER,
+  GRID_COLUMNS
 } from '../constants/game';
 import { Hero } from '../types';
 import { MissionTemplate } from '../constants/missions';
@@ -108,5 +109,44 @@ export const GameMath = {
     if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + 'M';
     if (value >= 1_000) return (value / 1_000).toFixed(1) + 'K';
     return Math.floor(value).toString();
+  },
+
+  // --- Hex Grid Geometry ---
+  getHexCoords(pos: number) {
+    const r = Math.floor(pos / GRID_COLUMNS);
+    const c = pos % GRID_COLUMNS;
+    // Convert axial coordinates for easier distance calculation
+    const x = c - (r + (r & 1)) / 2;
+    const z = r;
+    const y = -x - z;
+    return { x, y, z };
+  },
+
+  getHexDistance(p1: number, p2: number): number {
+    const a = this.getHexCoords(p1);
+    const b = this.getHexCoords(p2);
+    return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y), Math.abs(a.z - b.z));
+  },
+
+  getHexNeighbors(pos: number, rows: number, cols: number): number[] {
+    const coords = this.getHexCoords(pos);
+    const neighbors: number[] = [];
+    const directions = [
+      { x: +1, y: -1, z: 0 }, { x: +1, y: 0, z: -1 }, { x: 0, y: +1, z: -1 },
+      { x: -1, y: +1, z: 0 }, { x: -1, y: 0, z: +1 }, { x: 0, y: -1, z: +1 }
+    ];
+
+    for (const d of directions) {
+      const nx = coords.x + d.x;
+      const nz = coords.z + d.z;
+      // Convert axial back to offset
+      const r = nz;
+      const c = nx + (r + (r & 1)) / 2;
+      
+      if (r >= 0 && r < rows && c >= 0 && c < cols) {
+        neighbors.push(r * cols + c);
+      }
+    }
+    return neighbors;
   },
 };
