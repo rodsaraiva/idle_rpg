@@ -143,6 +143,17 @@ function processMissions(state: GameState, heroes: Hero[]): {
             }
           }
 
+          if (act.actionType === 'move' && act.toPosition !== undefined) {
+            if (act.actorType === 'enemy' && m.enemiesState) {
+              const eidx = m.enemiesState.findIndex((ee) => ee.id === act.actorId);
+              if (eidx >= 0) {
+                m.enemiesState[eidx] = { ...m.enemiesState[eidx], position: act.toPosition };
+              }
+            } else if (act.actorType === 'hero' && m.heroPositions) {
+              m.heroPositions[act.actorId] = act.toPosition;
+            }
+          }
+
           sched.applied = true;
           prevWasMiss = act.actionType === 'miss';
 

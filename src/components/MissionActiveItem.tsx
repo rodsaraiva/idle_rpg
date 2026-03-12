@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { ActiveMission } from '../types';
 import { MISSIONS } from '../constants/missions';
 import { useGame } from '../hooks/useGame';
@@ -9,9 +9,10 @@ import { CombatantCard } from './CombatantCard';
 
 interface Props {
   mission: ActiveMission;
+  onWatch?: (id: string) => void;
 }
 
-export function MissionActiveItem({ mission }: Props) {
+export function MissionActiveItem({ mission, onWatch }: Props) {
   const { state } = useGame();
   const template = MISSIONS.find((t) => t.id === mission.templateId);
   const heroes = state.heroes.filter((h) => mission.heroIds.includes(h.id));
@@ -38,6 +39,12 @@ export function MissionActiveItem({ mission }: Props) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{template?.name ?? mission.templateId}</Text>
+        <TouchableOpacity 
+          style={styles.watchButton} 
+          onPress={() => onWatch?.(mission.id)}
+        >
+          <Text style={styles.watchButtonText}>👁 Assistir</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.battleHeader}>
@@ -112,6 +119,19 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.textPrimary,
+  },
+  watchButton: {
+    backgroundColor: theme.colors.surfaceLight,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  watchButtonText: {
+    color: theme.colors.primaryLight,
+    fontSize: 11,
+    fontWeight: 'bold',
   },
   time: {
     color: theme.colors.textSecondary,

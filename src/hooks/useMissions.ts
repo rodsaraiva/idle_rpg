@@ -9,6 +9,7 @@ export function useMissions() {
   // modal state for choosing heroes after clicking "Enviar"
   const [selectionModalVisible, setSelectionModalVisible] = useState(false);
   const [pendingTemplate, setPendingTemplate] = useState<{ templateId: string; minHeroes: number } | null>(null);
+  const [playbackMissionId, setPlaybackMissionId] = useState<string | null>(null);
 
   // memoize hero lists to avoid unnecessary effect runs / re-renders
   const missionHeroes = React.useMemo(
@@ -54,6 +55,11 @@ export function useMissions() {
     (h) => !(h.incapacitatedUntilMs && h.incapacitatedUntilMs > Date.now())
   ).length;
 
+  const activePlaybackMission = React.useMemo(
+    () => state.activeMissions?.find(m => m.id === playbackMissionId) || null,
+    [state.activeMissions, playbackMissionId]
+  );
+
   return {
     state,
     isLoaded,
@@ -61,9 +67,13 @@ export function useMissions() {
     selectableHeroes,
     selectionModalVisible,
     pendingTemplate,
+    playbackMissionId,
+    activePlaybackMission,
     availableCount,
     openSelectionModal,
     closeSelectionModal,
     handleConfirmMission,
+    openPlaybackModal: (id: string) => setPlaybackMissionId(id),
+    closePlaybackModal: () => setPlaybackMissionId(null),
   };
 }

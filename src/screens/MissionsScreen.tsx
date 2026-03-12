@@ -11,6 +11,7 @@ import { useMissions } from '../hooks/useMissions';
 import { MissionListItem } from '../components/MissionListItem';
 import { MissionHeroRow } from '../components/MissionHeroRow';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { MissionPlaybackModal } from '../components/MissionPlaybackModal';
 
 export function MissionsScreen() {
   const {
@@ -20,10 +21,13 @@ export function MissionsScreen() {
     selectableHeroes,
     selectionModalVisible,
     pendingTemplate,
+    activePlaybackMission,
     availableCount,
     openSelectionModal,
     closeSelectionModal,
     handleConfirmMission,
+    openPlaybackModal,
+    closePlaybackModal,
   } = useMissions();
 
   if (!isLoaded) {
@@ -49,7 +53,11 @@ export function MissionsScreen() {
               </View>
             </View>
             {state.activeMissions.map((m) => (
-              <MissionActiveItem key={m.id} mission={m} />
+              <MissionActiveItem 
+                key={m.id} 
+                mission={m} 
+                onWatch={openPlaybackModal}
+              />
             ))}
           </View>
         )}
@@ -79,6 +87,12 @@ export function MissionsScreen() {
           minHeroes={pendingTemplate?.minHeroes ?? 0}
           templateId={pendingTemplate?.templateId ?? ''}
           onConfirm={handleConfirmMission}
+        />
+
+        <MissionPlaybackModal
+          visible={!!activePlaybackMission}
+          onClose={closePlaybackModal}
+          mission={activePlaybackMission}
         />
 
         {missionHeroes.length > 0 && (
