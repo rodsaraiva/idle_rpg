@@ -110,6 +110,12 @@ export function HeroCard({
 
   const renderedActions = actions.length > 0 ? actions : defaultActions;
 
+  const getTrainTimePerPoint = (statKey: 'hp' | 'atk' | 'mp') => {
+    const classSpeed = hero.classId ? (CLASS_DEFS[hero.classId]?.trainSpeed?.[statKey] ?? 1) : 1;
+    const count = hero.trainingCount?.[statKey] ?? 0;
+    return (BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count)) / classSpeed;
+  };
+
   const CardContent = (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -160,30 +166,21 @@ export function HeroCard({
 
       {hero.currentTask === HeroTask.TRAIN_HP && hero.trainingProgressMs ? (
         <AttributeProgress
-          fraction={
-            (hero.trainingProgressMs.hp ?? 0) /
-            (BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, hero.trainingCount?.hp ?? 0))
-          }
+          fraction={(hero.trainingProgressMs.hp ?? 0) / getTrainTimePerPoint('hp')}
           color={theme.colors.hp}
           label="Progresso HP"
         />
       ) : null}
       {hero.currentTask === HeroTask.TRAIN_ATK && hero.trainingProgressMs ? (
         <AttributeProgress
-          fraction={
-            (hero.trainingProgressMs.atk ?? 0) /
-            (BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, hero.trainingCount?.atk ?? 0))
-          }
+          fraction={(hero.trainingProgressMs.atk ?? 0) / getTrainTimePerPoint('atk')}
           color={theme.colors.atk}
           label="Progresso ATK"
         />
       ) : null}
       {hero.currentTask === HeroTask.TRAIN_MP && hero.trainingProgressMs ? (
         <AttributeProgress
-          fraction={
-            (hero.trainingProgressMs.mp ?? 0) /
-            (BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, hero.trainingCount?.mp ?? 0))
-          }
+          fraction={(hero.trainingProgressMs.mp ?? 0) / getTrainTimePerPoint('mp')}
           color={theme.colors.mp}
           label="Progresso MP"
         />
