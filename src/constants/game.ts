@@ -29,7 +29,7 @@ export const ATK_TRAIN_PER_TICK = 1;
 export const MP_TRAIN_PER_TICK = 0.3;
 
 /** Battle related constants */
-export const MAX_BATTLE_ROUNDS = 12;
+export const MAX_BATTLE_ROUNDS = 20;
 export const CRIT_BASE_CHANCE = 0.05;
 export const CRIT_MULTIPLIER = 1.5;
 export const BASE_HIT_CHANCE = 0.75;
