@@ -3,6 +3,7 @@ import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'rea
 import { Hero } from '../types';
 import { theme } from '../theme';
 import { CLASS_DEFS } from '../constants/classes';
+import { PERSONALITIES } from '../constants/personalities';
 import { HPBar } from './HPBar';
 
 interface HeroDetailsModalProps {
@@ -15,6 +16,7 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
   if (!hero) return null;
 
   const classDef = hero.classId ? CLASS_DEFS[hero.classId] : null;
+  const personalityDef = hero.personality ? PERSONALITIES[hero.personality] : null;
 
   const StatItem = ({ label, value, icon, color }: { label: string; value: string | number; icon: string; color?: string }) => (
     <View style={styles.statRow}>
@@ -55,6 +57,20 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
               <StatItem label="Ataque" value={Math.floor(hero.atk)} icon="⚔️" color={theme.colors.atk} />
               <StatItem label="Mana" value={Math.floor(hero.mp)} icon="🔮" color={theme.colors.mp} />
             </View>
+
+            {personalityDef && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Personalidade</Text>
+                <View style={styles.personalityContainer}>
+                  <Text style={styles.personalityHeader}>
+                    {personalityDef.emoji} {personalityDef.displayName}
+                  </Text>
+                  <Text style={styles.personalityDescription}>
+                    {personalityDef.description}
+                  </Text>
+                </View>
+              </View>
+            )}
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Atributos Secundários</Text>
@@ -189,6 +205,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: theme.colors.hp,
+  },
+  personalityContainer: {
+    marginTop: 4,
+  },
+  personalityHeader: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+    marginBottom: 4,
+  },
+  personalityDescription: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    lineHeight: 20,
   },
   abilityContainer: {
     marginTop: 12,

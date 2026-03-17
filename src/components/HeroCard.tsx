@@ -7,6 +7,7 @@ import { TaskButton } from './TaskButton';
 import { AttributeProgress } from './AttributeProgress';
 import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 import { CLASS_DEFS } from '../constants/classes';
+import { PERSONALITIES } from '../constants/personalities';
 
 import { HPBar } from './HPBar';
 
@@ -120,7 +121,14 @@ export function HeroCard({
     <View style={styles.card}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.name}>{hero.name}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.name}>{hero.name}</Text>
+            {hero.personality && (
+              <Text style={styles.personalityBadge}>
+                {PERSONALITIES[hero.personality].emoji}
+              </Text>
+            )}
+          </View>
           <Text style={styles.classLabel}>{CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}</Text>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
@@ -233,6 +241,14 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.bold,
     color: theme.colors.textPrimary,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  personalityBadge: {
+    fontSize: 14,
   },
   taskBadge: {
     fontSize: theme.fontSize.xs,

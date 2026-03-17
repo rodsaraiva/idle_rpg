@@ -128,38 +128,90 @@ export const BattleEngine = {
 
   /**
    * Lógica de seleção de alvo.
-   * Agora considera a distância em um grid hexagonal.
+   * Agora considera a distância, classe e personalidade.
    */
-  selectTarget<T extends { id: string; hp?: number; hpCurrent?: number; position?: number }>(
-    attackerType: 'MELEE' | 'RANGED',
+  selectTarget<T extends { id: string; hp?: number; hpCurrent?: number; position?: number; classId?: string; range?: number }>(
+    attacker: { id: string; attackType?: 'MELEE' | 'RANGED'; personality?: string; classId?: string; range?: number },
     attackerPos: number,
     candidates: T[],
-    rng: () => number
+    rng: () => number,
+    context: {
+      lastAttackerId?: string;
+      alliesInDanger?: string[];
+      threats?: Record<string, string>; // enemyId -> targetAllyId
+    } = {}
   ): T | undefined {
     if (!candidates || candidates.length === 0) return undefined;
 
     const hpOf = (c: T) => (typeof c.hp === 'number' ? c.hp : c.hpCurrent ?? 0);
+    const maxHpOf = (c: any) => (typeof c.maxHp === 'number' ? c.maxHp : 100); // Default fallback
 
-    // Prioriza alvos mais próximos
-    const sortedByDistance = [...candidates].sort((a, b) => {
-      const distA = GameMath.getHexDistance(attackerPos, a.position ?? 0);
-      const distB = GameMath.getHexDistance(attackerPos, b.position ?? 0);
-      if (distA !== distB) return distA - distB;
-      return hpOf(a) - hpOf(b); // Then lower HP (to finish off)
+    const scores = candidates.map(target => {
+      let score = 100; // Base score
+      const dist = GameMath.getHexDistance(attackerPos, target.position ?? 0);
+      const targetHpPct = hpOf(target) / maxHpOf(target);
+      
+      // 1. Distância (Penalidade base)
+      score -= dist * 10;
+
+      // 2. Lógica por Classe do Atacante
+      if (attacker.classId === 'TANK' || attacker.classId === 'WARRIOR') {
+        // Preferem alvos próximos
+        if (dist <= 1) score += 20;
+      } else if (attacker.classId === 'ROGUE' || attacker.classId === 'ARCHER' || attacker.classId === 'MAGE') {
+        // Preferem alvos frágeis (não TANK)
+        if (target.classId !== 'TANK') score += 15;
+        if (targetHpPct < 0.5) score += 10;
+      }
+
+      // 3. Lógica por Personalidade
+      switch (attacker.personality) {
+        case 'AGGRESSIVE':
+          // Prioriza quem pode morrer
+          if (targetHpPct < 0.3) score += 40;
+          // Se puder matar com o dano médio, ignora distância (no simulador isso será refletido no score alto)
+          break;
+        case 'PROTECTOR':
+          // Prioriza quem atacou aliados em perigo
+          if (context.threats && target.id in context.threats) {
+            const targetOfEnemy = context.threats[target.id];
+            if (context.alliesInDanger?.includes(targetOfEnemy)) {
+              score += 100;
+            }
+          }
+          break;
+        case 'CAUTIOUS':
+          // Prefere alvos no alcance sem mover
+          const range = attacker.range ?? 1;
+          if (dist <= range) score += 30;
+          // Alvos isolados (menos vizinhos inimigos - simplificado para: prefere quem está longe do centro do grid inimigo)
+          break;
+        case 'VENGEFUL':
+          // Bônus imenso contra quem o atacou
+          if (target.id === context.lastAttackerId) {
+            score += 200;
+          }
+          break;
+        case 'OPPORTUNIST':
+          // Alvos fáceis e HP baixo
+          if (target.classId !== 'TANK') score += 20;
+          if (targetHpPct < 0.4) score += 30;
+          break;
+      }
+
+      return { target, score };
     });
 
-    if (attackerType === 'MELEE') {
-      return sortedByDistance[0];
-    } else {
-      // RANGED: Pode escolher alvos um pouco mais longe se tiverem menos HP
-      const roll = Math.floor(rng() * 100);
-      if (roll < 60) {
-         // Escolhe entre os 2 mais próximos o com menor HP
-         const near = sortedByDistance.slice(0, 3);
-         return near.sort((a, b) => hpOf(a) - hpOf(b))[0];
-      }
-      return sortedByDistance[0];
+    // Ordena por score descendente e pega o melhor
+    scores.sort((a, b) => b.score - a.score);
+    
+    // Adiciona uma pequena aleatoriedade para não ser 100% determinístico
+    const topCandidates = scores.slice(0, 2);
+    if (topCandidates.length > 1 && rng() < 0.2) {
+      return topCandidates[1].target;
     }
+
+    return topCandidates[0]?.target;
   },
 
   /**

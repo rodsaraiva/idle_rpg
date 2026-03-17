@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Hero, HeroTask, ClassId } from '../types';
 import { HERO_NAMES, INITIAL_HERO_STATS } from '../constants/game';
 import { CLASS_DEFS } from '../constants/classes';
+import { PERSONALITY_LIST } from '../constants/personalities';
 
 /** Cria um novo herói com stats iniciais e nome aleatório */
 export function createHero(classId?: ClassId): Hero {
@@ -15,6 +16,8 @@ export function createHero(classId?: ClassId): Hero {
   const crit = INITIAL_HERO_STATS.crit + (classDef?.baseStatDelta?.crit ?? 0);
   const agility = INITIAL_HERO_STATS.agility + (classDef?.baseStatDelta?.agility ?? 0);
 
+  const personality = PERSONALITY_LIST[Math.floor(Math.random() * PERSONALITY_LIST.length)].id;
+
   return {
     id: uuidv4(),
     name: `${randomName} #${suffix}`,
@@ -27,6 +30,7 @@ export function createHero(classId?: ClassId): Hero {
     agility,
     currentTask: HeroTask.IDLE,
     classId,
+    personality,
     attackType: classDef?.attackType ?? 'MELEE',
     range: classDef?.range ?? 1,
     // training progress in milliseconds and counts for inflation

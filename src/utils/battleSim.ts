@@ -46,7 +46,14 @@ export function computeBattleOutcome(
   const enemyPositions: Record<string, number> = {};
   enemies.forEach(e => { if (e.position !== undefined) enemyPositions[e.id] = e.position; });
 
+  const lastAttacker: Record<string, string> = {}; // actorId -> lastAttackerId
+  const threats: Record<string, string> = {}; // enemyId -> targetAllyId
+
   const getOccupied = () => new Set([...Object.values(heroPositions), ...Object.values(enemyPositions)]);
+  const getAlliesInDanger = (isHeroTurn: boolean) => {
+    const list = isHeroTurn ? heroes : enemies;
+    return list.filter(h => (h.hpCurrent || (h as any).hp) / (h.hpMax || (h as any).maxHp) < 0.3).map(h => h.id);
+  };
 
   // Mitigation logic
   const tankCount = heroes.filter((h) => h.classId === 'TANK' && h.hpCurrent > 0).length;
@@ -93,7 +100,11 @@ export function computeBattleOutcome(
 
       // 1. Move logic
       const currentPos = heroPositions[hero.id] ?? 45;
-      const target = BattleEngine.selectTarget(hero.attackType ?? 'MELEE', currentPos, currentEnemies, rng);
+      const target = BattleEngine.selectTarget(hero, currentPos, currentEnemies, rng, {
+        lastAttackerId: lastAttacker[hero.id],
+        alliesInDanger: getAlliesInDanger(true),
+        threats
+      });
       
       if (target) {
         const targetPos = enemyPositions[target.id];
@@ -124,7 +135,11 @@ export function computeBattleOutcome(
 
       // 2. Attack logic (re-check distance after move)
       const updatedPos = heroPositions[hero.id];
-      const finalTarget = BattleEngine.selectTarget(hero.attackType ?? 'MELEE', updatedPos, currentEnemies, rng);
+      const finalTarget = BattleEngine.selectTarget(hero, updatedPos, currentEnemies, rng, {
+        lastAttackerId: lastAttacker[hero.id],
+        alliesInDanger: getAlliesInDanger(true),
+        threats
+      });
       if (!finalTarget) continue;
 
       const finalDist = GameMath.getHexDistance(updatedPos, enemyPositions[finalTarget.id]);
@@ -139,6 +154,10 @@ export function computeBattleOutcome(
           log.push(result.action.text);
           finalTarget.hp = Math.max(0, finalTarget.hp - result.dmg);
           
+          if (result.dmg > 0) {
+            lastAttacker[finalTarget.id] = hero.id;
+          }
+
           if (finalTarget.hp <= 0) {
             finalTarget.alive = false;
             delete enemyPositions[finalTarget.id]; // Remove from grid
@@ -166,7 +185,10 @@ export function computeBattleOutcome(
 
       // 1. Enemy Move
       const currentPos = enemyPositions[enemy.id] ?? 0;
-      const target = BattleEngine.selectTarget(enemy.attackType ?? 'MELEE', currentPos, currentHeroes, rng);
+      const target = BattleEngine.selectTarget(enemy, currentPos, currentHeroes, rng, {
+        lastAttackerId: lastAttacker[enemy.id],
+        alliesInDanger: getAlliesInDanger(false)
+      });
       
       if (target) {
         const targetPos = heroPositions[target.id] ?? 45;
@@ -197,7 +219,10 @@ export function computeBattleOutcome(
 
       // 2. Enemy Attack
       const updatedPos = enemyPositions[enemy.id];
-      const finalTarget = BattleEngine.selectTarget(enemy.attackType ?? 'MELEE', updatedPos, currentHeroes, rng);
+      const finalTarget = BattleEngine.selectTarget(enemy, updatedPos, currentHeroes, rng, {
+        lastAttackerId: lastAttacker[enemy.id],
+        alliesInDanger: getAlliesInDanger(false)
+      });
       if (!finalTarget) continue;
 
       const finalDist = GameMath.getHexDistance(updatedPos, heroPositions[finalTarget.id]);
@@ -217,6 +242,11 @@ export function computeBattleOutcome(
           actions.push(result.action);
           log.push(result.action.text);
           finalTarget.hpCurrent = Math.max(0, finalTarget.hpCurrent - finalDmg);
+
+          if (result.dmg > 0) {
+            lastAttacker[finalTarget.id] = enemy.id;
+            threats[enemy.id] = finalTarget.id;
+          }
 
           if (finalTarget.hpCurrent <= 0) {
             delete heroPositions[finalTarget.id]; // Remove from grid

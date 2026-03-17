@@ -10,6 +10,8 @@ export enum HeroTask {
 
 export type ClassId = 'WARRIOR' | 'TANK' | 'ROGUE' | 'ARCHER' | 'MAGE' | 'HEALER';
 
+export type PersonalityId = 'AGGRESSIVE' | 'PROTECTOR' | 'CAUTIOUS' | 'VENGEFUL' | 'OPPORTUNIST';
+
 /** Representação de um herói da guilda */
 export interface Hero {
   id: string;
@@ -23,6 +25,7 @@ export interface Hero {
   agility: number; // Agilidade, pode influenciar em esquiva
   currentTask: HeroTask;
   classId?: ClassId;
+  personality?: PersonalityId;
   // optional avatar image URL for UI
   avatarUrl?: string;
   // attack style for targeting behavior
