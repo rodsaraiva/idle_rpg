@@ -282,7 +282,7 @@ export const BattleEngine = {
   executeClassAbility(hero: Hero, state: BattleState): boolean {
     if (hero.classId === 'HEALER') {
       const mostInjured = [...state.heroes]
-        .filter(h => h.hpCurrent > 0 && h.hpCurrent < h.hpMax)
+        .filter(h => h.id !== hero.id && h.hpCurrent > 0 && h.hpCurrent < h.hpMax)
         .sort((a, b) => (a.hpCurrent / a.hpMax) - (b.hpCurrent / b.hpMax))[0];
 
       if (mostInjured && (mostInjured.hpCurrent / mostInjured.hpMax) < 0.7) {

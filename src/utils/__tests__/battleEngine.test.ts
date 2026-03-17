@@ -107,5 +107,20 @@ describe('BattleEngine - AI and Tactics', () => {
       expect(consumed).toBe(false);
       expect(healthyHero.hpCurrent).toBe(20);
     });
+
+    test('Healer should NOT heal themselves even if injured', () => {
+      const state = createBaseState();
+      const healer: Hero = { 
+        id: 'h1', name: 'Healer', hpMax: 20, hpCurrent: 5, atk: 10, mp: 0, 
+        defense: 0, crit: 0, agility: 0, currentTask: HeroTask.IDLE, classId: 'HEALER' 
+      };
+      
+      state.heroes = [healer];
+      
+      const consumed = BattleEngine.executeClassAbility(healer, state);
+      
+      expect(consumed).toBe(false);
+      expect(healer.hpCurrent).toBe(5);
+    });
   });
 });
