@@ -28,6 +28,7 @@ export function createHero(classId?: ClassId): Hero {
     currentTask: HeroTask.IDLE,
     classId,
     attackType: classDef?.attackType ?? 'MELEE',
+    range: classDef?.range ?? 1,
     // training progress in milliseconds and counts for inflation
     trainingProgressMs: { hp: 0, atk: 0, mp: 0 },
     trainingCount: { hp: 0, atk: 0, mp: 0 },

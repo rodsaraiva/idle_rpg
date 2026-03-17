@@ -11,6 +11,7 @@ export interface ClassDef {
   // ability only for chosen classes (ROGUE, HEALER)
   ability?: 'ROGUE_BONUS' | 'HEALER_BUFF';
   attackType?: 'MELEE' | 'RANGED';
+  range: number;
 }
 
 export const CLASS_DEFS: Record<ClassId, ClassDef> = {
@@ -21,6 +22,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     trainSpeed: { hp: 1.1, atk: 1.3, mp: 0.5 },
     missionMultiplier: { atk: 1.05 },
     attackType: 'MELEE',
+    range: 1,
   },
   TANK: {
     id: 'TANK',
@@ -29,6 +31,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     trainSpeed: { hp: 1.6, atk: 0.6, mp: 0.4 },
     missionMultiplier: { hp: 1.1 },
     attackType: 'MELEE',
+    range: 1,
   },
   ROGUE: {
     id: 'ROGUE',
@@ -37,6 +40,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     trainSpeed: { hp: 0.7, atk: 1.4, mp: 0.6 },
     ability: 'ROGUE_BONUS',
     attackType: 'MELEE',
+    range: 2,
   },
   ARCHER: {
     id: 'ARCHER',
@@ -44,6 +48,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     baseStatDelta: { atk: 2, defense: 1, crit: 10, agility: 20 },
     trainSpeed: { hp: 0.6, atk: 1.5, mp: 0.5 },
     attackType: 'RANGED',
+    range: 3,
   },
   MAGE: {
     id: 'MAGE',
@@ -52,6 +57,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     trainSpeed: { hp: 0.4, atk: 0.4, mp: 1.8 },
     missionMultiplier: { mp: 1.15 },
     attackType: 'RANGED',
+    range: 4,
   },
   HEALER: {
     id: 'HEALER',
@@ -60,6 +66,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     trainSpeed: { hp: 1.2, atk: 0.4, mp: 1.5 },
     ability: 'HEALER_BUFF',
     attackType: 'RANGED',
+    range: 2,
   },
 };
 

@@ -116,7 +116,8 @@ export const GameMath = {
     const r = Math.floor(pos / GRID_COLUMNS);
     const c = pos % GRID_COLUMNS;
     // Convert axial coordinates for easier distance calculation
-    const x = c - (r + (r & 1)) / 2;
+    // Using "odd-r" horizontal layout (odd rows shifted right)
+    const x = c - (r >> 1);
     const z = r;
     const y = -x - z;
     return { x, y, z };

@@ -98,7 +98,7 @@ export function computeBattleOutcome(
       if (target) {
         const targetPos = enemyPositions[target.id];
         const dist = GameMath.getHexDistance(currentPos, targetPos);
-        const range = hero.range ?? (hero.attackType === 'RANGED' ? 3 : 1);
+        const range = hero.range ?? 1;
 
         if (dist > range) {
           const move = hero.movement ?? 2;
@@ -128,7 +128,7 @@ export function computeBattleOutcome(
       if (!finalTarget) continue;
 
       const finalDist = GameMath.getHexDistance(updatedPos, enemyPositions[finalTarget.id]);
-      const finalRange = hero.range ?? (hero.attackType === 'RANGED' ? 3 : 1);
+      const finalRange = hero.range ?? 1;
 
       if (finalDist <= finalRange) {
         const hitChance = GameMath.calcHitChance(hero.atk); 
@@ -171,7 +171,7 @@ export function computeBattleOutcome(
       if (target) {
         const targetPos = heroPositions[target.id] ?? 45;
         const dist = GameMath.getHexDistance(currentPos, targetPos);
-        const range = enemy.range ?? (enemy.attackType === 'RANGED' ? 3 : 1);
+        const range = enemy.range ?? 1;
 
         if (dist > range) {
           const move = enemy.movement ?? 2;
@@ -201,7 +201,7 @@ export function computeBattleOutcome(
       if (!finalTarget) continue;
 
       const finalDist = GameMath.getHexDistance(updatedPos, heroPositions[finalTarget.id]);
-      const finalRange = enemy.range ?? (enemy.attackType === 'RANGED' ? 3 : 1);
+      const finalRange = enemy.range ?? 1;
 
       if (finalDist <= finalRange) {
         const result = BattleEngine.calculateAttack(enemy, finalTarget, ENEMY_HIT_CHANCE, 'enemy', rounds, rng);

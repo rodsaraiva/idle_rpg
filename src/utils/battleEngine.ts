@@ -45,6 +45,7 @@ export const BattleEngine = {
       template.enemies.forEach((edef, gi) => {
         const cnt = edef.count ?? 1;
         for (let i = 0; i < cnt; i++) {
+          const attackType = edef.attackType ?? (Math.random() < 0.5 ? 'MELEE' : 'RANGED');
           enemies.push({
             id: `enemy_${gi}_${i}`,
             hp: edef.hp,
@@ -55,9 +56,9 @@ export const BattleEngine = {
             crit: (edef as any).crit ?? 5,
             agility: (edef as any).agility ?? 5,
             alive: true,
-            attackType: Math.random() < 0.5 ? 'MELEE' : 'RANGED',
+            attackType,
             position: enemyPositions[posIdx++] ?? 0,
-            range: edef.range ?? (Math.random() < 0.5 ? 1 : 3),
+            range: edef.range ?? (attackType === 'RANGED' ? 3 : 1),
             movement: edef.movement ?? 2,
           });
         }
