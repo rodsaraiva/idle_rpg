@@ -24,6 +24,18 @@ export interface BattleEnemy {
     movement: number;
   }
 
+export interface BattleState {
+  heroes: Hero[];
+  enemies: BattleEnemy[];
+  heroPositions: Record<string, number>;
+  enemyPositions: Record<string, number>;
+  lastAttacker: Record<string, string>;
+  threats: Record<string, string>; // enemyId -> targetAllyId
+  log: string[];
+  actions: MissionAction[];
+  rounds: number;
+}
+
 export const BattleEngine = {
   /**
    * Cria os inimigos para a batalha baseado no template da missão.
@@ -220,12 +232,11 @@ export const BattleEngine = {
   calculateAttack(
     attacker: { id: string; name?: string; atk: number; crit?: number; classId?: string; attackType?: 'MELEE' | 'RANGED' },
     target: { id: string; name?: string; hp?: number; hpCurrent?: number; defense?: number; agility?: number },
-    baseHitChance: number, // Este valor agora será tratado como a chance base de acerto (antes da agilidade)
+    baseHitChance: number,
     actorType: MissionActorType,
     round: number,
     rng: () => number
   ): { action: MissionAction; dmg: number } | null {
-    // Agilidade fornece uma curva de esquiva com retornos decrescentes
     const evasion = (target.agility ?? 0) / ((target.agility ?? 0) + 50);
     const effectiveHitChance = Math.max(0.05, baseHitChance - evasion);
 
@@ -263,4 +274,232 @@ export const BattleEngine = {
       dmg,
     };
   },
+
+  /**
+   * Executa uma habilidade de classe específica antes do turno normal, se aplicável.
+   * Retorna true se a habilidade consumiu o turno.
+   */
+  executeClassAbility(hero: Hero, state: BattleState): boolean {
+    if (hero.classId === 'HEALER') {
+      const mostInjured = [...state.heroes]
+        .filter(h => h.hpCurrent > 0 && h.hpCurrent < h.hpMax)
+        .sort((a, b) => (a.hpCurrent / a.hpMax) - (b.hpCurrent / b.hpMax))[0];
+
+      if (mostInjured && (mostInjured.hpCurrent / mostInjured.hpMax) < 0.7) {
+        const healAmount = Math.max(1, Math.floor(hero.atk * 0.5));
+        const prevHp = mostInjured.hpCurrent;
+        mostInjured.hpCurrent = Math.min(mostInjured.hpMax, mostInjured.hpCurrent + healAmount);
+        const actualHeal = mostInjured.hpCurrent - prevHp;
+        
+        const healTxt = `${hero.name} curou ${mostInjured.name} em ${actualHeal} HP`;
+        state.log.push(healTxt);
+        state.actions.push({
+          round: state.rounds,
+          actorType: 'hero',
+          actorId: hero.id,
+          actorName: hero.name,
+          actionType: 'heal',
+          targetId: mostInjured.id,
+          amount: actualHeal,
+          text: healTxt,
+        });
+        return true; // Consome o turno do Healer
+      }
+    }
+    return false; // Não consumiu o turno
+  },
+
+  /**
+   * Processa o turno completo de um herói.
+   */
+  processHeroTurn(hero: Hero, state: BattleState, rng: () => number) {
+    if (hero.hpCurrent <= 0) return;
+    
+    const aliveEnemies = state.enemies.filter(e => e.hp > 0);
+    if (aliveEnemies.length === 0) return;
+
+    // 1. Verificar habilidades de classe (Healer)
+    if (this.executeClassAbility(hero, state)) return;
+
+    // Utilitários locais
+    const getOccupied = () => new Set([...Object.values(state.heroPositions), ...Object.values(state.enemyPositions)]);
+    const getAlliesInDanger = () => state.heroes.filter(h => h.hpCurrent / h.hpMax < 0.3).map(h => h.id);
+
+    // 2. Movimentação
+    const currentPos = state.heroPositions[hero.id] ?? 45;
+    const initialTarget = this.selectTarget(hero, currentPos, aliveEnemies, rng, {
+      lastAttackerId: state.lastAttacker[hero.id],
+      alliesInDanger: getAlliesInDanger(),
+      threats: state.threats
+    });
+    
+    if (initialTarget) {
+      const targetPos = state.enemyPositions[initialTarget.id];
+      const dist = GameMath.getHexDistance(currentPos, targetPos);
+      const range = hero.range ?? 1;
+
+      if (dist > range) {
+        const move = hero.movement ?? 2;
+        const nextPos = this.findMovePath(currentPos, targetPos, move, getOccupied());
+        
+        if (nextPos !== currentPos) {
+          const moveTxt = `${hero.name} moveu-se para a posição ${nextPos}`;
+          state.log.push(moveTxt);
+          state.actions.push({
+            round: state.rounds,
+            actorType: 'hero',
+            actorId: hero.id,
+            actorName: hero.name,
+            actionType: 'move',
+            text: moveTxt,
+            fromPosition: currentPos,
+            toPosition: nextPos,
+          });
+          state.heroPositions[hero.id] = nextPos;
+        }
+      }
+    }
+
+    // 3. Ataque (reavaliar alvo após possível movimento)
+    const updatedPos = state.heroPositions[hero.id] ?? currentPos;
+    const finalTarget = this.selectTarget(hero, updatedPos, aliveEnemies, rng, {
+      lastAttackerId: state.lastAttacker[hero.id],
+      alliesInDanger: getAlliesInDanger(),
+      threats: state.threats
+    });
+    
+    if (!finalTarget) return;
+
+    const finalDist = GameMath.getHexDistance(updatedPos, state.enemyPositions[finalTarget.id]);
+    const finalRange = hero.range ?? 1;
+
+    if (finalDist <= finalRange) {
+      const hitChance = GameMath.calcHitChance(hero.atk); 
+      const result = this.calculateAttack(hero, finalTarget, hitChance, 'hero', state.rounds, rng);
+      
+      if (result) {
+        state.actions.push(result.action);
+        state.log.push(result.action.text);
+        finalTarget.hp = Math.max(0, finalTarget.hp - result.dmg);
+        
+        if (result.dmg > 0) {
+          state.lastAttacker[finalTarget.id] = hero.id;
+        }
+
+        if (finalTarget.hp <= 0) {
+          finalTarget.alive = false;
+          delete state.enemyPositions[finalTarget.id];
+          const defeatTxt = `${finalTarget.id} foi derrotado!`;
+          state.log.push(defeatTxt);
+          state.actions.push({
+            round: state.rounds,
+            actorType: 'hero',
+            actorId: hero.id,
+            actorName: hero.name,
+            actionType: 'defeat',
+            targetId: finalTarget.id,
+            text: defeatTxt,
+          });
+        }
+      }
+    }
+  },
+
+  /**
+   * Processa o turno completo de um inimigo.
+   */
+  processEnemyTurn(enemy: BattleEnemy, state: BattleState, rng: () => number, tankMitigation: number = 0, enemyHitChance: number = 0.8) {
+    if (enemy.hp <= 0) return;
+    
+    const aliveHeroes = state.heroes.filter(h => h.hpCurrent > 0);
+    if (aliveHeroes.length === 0) return;
+
+    // Utilitários locais
+    const getOccupied = () => new Set([...Object.values(state.heroPositions), ...Object.values(state.enemyPositions)]);
+    const getEnemiesInDanger = () => state.enemies.filter(e => e.hp / e.maxHp < 0.3).map(e => e.id);
+
+    // 1. Movimentação
+    const currentPos = state.enemyPositions[enemy.id] ?? 0;
+    const initialTarget = this.selectTarget(enemy, currentPos, aliveHeroes, rng, {
+      lastAttackerId: state.lastAttacker[enemy.id],
+      alliesInDanger: getEnemiesInDanger()
+    });
+    
+    if (initialTarget) {
+      const targetPos = state.heroPositions[initialTarget.id] ?? 45;
+      const dist = GameMath.getHexDistance(currentPos, targetPos);
+      const range = enemy.range ?? 1;
+
+      if (dist > range) {
+        const move = enemy.movement ?? 2;
+        const nextPos = this.findMovePath(currentPos, targetPos, move, getOccupied());
+        
+        if (nextPos !== currentPos) {
+          const moveTxt = `${enemy.id} moveu-se para a posição ${nextPos}`;
+          state.log.push(moveTxt);
+          state.actions.push({
+            round: state.rounds,
+            actorType: 'enemy',
+            actorId: enemy.id,
+            actorName: enemy.id,
+            actionType: 'move',
+            text: moveTxt,
+            fromPosition: currentPos,
+            toPosition: nextPos,
+          });
+          state.enemyPositions[enemy.id] = nextPos;
+        }
+      }
+    }
+
+    // 2. Ataque
+    const updatedPos = state.enemyPositions[enemy.id] ?? currentPos;
+    const finalTarget = this.selectTarget(enemy, updatedPos, aliveHeroes, rng, {
+      lastAttackerId: state.lastAttacker[enemy.id],
+      alliesInDanger: getEnemiesInDanger()
+    });
+    
+    if (!finalTarget) return;
+
+    const finalDist = GameMath.getHexDistance(updatedPos, state.heroPositions[finalTarget.id]);
+    const finalRange = enemy.range ?? 1;
+
+    if (finalDist <= finalRange) {
+      const result = this.calculateAttack(enemy, finalTarget, enemyHitChance, 'enemy', state.rounds, rng);
+      
+      if (result) {
+        let finalDmg = result.dmg;
+        // Aplicação de mitigação dos Tanks (se aplicável ao alvo)
+        if (finalTarget.classId !== 'TANK' && tankMitigation > 0) {
+          finalDmg = Math.max(1, Math.floor(finalDmg * (1 - tankMitigation)));
+          result.action.amount = finalDmg;
+          result.action.text = `${enemy.id} causou ${finalDmg} de dano em ${finalTarget.name} (Reduzido por Tank)`;
+        }
+
+        state.actions.push(result.action);
+        state.log.push(result.action.text);
+        finalTarget.hpCurrent = Math.max(0, finalTarget.hpCurrent - finalDmg);
+
+        if (result.dmg > 0) {
+          state.lastAttacker[finalTarget.id] = enemy.id;
+          state.threats[enemy.id] = finalTarget.id;
+        }
+
+        if (finalTarget.hpCurrent <= 0) {
+          delete state.heroPositions[finalTarget.id];
+          const incapTxt = `${finalTarget.name} está incapacitado!`;
+          state.log.push(incapTxt);
+          state.actions.push({
+            round: state.rounds,
+            actorType: 'enemy',
+            actorId: enemy.id,
+            actorName: enemy.id,
+            actionType: 'defeat',
+            targetId: finalTarget.id,
+            text: incapTxt,
+          });
+        }
+      }
+    }
+  }
 };
