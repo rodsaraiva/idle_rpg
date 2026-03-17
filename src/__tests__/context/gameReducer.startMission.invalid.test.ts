@@ -4,7 +4,7 @@ import { HeroTask } from '../../types';
 test('START_MISSION rejects missing, incapacitated, or mission heroes', () => {
   const now = Date.now();
   const validHero = { id: 'h1', name: 'V', hpMax: 10, hpCurrent: 10, atk: 5, mp: 0, currentTask: HeroTask.IDLE };
-  const incapacitated = { id: 'h2', name: 'I', hpMax: 10, hpCurrent: 1, atk: 5, mp: 0, currentTask: HeroTask.IDLE, incapacitatedUntilMs: now + 60000 };
+  const incapacitated = { id: 'h2', name: 'I', hpMax: 10, hpCurrent: 2, atk: 5, mp: 0, currentTask: HeroTask.IDLE }; // HP < 3
   const inMission = { id: 'h3', name: 'M', hpMax: 10, hpCurrent: 10, atk: 5, mp: 0, currentTask: HeroTask.MISSION };
 
   const state = { ...initialGameState, heroes: [validHero, incapacitated, inMission], activeMissions: [] };

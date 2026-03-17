@@ -22,7 +22,8 @@ import {
   HERO_ROWS,
   HEX_WIDTH,
   HEX_HEIGHT,
-  HEX_VERTICAL_SPACING
+  HEX_VERTICAL_SPACING,
+  INCAPACITATED_HP_THRESHOLD
 } from '../constants/game';
 import { MISSIONS } from '../constants/missions';
 import { BattleEngine, BattleEnemy } from '../utils/battleEngine';
@@ -207,14 +208,13 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
 
   // derive invalid placed heroes (missing or incapacitated)
   const invalidPlaced = useMemo(() => {
-    const now = Date.now();
     return slots
       .filter(Boolean)
       .map((id) => id as string)
       .filter((id) => {
         const h = selectableHeroes.find((hh) => hh.id === id);
         if (!h) return true;
-        if (h.incapacitatedUntilMs && h.incapacitatedUntilMs > now) return true;
+        if (h.hpCurrent < INCAPACITATED_HP_THRESHOLD) return true;
         return false;
       });
   }, [slots, selectableHeroes]);

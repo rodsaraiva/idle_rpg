@@ -215,11 +215,7 @@ function processMissions(state: GameState, heroes: Hero[]): {
         const caus = c.outcome.casualties.find((x: any) => x.heroId === hid);
         if (caus) {
           currentHeroes[idx].hpCurrent = caus.hpAfter;
-          if (caus.incapacitatedUntilMs) {
-            currentHeroes[idx].incapacitatedUntilMs = caus.incapacitatedUntilMs;
-          } else {
-            delete currentHeroes[idx].incapacitatedUntilMs;
-          }
+          // Agora a incapacitação é baseada apenas no HP (HP < 3)
         }
       }
       perHeroGold[hid] = (perHeroGold[hid] || 0) + per;

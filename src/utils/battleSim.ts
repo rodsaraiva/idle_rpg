@@ -292,7 +292,6 @@ export function computeBattleOutcome(
       heroId: h.id,
       hpLost,
       hpAfter: h.hpCurrent,
-      incapacitatedUntilMs: h.hpCurrent <= 0 ? Date.now() + INCAPACITATED_DURATION_MS : undefined,
     };
   });
 

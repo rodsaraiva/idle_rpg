@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Animated, 
 import LottieView from 'lottie-react-native';
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
+import { INCAPACITATED_HP_THRESHOLD } from '../constants/game';
 import { BattleRunner } from '../services/battleRunner';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { playSound } from '../services/sound';
@@ -168,7 +169,7 @@ export function MissionResultModal() {
                     <Text style={styles.heroName}>
                       {state.heroes.find(h => h.id === c.heroId)?.name || 'Herói'}
                     </Text>
-                    {c.incapacitatedUntilMs && (
+                    {c.hpAfter < INCAPACITATED_HP_THRESHOLD && (
                       <View style={styles.incapBadge}>
                         <Text style={styles.incapText}>FERIDO</Text>
                       </View>

@@ -34,9 +34,6 @@ export interface Hero {
   movement?: number; // Cells per round
   trainingProgressMs?: TrainingProgress;
   trainingCount?: TrainingCount;
-  // if set, hero is incapacitated until this timestamp (ms since epoch)
-  incapacitatedUntilMs?: number;
-  // accumulated ms toward next HP regen
   hpRegenProgressMs?: number;
 }
  
@@ -139,7 +136,7 @@ export interface MissionOutcome {
   actions: MissionAction[];
   log: string[];
   success: boolean;
-  casualties: { heroId: string; hpLost: number; hpAfter: number; incapacitatedUntilMs?: number }[];
+  casualties: { heroId: string; hpLost: number; hpAfter: number }[];
   enemyCasualties: number;
 }
 

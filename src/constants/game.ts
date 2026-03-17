@@ -37,7 +37,8 @@ export const HIT_CHANCE_PER_ATK = 0.02;
 export const ENEMY_HIT_CHANCE = 0.8;
 export const TANK_MITIGATION_PER_HERO = 0.15;
 export const TANK_MITIGATION_CAP = 0.5;
-export const INCAPACITATED_DURATION_MS = 30 * 60 * 1000; // 30 minutes
+export const INCAPACITATED_HP_THRESHOLD = 3;
+export const INCAPACITATED_DURATION_MS = 30 * 60 * 1000; // 30 minutes (mantido para compatibilidade se necessário)
 
 /** Mission related constants */
 export const MISSION_START_DELAY_MS = 2000;

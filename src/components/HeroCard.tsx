@@ -5,9 +5,8 @@ import { theme } from '../theme';
 import { StatBar } from './StatBar';
 import { TaskButton } from './TaskButton';
 import { AttributeProgress } from './AttributeProgress';
-import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
+import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR, INCAPACITATED_HP_THRESHOLD } from '../constants/game';
 import { CLASS_DEFS } from '../constants/classes';
-import { PERSONALITIES } from '../constants/personalities';
 
 import { HPBar } from './HPBar';
 
@@ -123,17 +122,12 @@ export function HeroCard({
         <View>
           <View style={styles.nameRow}>
             <Text style={styles.name}>{hero.name}</Text>
-            {hero.personality && (
-              <Text style={styles.personalityBadge}>
-                {PERSONALITIES[hero.personality].emoji}
-              </Text>
-            )}
           </View>
           <Text style={styles.classLabel}>{CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}</Text>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
           <Text style={styles.taskBadge}>{TASK_LABEL_MAP[hero.currentTask]}</Text>
-          {hero.incapacitatedUntilMs && hero.incapacitatedUntilMs > Date.now() ? (
+          {hero.hpCurrent < INCAPACITATED_HP_THRESHOLD ? (
             <Text style={styles.incapText}>Incapacitado</Text>
           ) : null}
         </View>

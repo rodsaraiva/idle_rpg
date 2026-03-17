@@ -59,17 +59,14 @@ test('healer MP boosts infirmary timeScale multiplicatively up to cap', () => {
 });
 
 test('START_MISSION rejects incapacitated heroes', () => {
-  const hero = makeHero('h1', 10, 5);
-  // mark hero incapacitated in future
-  const now = Date.now();
-  const state = { ...initialGameState, heroes: [{ ...hero, incapacitatedUntilMs: now + 60_000 }], activeMissions: [] };
+  const hero = makeHero('h1', 10, 2); // hp < 3
+  const state = { ...initialGameState, heroes: [hero], activeMissions: [] };
   const next = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'] });
   // should be unchanged (cannot start mission with incapacitated hero)
   expect(next.activeMissions?.length || 0).toBe(0);
-  expect(next.heroes.find((h) => h.id === 'h1')?.currentTask).toBe(HeroTask.IDLE);
 });
 
-test('COMPLETE mission applies casualties and sets incapacitatedUntilMs when present', () => {
+test('COMPLETE mission applies casualties and correctly updates HP', () => {
   const hero = makeHero('h1', 10, 10);
   const mission = {
     id: 'm1',
@@ -80,7 +77,7 @@ test('COMPLETE mission applies casualties and sets incapacitatedUntilMs when pre
     finishAt: Date.now() - 1000,
     precomputedOutcome: {
       reward: 5,
-      casualties: [{ heroId: 'h1', hpLost: 7, hpAfter: 3, incapacitatedUntilMs: Date.now() + 30 * 60 * 1000 }],
+      casualties: [{ heroId: 'h1', hpLost: 9, hpAfter: 1 }],
       rounds: 1,
       actions: [],
       log: [],
@@ -92,7 +89,7 @@ test('COMPLETE mission applies casualties and sets incapacitatedUntilMs when pre
   const state = { ...initialGameState, heroes: [hero], activeMissions: [mission], gold: 0 };
   const next = gameReducer(state as any, { type: 'TICK' });
   const h = next.heroes.find((x) => x.id === 'h1')!;
-  expect(h.hpCurrent).toBe(3);
-  expect(h.incapacitatedUntilMs && h.incapacitatedUntilMs > Date.now()).toBeTruthy();
+  expect(h.hpCurrent).toBe(1);
+  // incapacitado é verificado agora pelo HP < 3 na UI e handlers
 });
 

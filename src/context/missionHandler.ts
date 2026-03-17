@@ -10,7 +10,8 @@ import {
   ROGUE_RNG_BONUS_PER_HERO, 
   ROGUE_RNG_BONUS_CAP,
   MISSION_START_DELAY_MS,
-  MISSION_ACTION_INTERVAL_MS
+  MISSION_ACTION_INTERVAL_MS,
+  INCAPACITATED_HP_THRESHOLD
 } from '../constants/game';
 
 function validateMissionRequirements(template: MissionTemplate, heroes: Hero[]): string | null {
@@ -48,7 +49,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
 
   for (const hid of heroIds) {
     const h = heroesMap.get(hid);
-    if (!h || h.currentTask === HeroTask.MISSION || (h.incapacitatedUntilMs && h.incapacitatedUntilMs > now)) {
+    if (!h || h.currentTask === HeroTask.MISSION || h.hpCurrent < INCAPACITATED_HP_THRESHOLD) {
       return state;
     }
     heroesForMission.push(h);
