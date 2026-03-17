@@ -146,6 +146,9 @@ export function computeBattleOutcome(
       const finalRange = hero.range ?? 1;
 
       if (finalDist <= finalRange) {
+        // Agora calcHitChance retorna apenas a base se não passarmos agility, 
+        // mas o BattleEngine.calculateAttack já aplica a esquiva.
+        // Para evitar duplicidade, passamos apenas o atk para calcular a base.
         const hitChance = GameMath.calcHitChance(hero.atk); 
         const result = BattleEngine.calculateAttack(hero, finalTarget, hitChance, 'hero', rounds, rng);
         

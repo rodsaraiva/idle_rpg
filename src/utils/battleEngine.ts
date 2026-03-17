@@ -220,16 +220,14 @@ export const BattleEngine = {
   calculateAttack(
     attacker: { id: string; name?: string; atk: number; crit?: number; classId?: string; attackType?: 'MELEE' | 'RANGED' },
     target: { id: string; name?: string; hp?: number; hpCurrent?: number; defense?: number; agility?: number },
-    hitChance: number, // Este valor agora será tratado como a chance base de acerto
+    baseHitChance: number, // Este valor agora será tratado como a chance base de acerto (antes da agilidade)
     actorType: MissionActorType,
     round: number,
     rng: () => number
   ): { action: MissionAction; dmg: number } | null {
-    // Se hitChance for 1.0 (testes), ignoramos a agilidade para garantir o acerto se desejado,
-    // mas o ideal é que o hitChance base já venha do GameMath.calcHitChance(attacker.atk)
-    // Para manter o comportamento da Agilidade, subtraímos a evasão do hitChance fornecido.
-    const evasion = (target.agility ?? 0) * 0.005;
-    const effectiveHitChance = Math.max(0.1, hitChance - evasion);
+    // Agilidade fornece uma curva de esquiva com retornos decrescentes
+    const evasion = (target.agility ?? 0) / ((target.agility ?? 0) + 50);
+    const effectiveHitChance = Math.max(0.05, baseHitChance - evasion);
 
     if (rng() > effectiveHitChance) {
       return {

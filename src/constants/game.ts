@@ -95,9 +95,9 @@ export const FEEDBACK_MP_GAIN_COLOR = '#66b2ff';
 
 /** Stats iniciais de um herói recém-recrutado */
 export const INITIAL_HERO_STATS = {
-  hp: 10,
-  atk: 5,
-  mp: 3,
+  hp: 15,
+  atk: 6,
+  mp: 2,
   defense: 5,
   crit: 5,
   agility: 10,

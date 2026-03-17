@@ -86,21 +86,24 @@ export const GameMath = {
   // --- Combat ---
   calcHitChance(atk: number, targetAgility: number = 0): number {
     const baseChance = Math.min(0.98, BASE_HIT_CHANCE + atk * HIT_CHANCE_PER_ATK);
-    // Cada ponto de agilidade reduz a chance de acerto em 0.5%
-    const evasion = targetAgility * 0.005;
-    return Math.max(0.1, baseChance - evasion);
+    // Agilidade fornece uma curva de esquiva com retornos decrescentes
+    // Formula: Esquiva = Agi / (Agi + 50)
+    const evasion = targetAgility / (targetAgility + 50);
+    return Math.max(0.05, baseChance - evasion);
   },
 
   calcCritChance(classId?: string, critAttribute: number = 0): number {
     const base = CRIT_BASE_CHANCE + (classId === 'ROGUE' ? 0.05 : 0);
-    // Cada ponto de atributo crítico adiciona 0.5% de chance
-    return base + critAttribute * 0.005;
+    // Crítico com retornos decrescentes: Crit% = CritAttr / (CritAttr + 100)
+    const critBonus = critAttribute / (critAttribute + 100);
+    return base + critBonus;
   },
 
   calcDamage(atk: number, targetDefense: number = 0, isCrit: boolean = false): number {
     const baseDmg = isCrit ? atk * CRIT_MULTIPLIER : atk;
-    // Defesa reduz o dano diretamente, mínimo de 1
-    return Math.max(1, Math.floor(baseDmg - targetDefense));
+    // Defesa com retornos decrescentes: Dano = DanoBase * (100 / (100 + Def))
+    const mitigationFactor = 100 / (100 + targetDefense);
+    return Math.max(1, Math.floor(baseDmg * mitigationFactor));
   },
 
   // --- Formatting ---
