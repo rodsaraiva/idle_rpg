@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Hero, HeroTask, ClassId } from '../types';
 import { HERO_NAMES, INITIAL_HERO_STATS } from '../constants/game';
-import { CLASS_DEFS } from '../constants/classes';
+import { configProvider } from '../services/configProvider';
 import { PERSONALITY_LIST } from '../constants/personalities';
 import { getGaussianVariance } from './math';
 
@@ -9,7 +9,7 @@ import { getGaussianVariance } from './math';
 export function createHero(classId?: ClassId): Hero {
   const randomName = HERO_NAMES[Math.floor(Math.random() * HERO_NAMES.length)];
   const suffix = Math.floor(Math.random() * 99) + 1;
-  const classDef = classId ? CLASS_DEFS[classId] : undefined;
+  const classDef = classId ? configProvider.getClassDef(classId) : undefined;
 
   // Aplica variância Gaussiana de ±50% nos atributos base ANTES dos deltas de classe
   const hpBase = Math.floor(INITIAL_HERO_STATS.hp * getGaussianVariance());

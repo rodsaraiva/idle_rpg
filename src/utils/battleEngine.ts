@@ -4,7 +4,8 @@ import {
   CRIT_MULTIPLIER,
   ENEMY_ROWS,
   GRID_COLUMNS,
-  GRID_ROWS 
+  GRID_ROWS,
+  HIT_CHANCE_DISTANCE_PENALTY
 } from '../constants/game';
 import { GameMath } from './gameMath';
 
@@ -235,10 +236,12 @@ export const BattleEngine = {
     baseHitChance: number,
     actorType: MissionActorType,
     round: number,
-    rng: () => number
+    rng: () => number,
+    distance: number = 1
   ): { action: MissionAction; dmg: number } | null {
     const evasion = (target.agility ?? 0) / ((target.agility ?? 0) + 50);
-    const effectiveHitChance = Math.max(0.05, baseHitChance - evasion);
+    const distancePenalty = Math.max(0, distance - 1) * HIT_CHANCE_DISTANCE_PENALTY;
+    const effectiveHitChance = Math.max(0.05, baseHitChance - evasion - distancePenalty);
 
     if (rng() > effectiveHitChance) {
       return {
@@ -374,8 +377,8 @@ export const BattleEngine = {
     const finalRange = hero.range ?? 1;
 
     if (finalDist <= finalRange) {
-      const hitChance = GameMath.calcHitChance(hero.atk); 
-      const result = this.calculateAttack(hero, finalTarget, hitChance, 'hero', state.rounds, rng);
+      const hitChance = GameMath.calcHitChance(hero.atk, 0, 1); // Pegamos a chance baseada em ATK sem esquiva/distância aqui
+      const result = this.calculateAttack(hero, finalTarget, hitChance, 'hero', state.rounds, rng, finalDist);
       
       if (result) {
         state.actions.push(result.action);
@@ -465,7 +468,7 @@ export const BattleEngine = {
     const finalRange = enemy.range ?? 1;
 
     if (finalDist <= finalRange) {
-      const result = this.calculateAttack(enemy, finalTarget, enemyHitChance, 'enemy', state.rounds, rng);
+      const result = this.calculateAttack(enemy, finalTarget, enemyHitChance, 'enemy', state.rounds, rng, finalDist);
       
       if (result) {
         let finalDmg = result.dmg;

@@ -14,7 +14,8 @@
     "simulate": "npx ts-node --project tsconfig.sim.json scripts/simulations/missions/battles.ts",
     "simulate:m1": "npm run simulate -- --mission=1",
     "simulate:m2": "npm run simulate -- --mission=2",
-    "simulate:m3": "npm run simulate -- --mission=3"
+    "simulate:m3": "npm run simulate -- --mission=3",
+    "simulate:sandbox": "npx ts-node --project tsconfig.sim.json scripts/simulations/missions/battles_sandbox.ts"
   },
   "dependencies": {
     "@expo/metro-runtime": "^55.0.6",

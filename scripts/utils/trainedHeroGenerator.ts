@@ -1,6 +1,6 @@
 import { createHero } from '../../src/utils/heroFactory';
 import { Hero, ClassId } from '../../src/types';
-import { CLASS_DEFS } from '../../src/constants/classes';
+import { configProvider } from '../../src/services/configProvider';
 import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../../src/constants/game';
 import { computePointsFromMs } from '../../src/utils/trainingMath';
 
@@ -20,7 +20,7 @@ export interface TrainingFocus {
 export function generateTrainedHero(classId: ClassId, training: TrainingFocus): Hero {
   // 1. Gera o herói base com variância e atributos da classe
   const hero = createHero(classId);
-  const classDef = CLASS_DEFS[classId];
+  const classDef = configProvider.getClassDef(classId);
 
   // Sobrescreve personalidade se fornecida
   if (training.personality) {

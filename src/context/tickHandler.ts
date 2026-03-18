@@ -8,7 +8,7 @@ import {
   ENFERMARIA_MAX_SCALE,
   MISSION_FINISH_DELAY_MS
 } from '../constants/game';
-import { CLASS_DEFS } from '../constants/classes';
+import { configProvider } from '../services/configProvider';
 import { MISSIONS } from '../constants/missions';
 import { computeBattleOutcome } from '../utils/battleSim';
 
@@ -28,7 +28,8 @@ function processTraining(heroes: Hero[], tickMs: number, inflation: number): Her
         let count = (hero.trainingCount?.[statKey] ?? 0);
         let currentStatValue = statKey === 'hp' ? hero.hpMax : (statKey === 'atk' ? hero.atk : hero.mp);
         
-        const classSpeed = hero.classId ? (CLASS_DEFS[hero.classId]?.trainSpeed?.[statKey] ?? 1) : 1;
+        const classDef = hero.classId ? configProvider.getClassDef(hero.classId) : undefined;
+        const classSpeed = classDef?.trainSpeed?.[statKey] ?? 1;
         let timePerPoint = (BASE_TRAIN_TIME_MS * Math.pow(1 + inflation, count)) / classSpeed;
         
         let pointsGained = 0;

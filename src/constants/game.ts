@@ -34,6 +34,7 @@ export const CRIT_BASE_CHANCE = 0.05;
 export const CRIT_MULTIPLIER = 1.5;
 export const BASE_HIT_CHANCE = 0.75;
 export const HIT_CHANCE_PER_ATK = 0.02;
+export const HIT_CHANCE_DISTANCE_PENALTY = 0.05; // 5% de penalidade por hexágono de distância (além do primeiro)
 export const ENEMY_HIT_CHANCE = 0.8;
 export const TANK_MITIGATION_PER_HERO = 0.15;
 export const TANK_MITIGATION_CAP = 0.5;

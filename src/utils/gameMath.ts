@@ -10,6 +10,7 @@ import {
   TEAM_SIZE_SCALE_IMPACT,
   BASE_HIT_CHANCE,
   HIT_CHANCE_PER_ATK,
+  HIT_CHANCE_DISTANCE_PENALTY,
   CRIT_BASE_CHANCE,
   CRIT_MULTIPLIER,
   GRID_COLUMNS
@@ -84,12 +85,14 @@ export const GameMath = {
   },
 
   // --- Combat ---
-  calcHitChance(atk: number, targetAgility: number = 0): number {
+  calcHitChance(atk: number, targetAgility: number = 0, distance: number = 1): number {
     const baseChance = Math.min(0.98, BASE_HIT_CHANCE + atk * HIT_CHANCE_PER_ATK);
     // Agilidade fornece uma curva de esquiva com retornos decrescentes
     // Formula: Esquiva = Agi / (Agi + 50)
     const evasion = targetAgility / (targetAgility + 50);
-    return Math.max(0.05, baseChance - evasion);
+    // Penalidade por distância (além do primeiro hexágono)
+    const distancePenalty = Math.max(0, distance - 1) * HIT_CHANCE_DISTANCE_PENALTY;
+    return Math.max(0.05, baseChance - evasion - distancePenalty);
   },
 
   calcCritChance(classId?: string, critAttribute: number = 0): number {

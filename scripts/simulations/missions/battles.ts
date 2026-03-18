@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { CLASS_DEFS } from '../../../src/constants/classes';
+import { configProvider } from '../../../src/services/configProvider';
 import { MISSIONS, MissionTemplate } from '../../../src/constants/missions';
 import { ClassId } from '../../../src/types/index';
 import { generateTrainedHero } from '../../utils/trainedHeroGenerator';
@@ -9,7 +9,7 @@ import { PERSONALITY_LIST } from '../../../src/constants/personalities';
 
 const ITERATIONS = 10000;
 const OUTPUT_DIR = 'scripts/simulations/missions';
-const CLASSES = Object.keys(CLASS_DEFS) as ClassId[];
+const CLASSES = Object.keys(configProvider.getAllClassDefs()) as ClassId[];
 
 interface ProgressionStep {
   label: string;
@@ -115,7 +115,7 @@ function runScenarios() {
         for (const classId of CLASSES) {
           for (const personality of PERSONALITY_LIST) {
             const hero = generateTrainedHero(classId, { ms: step.ms, focus: 'BALANCED', personality: personality.id });
-            const key = `${CLASS_DEFS[classId].displayName} (${personality.displayName})`;
+            const key = `${configProvider.getClassDef(classId).displayName} (${personality.displayName})`;
             soloResults[key] = runMissionSimulation({
               heroes: [hero],
               missionId: mission.id,
@@ -145,7 +145,7 @@ function runScenarios() {
               return hero;
             });
             
-            let name = combo.map(c => CLASS_DEFS[c].displayName).join(' + ');
+            let name = combo.map(c => configProvider.getClassDef(c).displayName).join(' + ');
             if (pId) {
               const pName = PERSONALITY_LIST.find(p => p.id === pId)?.displayName;
               name += ` [${pName}]`;
@@ -173,7 +173,7 @@ function runScenarios() {
             hero.id = `hero_${idx}`;
             return hero;
           });
-          const name = combo.map(c => CLASS_DEFS[c].displayName).join(' + ');
+          const name = combo.map(c => configProvider.getClassDef(c).displayName).join(' + ');
           trioResults[name] = runMissionSimulation({
             heroes,
             missionId: mission.id,
