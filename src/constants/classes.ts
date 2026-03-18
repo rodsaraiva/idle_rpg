@@ -36,7 +36,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
   ROGUE: {
     id: 'ROGUE',
     displayName: 'Ladino',
-    baseStatDelta: { hp: -2, atk: 4, defense: 5, crit: 30, agility: 40 },
+    baseStatDelta: { hp: -2, atk: 4, defense: 5, crit: 30, agility: 25 },
     trainSpeed: { hp: 0.7, atk: 1.4, mp: 0.6 },
     ability: 'ROGUE_BONUS',
     attackType: 'MELEE',

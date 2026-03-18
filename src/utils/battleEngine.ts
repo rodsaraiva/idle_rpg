@@ -231,7 +231,7 @@ export const BattleEngine = {
    * Calcula o resultado de um ataque.
    */
   calculateAttack(
-    attacker: { id: string; name?: string; atk: number; crit?: number; classId?: string; attackType?: 'MELEE' | 'RANGED' },
+    attacker: { id: string; name?: string; atk: number; crit?: number; classId?: string; attackType?: 'MELEE' | 'RANGED'; personality?: string },
     target: { id: string; name?: string; hp?: number; hpCurrent?: number; defense?: number; agility?: number },
     baseHitChance: number,
     actorType: MissionActorType,
@@ -240,7 +240,11 @@ export const BattleEngine = {
     distance: number = 1
   ): { action: MissionAction; dmg: number } | null {
     const evasion = (target.agility ?? 0) / ((target.agility ?? 0) + 50);
-    const distancePenalty = Math.max(0, distance - 1) * HIT_CHANCE_DISTANCE_PENALTY;
+    let distancePenalty = Math.max(0, distance - 1) * HIT_CHANCE_DISTANCE_PENALTY;
+    // Personalidade "Prudente" (CAUTIOUS) reduz o impacto de atacar de longe.
+    if (attacker.personality === 'CAUTIOUS') {
+      distancePenalty *= 0.6; // distancePenalty_CAUTIOUS = distancePenalty * 0.6
+    }
     const effectiveHitChance = Math.max(0.05, baseHitChance - evasion - distancePenalty);
 
     if (rng() > effectiveHitChance) {
