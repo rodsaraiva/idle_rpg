@@ -1,48 +1,503 @@
 ======================================================
-  RELATÓRIO DE BALANCEAMENTO: PRIMEIRA PATRULHA (mission_1)
-  Dificuldade: 1
-  Min Heróis: 1
+  RELATÓRIO MASSIVO: PRIMEIRA PATRULHA (mission_1)
+  Inimigos: 2x (HP:5 ATK:1)
 ======================================================
 
 
-[ESTÁGIO] Solo - Dia 0 (Recém Recrutado)
+
+### PROGRESSÃO: DIA 0 ###
+
+[ESTÁGIO] Solos - Dia 0
 | Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
 | -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Guerreiro            | 99.6%              | 0.4%               | 0.0%               | 4.9                | 2.7                | 0.5%               |
-| Tanque               | 75.9%              | 1.7%               | 22.4%              | 16.5               | 18.7               | 4.6%               |
-| Ladino               | 99.9%              | 0.0%               | 0.1%               | 4.1                | 0.8                | 0.0%               |
-| Arqueiro             | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.8                | 0.0%               |
-| Mago                 | 99.7%              | 0.3%               | 0.0%               | 5.8                | 2.5                | 0.8%               |
-| Curandeiro           | 99.9%              | 0.0%               | 0.1%               | 6.7                | 3.6                | 0.0%               |
-
-
-[ESTÁGIO] Solo - Dia 3 (Treino Balanceado)
-| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
-| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Guerreiro            | 99.6%              | 0.0%               | 0.4%               | 4.9                | 2.6                | 0.0%               |
-| Tanque               | 99.4%              | 0.0%               | 0.6%               | 4.8                | 3.3                | 0.0%               |
-| Ladino               | 99.9%              | 0.0%               | 0.1%               | 4.0                | 0.8                | 0.0%               |
+| Guerreiro            | 99.9%              | 0.0%               | 0.1%               | 4.9                | 2.8                | 0.2%               |
+| Tanque               | 98.6%              | 0.0%               | 1.4%               | 8.0                | 7.9                | 0.0%               |
+| Ladino               | 100.0%             | 0.0%               | 0.0%               | 4.0                | 0.8                | 0.0%               |
 | Arqueiro             | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.7                | 0.0%               |
+| Mago                 | 100.0%             | 0.0%               | 0.0%               | 3.7                | 1.0                | 0.0%               |
+| Curandeiro           | 99.5%              | 0.0%               | 0.5%               | 6.8                | 3.6                | 0.0%               |
+
+[ESTÁGIO] Todas as Duplas Possíveis - Dia 0
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro + Guerreiro | 100.0%             | 0.0%               | 0.0%               | 3.7                | 1.3                | 0.0%               |
+| Guerreiro + Tanque   | 99.8%              | 0.0%               | 0.2%               | 6.3                | 5.5                | 0.4%               |
+| Guerreiro + Ladino   | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.8                | 0.0%               |
+| Guerreiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Mago     | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 4.3                | 1.8                | 0.0%               |
+| Tanque + Tanque      | 100.0%             | 0.0%               | 0.0%               | 5.5                | 3.9                | 0.0%               |
+| Tanque + Ladino      | 100.0%             | 0.0%               | 0.0%               | 3.8                | 1.8                | 0.0%               |
+| Tanque + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+| Tanque + Mago        | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.4                | 1.4%               |
+| Tanque + Curandeiro  | 100.0%             | 0.0%               | 0.0%               | 4.0                | 2.0                | 0.0%               |
+| Ladino + Ladino      | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Ladino + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Mago        | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.6                | 0.0%               |
+| Ladino + Curandeiro  | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.5                | 0.0%               |
+| Arqueiro + Arqueiro  | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.3                | 0.0%               |
+| Arqueiro + Mago      | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.3                | 0.0%               |
+| Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 0.6                | 0.0%               |
+| Mago + Mago          | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.6                | 0.0%               |
+| Mago + Curandeiro    | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.7                | 1.0                | 0.0%               |
+
+[ESTÁGIO] Todos os Trios Possíveis - Dia 0
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro + Guerreiro + Guerreiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.9                | 0.0%               |
+| Guerreiro + Guerreiro + Tanque | 99.9%              | 0.0%               | 0.1%               | 4.2                | 2.8                | 0.0%               |
+| Guerreiro + Guerreiro + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.7                | 0.0%               |
+| Guerreiro + Guerreiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.5                | 0.0%               |
+| Guerreiro + Guerreiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.6                | 0.0%               |
+| Guerreiro + Guerreiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Tanque + Tanque | 100.0%             | 0.0%               | 0.0%               | 5.4                | 4.2                | 0.0%               |
+| Guerreiro + Tanque + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.4                | 0.0%               |
+| Guerreiro + Tanque + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 1.1                | 0.0%               |
+| Guerreiro + Tanque + Mago | 100.0%             | 0.0%               | 0.0%               | 3.6                | 2.1                | 0.0%               |
+| Guerreiro + Tanque + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 4.0                | 2.4                | 0.0%               |
+| Guerreiro + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.5                | 0.0%               |
+| Guerreiro + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.3                | 0.0%               |
+| Guerreiro + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.4                | 0.0%               |
+| Guerreiro + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.5                | 0.0%               |
+| Guerreiro + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.3                | 0.0%               |
+| Guerreiro + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.5                | 0.0%               |
+| Guerreiro + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.6                | 0.0%               |
+| Guerreiro + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 0.9                | 0.0%               |
+| Guerreiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 0.9                | 0.0%               |
+| Tanque + Tanque + Tanque | 100.0%             | 0.0%               | 0.0%               | 4.6                | 2.9                | 0.0%               |
+| Tanque + Tanque + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+| Tanque + Tanque + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.2                | 0.0%               |
+| Tanque + Tanque + Mago | 100.0%             | 0.0%               | 0.0%               | 3.8                | 1.9                | 0.0%               |
+| Tanque + Tanque + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.4                | 0.0%               |
+| Tanque + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.8                | 0.0%               |
+| Tanque + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.6                | 0.0%               |
+| Tanque + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.2                | 0.0%               |
+| Tanque + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.4                | 0.0%               |
+| Tanque + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.5                | 0.0%               |
+| Tanque + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.5                | 0.0%               |
+| Tanque + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 1.1                | 0.0%               |
+| Tanque + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 3.1                | 1.0                | 0.0%               |
+| Tanque + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.7                | 0.0%               |
+| Tanque + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+| Ladino + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.1                | 0.0%               |
+| Ladino + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.3                | 0.0%               |
+| Ladino + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.2                | 0.0%               |
+| Ladino + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.3                | 0.1                | 0.0%               |
+| Ladino + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.2                | 0.0%               |
+| Ladino + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.2                | 0.0%               |
+| Ladino + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.3                | 0.0%               |
+| Ladino + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Arqueiro + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.2                | 0.1                | 0.0%               |
+| Arqueiro + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.2                | 0.1                | 0.0%               |
+| Arqueiro + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.2                | 0.0%               |
+| Arqueiro + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.3                | 2.8%               |
+| Arqueiro + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.3                | 0.0%               |
+| Arqueiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Mago + Mago + Mago   | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.4                | 0.0%               |
+| Mago + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.5                | 0.0%               |
+| Mago + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Curandeiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.6                | 0.0%               |
+
+
+
+### PROGRESSÃO: DIA 1 ###
+
+[ESTÁGIO] Solos - Dia 1
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro            | 99.9%              | 0.0%               | 0.1%               | 4.9                | 2.5                | 0.0%               |
+| Tanque               | 100.0%             | 0.0%               | 0.0%               | 4.7                | 3.2                | 0.0%               |
+| Ladino               | 100.0%             | 0.0%               | 0.0%               | 3.9                | 0.8                | 0.0%               |
+| Arqueiro             | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.6                | 0.0%               |
 | Mago                 | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.6                | 0.0%               |
+| Curandeiro           | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.4                | 0.0%               |
+
+[ESTÁGIO] Todas as Duplas Possíveis - Dia 1
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro + Guerreiro | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.3                | 0.0%               |
+| Guerreiro + Tanque   | 100.0%             | 0.0%               | 0.0%               | 3.7                | 2.3                | 0.0%               |
+| Guerreiro + Ladino   | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.8                | 0.0%               |
+| Guerreiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.6                | 0.0%               |
+| Guerreiro + Mago     | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.6                | 0.0%               |
+| Guerreiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 4.3                | 1.7                | 0.0%               |
+| Tanque + Tanque      | 98.8%              | 0.0%               | 1.2%               | 8.8                | 7.7                | 0.0%               |
+| Tanque + Ladino      | 100.0%             | 0.0%               | 0.0%               | 3.7                | 1.8                | 0.0%               |
+| Tanque + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 3.5                | 1.4                | 0.0%               |
+| Tanque + Mago        | 100.0%             | 0.0%               | 0.0%               | 3.5                | 1.3                | 0.0%               |
+| Tanque + Curandeiro  | 100.0%             | 0.0%               | 0.0%               | 4.0                | 2.1                | 0.0%               |
+| Ladino + Ladino      | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Ladino + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Mago        | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Curandeiro  | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Arqueiro + Arqueiro  | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.3                | 0.0%               |
+| Arqueiro + Mago      | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.3                | 0.0%               |
+| Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.6                | 0.0%               |
+| Mago + Mago          | 100.0%             | 0.0%               | 0.0%               | 3.7                | 0.9                | 0.0%               |
+| Mago + Curandeiro    | 100.0%             | 0.0%               | 0.0%               | 3.4                | 0.8                | 0.0%               |
+| Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 4.3                | 1.6                | 0.0%               |
+
+[ESTÁGIO] Todos os Trios Possíveis - Dia 1
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro + Guerreiro + Guerreiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.9                | 0.0%               |
+| Guerreiro + Guerreiro + Tanque | 100.0%             | 0.0%               | 0.0%               | 3.7                | 2.1                | 0.0%               |
+| Guerreiro + Guerreiro + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.7                | 0.0%               |
+| Guerreiro + Guerreiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.5                | 0.0%               |
+| Guerreiro + Guerreiro + Mago | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.0                | 0.0%               |
+| Guerreiro + Guerreiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Tanque + Tanque | 100.0%             | 0.0%               | 0.0%               | 4.1                | 2.7                | 0.0%               |
+| Guerreiro + Tanque + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.3                | 0.0%               |
+| Guerreiro + Tanque + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 1.1                | 0.0%               |
+| Guerreiro + Tanque + Mago | 100.0%             | 0.0%               | 0.0%               | 3.1                | 1.2                | 0.0%               |
+| Guerreiro + Tanque + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.5                | 0.0%               |
+| Guerreiro + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.4                | 0.0%               |
+| Guerreiro + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.3                | 0.0%               |
+| Guerreiro + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.3                | 0.0%               |
+| Guerreiro + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.5                | 0.0%               |
+| Guerreiro + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.2                | 0.0%               |
+| Guerreiro + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.3                | 0.0%               |
+| Guerreiro + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.5                | 0.0%               |
+| Guerreiro + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.3                | 0.0%               |
+| Guerreiro + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.4                | 0.0%               |
+| Guerreiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.9                | 0.0%               |
+| Tanque + Tanque + Tanque | 99.9%              | 0.0%               | 0.1%               | 6.7                | 5.1                | 0.0%               |
+| Tanque + Tanque + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.4                | 0.0%               |
+| Tanque + Tanque + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 1.0                | 0.0%               |
+| Tanque + Tanque + Mago | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.9                | 0.0%               |
+| Tanque + Tanque + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 4.2                | 2.3                | 0.0%               |
+| Tanque + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.8                | 0.0%               |
+| Tanque + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.6                | 0.0%               |
+| Tanque + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.6                | 0.0%               |
+| Tanque + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.8                | 0.0%               |
+| Tanque + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.4                | 0.0%               |
+| Tanque + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 3.1                | 1.0                | 0.0%               |
+| Tanque + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.7                | 0.0%               |
+| Tanque + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.9                | 0.0%               |
+| Tanque + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.1                | 0.0%               |
+| Tanque + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+| Ladino + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.2                | 0.0%               |
+| Ladino + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.1                | 0.0%               |
+| Ladino + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.3                | 0.0%               |
+| Ladino + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.3                | 0.1                | 0.0%               |
+| Ladino + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.2                | 0.0%               |
+| Ladino + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.2                | 0.0%               |
+| Ladino + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.2                | 0.0%               |
+| Ladino + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Arqueiro + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.2                | 0.1                | 0.0%               |
+| Arqueiro + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Arqueiro + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.2                | 0.0%               |
+| Arqueiro + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.2                | 0.1                | 0.0%               |
+| Arqueiro + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.3                | 0.0%               |
+| Arqueiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Mago + Mago + Mago   | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Mago + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Mago + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.5                | 0.0%               |
+| Curandeiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.9                | 0.0%               |
+
+
+
+### PROGRESSÃO: DIA 3 ###
+
+[ESTÁGIO] Solos - Dia 3
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro            | 99.3%              | 0.0%               | 0.7%               | 4.9                | 2.7                | 0.0%               |
+| Tanque               | 99.7%              | 0.0%               | 0.3%               | 4.9                | 3.8                | 0.0%               |
+| Ladino               | 99.9%              | 0.0%               | 0.1%               | 3.9                | 0.8                | 0.0%               |
+| Arqueiro             | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.6                | 0.0%               |
+| Mago                 | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.7                | 0.0%               |
 | Curandeiro           | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.3                | 0.0%               |
 
-
-[ESTÁGIO] Duplas - Dia 7 (Treino Especializado)
+[ESTÁGIO] Todas as Duplas Possíveis - Dia 3
 | Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
 | -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Tank + Healer (Sustentação) | 100.0%             | 0.0%               | 0.0%               | 4.0                | 2.1                | 0.0%               |
-| Warrior + Rogue (Agressivo Melee) | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.8                | 0.0%               |
-| Mage + Archer (Dano à Distância) | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.3                | 0.0%               |
-| Tank + Archer (Equilibrado) | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+| Guerreiro + Guerreiro | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.4                | 0.0%               |
+| Guerreiro + Tanque   | 100.0%             | 0.0%               | 0.0%               | 5.2                | 4.3                | 0.0%               |
+| Guerreiro + Ladino   | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.8                | 0.0%               |
+| Guerreiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Mago     | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.7                | 0.0%               |
+| Guerreiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 0.9                | 0.0%               |
+| Tanque + Tanque      | 99.9%              | 0.0%               | 0.1%               | 6.1                | 4.8                | 0.0%               |
+| Tanque + Ladino      | 100.0%             | 0.0%               | 0.0%               | 3.7                | 1.7                | 0.0%               |
+| Tanque + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.2                | 0.0%               |
+| Tanque + Mago        | 100.0%             | 0.0%               | 0.0%               | 3.5                | 1.4                | 0.0%               |
+| Tanque + Curandeiro  | 100.0%             | 0.0%               | 0.0%               | 4.0                | 2.0                | 0.0%               |
+| Ladino + Ladino      | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Ladino + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Mago        | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.6                | 0.0%               |
+| Ladino + Curandeiro  | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Arqueiro + Arqueiro  | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Arqueiro + Mago      | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.5                | 0.0%               |
+| Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Mago + Mago          | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.6                | 0.0%               |
+| Mago + Curandeiro    | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.1                | 0.0%               |
+| Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 4.4                | 1.6                | 0.0%               |
 
-
-[ESTÁGIO] Trios - Dia 14 (Treino Especializado)
+[ESTÁGIO] Todos os Trios Possíveis - Dia 3
 | Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
 | -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Tank + Healer + Mage (Clássico) | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.8                | 0.0%               |
-| Tank + Warrior + Healer (Linha de Frente) | 100.0%             | 0.0%               | 0.0%               | 3.2                | 1.2                | 0.0%               |
-| Warrior + Rogue + Archer (Dano Total) | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.3                | 0.0%               |
-| Tank + Rogue + Mage (Controle e Dano) | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.6                | 0.0%               |
+| Guerreiro + Guerreiro + Guerreiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.9                | 0.0%               |
+| Guerreiro + Guerreiro + Tanque | 100.0%             | 0.0%               | 0.0%               | 3.9                | 2.4                | 0.0%               |
+| Guerreiro + Guerreiro + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.6                | 0.0%               |
+| Guerreiro + Guerreiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Guerreiro + Guerreiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.7                | 0.0%               |
+| Guerreiro + Guerreiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.5                | 1.1                | 0.0%               |
+| Guerreiro + Tanque + Tanque | 100.0%             | 0.0%               | 0.0%               | 4.4                | 3.0                | 0.0%               |
+| Guerreiro + Tanque + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.3                | 0.0%               |
+| Guerreiro + Tanque + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 1.1                | 0.0%               |
+| Guerreiro + Tanque + Mago | 100.0%             | 0.0%               | 0.0%               | 3.6                | 2.0                | 0.0%               |
+| Guerreiro + Tanque + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.6                | 0.0%               |
+| Guerreiro + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.4                | 0.0%               |
+| Guerreiro + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.3                | 0.0%               |
+| Guerreiro + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.8                | 0.0%               |
+| Guerreiro + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.3                | 0.0%               |
+| Guerreiro + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.6                | 0.0%               |
+| Guerreiro + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.4                | 0.0%               |
+| Guerreiro + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.8                | 0.0%               |
+| Guerreiro + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.5                | 0.0%               |
+| Tanque + Tanque + Tanque | 100.0%             | 0.0%               | 0.0%               | 4.5                | 2.6                | 0.0%               |
+| Tanque + Tanque + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+| Tanque + Tanque + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.1                | 0.0%               |
+| Tanque + Tanque + Mago | 100.0%             | 0.0%               | 0.0%               | 3.5                | 1.2                | 0.0%               |
+| Tanque + Tanque + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.7                | 1.5                | 0.0%               |
+| Tanque + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.8                | 0.0%               |
+| Tanque + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.5                | 0.0%               |
+| Tanque + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.6                | 0.0%               |
+| Tanque + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.9                | 0.0%               |
+| Tanque + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.4                | 0.0%               |
+| Tanque + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.9                | 0.0%               |
+| Tanque + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 1.0                | 0.0%               |
+| Tanque + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.5                | 0.0%               |
+| Tanque + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.9                | 0.0%               |
+| Tanque + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.8                | 1.8                | 0.0%               |
+| Ladino + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.2                | 0.0%               |
+| Ladino + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Ladino + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.3                | 0.0%               |
+| Ladino + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.2                | 0.0%               |
+| Ladino + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.3                | 0.1                | 0.0%               |
+| Ladino + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.3                | 0.1                | 0.0%               |
+| Ladino + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.3                | 0.0%               |
+| Ladino + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.3                | 0.2                | 0.0%               |
+| Ladino + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Arqueiro + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.2                | 0.1                | 0.0%               |
+| Arqueiro + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.2                | 0.1                | 0.0%               |
+| Arqueiro + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Arqueiro + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.2                | 0.2                | 0.0%               |
+| Arqueiro + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.3                | 0.0%               |
+| Arqueiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Mago + Mago + Mago   | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Mago + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.5                | 0.0%               |
+| Mago + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.5                | 0.0%               |
+| Curandeiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.5                | 0.0%               |
+
+
+
+### PROGRESSÃO: DIA 5 ###
+
+[ESTÁGIO] Solos - Dia 5
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro            | 100.0%             | 0.0%               | 0.0%               | 4.8                | 2.5                | 0.0%               |
+| Tanque               | 99.8%              | 0.0%               | 0.2%               | 5.0                | 3.8                | 0.0%               |
+| Ladino               | 100.0%             | 0.0%               | 0.0%               | 3.9                | 0.8                | 0.0%               |
+| Arqueiro             | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.7                | 0.0%               |
+| Mago                 | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.7                | 0.0%               |
+| Curandeiro           | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.3                | 0.0%               |
+
+[ESTÁGIO] Todas as Duplas Possíveis - Dia 5
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro + Guerreiro | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.4                | 0.0%               |
+| Guerreiro + Tanque   | 100.0%             | 0.0%               | 0.0%               | 4.7                | 3.7                | 0.0%               |
+| Guerreiro + Ladino   | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.8                | 0.0%               |
+| Guerreiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.6                | 0.0%               |
+| Guerreiro + Mago     | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.4                | 0.0%               |
+| Guerreiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.0                | 0.0%               |
+| Tanque + Tanque      | 99.8%              | 0.0%               | 0.2%               | 5.5                | 4.3                | 0.0%               |
+| Tanque + Ladino      | 100.0%             | 0.0%               | 0.0%               | 3.7                | 1.6                | 0.0%               |
+| Tanque + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+| Tanque + Mago        | 100.0%             | 0.0%               | 0.0%               | 4.6                | 2.8                | 0.0%               |
+| Tanque + Curandeiro  | 100.0%             | 0.0%               | 0.0%               | 4.8                | 3.5                | 0.0%               |
+| Ladino + Ladino      | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Ladino + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Mago        | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Curandeiro  | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.4                | 0.0%               |
+| Arqueiro + Arqueiro  | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Arqueiro + Mago      | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.5                | 0.0%               |
+| Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.6                | 0.0%               |
+| Mago + Mago          | 100.0%             | 0.0%               | 0.0%               | 3.7                | 0.9                | 0.0%               |
+| Mago + Curandeiro    | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.8                | 1.2                | 0.0%               |
+
+[ESTÁGIO] Todos os Trios Possíveis - Dia 5
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro + Guerreiro + Guerreiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 1.0                | 0.0%               |
+| Guerreiro + Guerreiro + Tanque | 100.0%             | 0.0%               | 0.0%               | 3.9                | 2.4                | 0.0%               |
+| Guerreiro + Guerreiro + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.6                | 0.0%               |
+| Guerreiro + Guerreiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.5                | 0.0%               |
+| Guerreiro + Guerreiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.6                | 0.0%               |
+| Guerreiro + Guerreiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.2                | 0.0%               |
+| Guerreiro + Tanque + Tanque | 100.0%             | 0.0%               | 0.0%               | 4.4                | 3.0                | 0.0%               |
+| Guerreiro + Tanque + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.4                | 0.0%               |
+| Guerreiro + Tanque + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 1.0                | 0.0%               |
+| Guerreiro + Tanque + Mago | 100.0%             | 0.0%               | 0.0%               | 3.6                | 2.1                | 0.0%               |
+| Guerreiro + Tanque + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.8                | 2.2                | 0.0%               |
+| Guerreiro + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.5                | 0.0%               |
+| Guerreiro + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.3                | 0.0%               |
+| Guerreiro + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.8                | 0.0%               |
+| Guerreiro + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.3                | 0.0%               |
+| Guerreiro + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.3                | 0.0%               |
+| Guerreiro + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.4                | 0.0%               |
+| Guerreiro + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.3                | 0.0%               |
+| Guerreiro + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.9                | 0.0%               |
+| Guerreiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.9                | 0.0%               |
+| Tanque + Tanque + Tanque | 100.0%             | 0.0%               | 0.0%               | 6.2                | 4.9                | 0.0%               |
+| Tanque + Tanque + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.2                | 0.0%               |
+| Tanque + Tanque + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.1                | 0.0%               |
+| Tanque + Tanque + Mago | 100.0%             | 0.0%               | 0.0%               | 3.9                | 2.0                | 0.0%               |
+| Tanque + Tanque + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.5                | 0.0%               |
+| Tanque + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.8                | 0.0%               |
+| Tanque + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.5                | 0.0%               |
+| Tanque + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 3.2                | 1.2                | 0.0%               |
+| Tanque + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.8                | 0.0%               |
+| Tanque + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.4                | 0.0%               |
+| Tanque + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.4                | 0.0%               |
+| Tanque + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.7                | 0.0%               |
+| Tanque + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.4                | 0.0%               |
+| Tanque + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.5                | 0.0%               |
+| Tanque + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.8                | 1.9                | 0.0%               |
+| Ladino + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.3                | 0.0%               |
+| Ladino + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Ladino + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.3                | 0.0%               |
+| Ladino + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Ladino + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.3                | 0.1                | 0.0%               |
+| Ladino + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.2                | 0.0%               |
+| Ladino + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.2                | 0.0%               |
+| Ladino + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.3                | 0.0%               |
+| Ladino + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.4                | 0.0%               |
+| Ladino + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Arqueiro + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.2                | 0.1                | 0.0%               |
+| Arqueiro + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Arqueiro + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.2                | 0.0%               |
+| Arqueiro + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.2                | 0.0%               |
+| Arqueiro + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Arqueiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.3                | 0.1%               |
+| Mago + Mago + Mago   | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.5                | 0.0%               |
+| Mago + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Mago + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Curandeiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.9                | 0.0%               |
+
+
+
+### PROGRESSÃO: DIA 7 ###
+
+[ESTÁGIO] Solos - Dia 7
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro            | 99.3%              | 0.0%               | 0.7%               | 4.9                | 2.7                | 0.0%               |
+| Tanque               | 99.4%              | 0.0%               | 0.6%               | 4.8                | 3.7                | 0.0%               |
+| Ladino               | 99.9%              | 0.0%               | 0.1%               | 3.9                | 0.8                | 0.0%               |
+| Arqueiro             | 100.0%             | 0.0%               | 0.0%               | 3.4                | 0.7                | 0.0%               |
+| Mago                 | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.6                | 0.0%               |
+| Curandeiro           | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.4                | 0.0%               |
+
+[ESTÁGIO] Todas as Duplas Possíveis - Dia 7
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro + Guerreiro | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.3                | 0.0%               |
+| Guerreiro + Tanque   | 99.8%              | 0.0%               | 0.2%               | 5.4                | 4.5                | 0.3%               |
+| Guerreiro + Ladino   | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.7                | 0.0%               |
+| Guerreiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Mago     | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.0                | 0.0%               |
+| Tanque + Tanque      | 99.8%              | 0.0%               | 0.2%               | 5.6                | 4.4                | 0.0%               |
+| Tanque + Ladino      | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.7                | 0.0%               |
+| Tanque + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+| Tanque + Mago        | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.3                | 0.0%               |
+| Tanque + Curandeiro  | 100.0%             | 0.0%               | 0.0%               | 3.9                | 2.1                | 0.0%               |
+| Ladino + Ladino      | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.4                | 0.0%               |
+| Ladino + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Mago        | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Curandeiro  | 100.0%             | 0.0%               | 0.0%               | 3.7                | 0.7                | 0.0%               |
+| Arqueiro + Arqueiro  | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Arqueiro + Mago      | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.6                | 0.0%               |
+| Mago + Mago          | 100.0%             | 0.0%               | 0.0%               | 3.7                | 0.9                | 0.0%               |
+| Mago + Curandeiro    | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+
+[ESTÁGIO] Todos os Trios Possíveis - Dia 7
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro + Guerreiro + Guerreiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.9                | 0.0%               |
+| Guerreiro + Guerreiro + Tanque | 100.0%             | 0.0%               | 0.0%               | 3.7                | 2.2                | 0.0%               |
+| Guerreiro + Guerreiro + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.6                | 0.0%               |
+| Guerreiro + Guerreiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.5                | 0.0%               |
+| Guerreiro + Guerreiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.6                | 0.0%               |
+| Guerreiro + Guerreiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.5                | 1.1                | 0.0%               |
+| Guerreiro + Tanque + Tanque | 99.9%              | 0.0%               | 0.1%               | 5.1                | 3.8                | 0.0%               |
+| Guerreiro + Tanque + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.3                | 1.4                | 0.0%               |
+| Guerreiro + Tanque + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 1.0                | 0.0%               |
+| Guerreiro + Tanque + Mago | 100.0%             | 0.0%               | 0.0%               | 3.6                | 2.1                | 0.0%               |
+| Guerreiro + Tanque + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.8                | 2.3                | 0.0%               |
+| Guerreiro + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.4                | 0.0%               |
+| Guerreiro + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.3                | 0.0%               |
+| Guerreiro + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.7                | 0.0%               |
+| Guerreiro + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 0.8                | 0.0%               |
+| Guerreiro + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.3                | 0.0%               |
+| Guerreiro + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.3                | 0.0%               |
+| Guerreiro + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.4                | 0.0%               |
+| Guerreiro + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.6                | 0.0%               |
+| Guerreiro + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.1                | 0.6                | 0.0%               |
+| Guerreiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.1                | 0.0%               |
+| Tanque + Tanque + Tanque | 100.0%             | 0.0%               | 0.0%               | 4.7                | 2.9                | 0.0%               |
+| Tanque + Tanque + Ladino | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.2                | 0.0%               |
+| Tanque + Tanque + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 3.2                | 1.1                | 0.0%               |
+| Tanque + Tanque + Mago | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.9                | 0.0%               |
+| Tanque + Tanque + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.5                | 1.4                | 0.0%               |
+| Tanque + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.8                | 0.0%               |
+| Tanque + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.5                | 0.0%               |
+| Tanque + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 2.6                | 0.6                | 0.0%               |
+| Tanque + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+| Tanque + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.4                | 0.0%               |
+| Tanque + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.9                | 0.0%               |
+| Tanque + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.7                | 0.0%               |
+| Tanque + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+| Tanque + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.4                | 0.0%               |
+| Tanque + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.9                | 2.0                | 0.0%               |
+| Ladino + Ladino + Ladino | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.2                | 0.0%               |
+| Ladino + Ladino + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.1                | 0.0%               |
+| Ladino + Ladino + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.3                | 0.0%               |
+| Ladino + Ladino + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.3                | 0.1                | 0.0%               |
+| Ladino + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Ladino + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.3                | 0.0%               |
+| Ladino + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Ladino + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.3                | 0.0%               |
+| Ladino + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.3                | 0.0%               |
+| Arqueiro + Arqueiro + Arqueiro | 100.0%             | 0.0%               | 0.0%               | 2.2                | 0.1                | 0.0%               |
+| Arqueiro + Arqueiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.5                | 0.2                | 0.0%               |
+| Arqueiro + Arqueiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.2                | 0.0%               |
+| Arqueiro + Mago + Mago | 100.0%             | 0.0%               | 0.0%               | 2.4                | 0.2                | 0.0%               |
+| Arqueiro + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.7                | 0.3                | 0.0%               |
+| Arqueiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.4                | 0.0%               |
+| Mago + Mago + Mago   | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.5                | 0.0%               |
+| Mago + Mago + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.9                | 0.4                | 0.0%               |
+| Mago + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.4                | 0.0%               |
+| Curandeiro + Curandeiro + Curandeiro | 100.0%             | 0.0%               | 0.0%               | 3.0                | 0.6                | 0.0%               |
+
 
 
 Legenda:
