@@ -5,31 +5,37 @@ import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../../src/constants/
 import { computePointsFromMs } from '../../src/utils/trainingMath';
 
 export interface TrainingFocus {
-  days: number;
+  days?: number;
+  ms?: number;
   focus: 'ATK' | 'HP' | 'MP' | 'BALANCED'; // BALANCED divide o tempo igualmente entre os 3
 }
 
 /**
- * Gera um herói que passou N dias treinando.
- * Simula o progresso considerando a velocidade de treino específica da classe e a inflação de tempo (Progressão Geométrica).
+ * Gera um herói que passou N tempo treinando.
+ * Simula o progresso considerando a velocidade de treino específica da classe e a inflação de tempo.
  */
 export function generateTrainedHero(classId: ClassId, training: TrainingFocus): Hero {
   // 1. Gera o herói base com variância e atributos da classe
   const hero = createHero(classId);
   const classDef = CLASS_DEFS[classId];
 
-  if (training.days <= 0) return hero;
+  // 2. Calcula tempo total em ms
+  let totalMs = 0;
+  if (training.ms !== undefined) {
+    totalMs = training.ms;
+  } else if (training.days !== undefined) {
+    totalMs = training.days * 24 * 60 * 60 * 1000;
+  }
 
-  // 2. Converte dias para milissegundos
-  const totalMs = training.days * 24 * 60 * 60 * 1000;
+  if (totalMs <= 0) return hero;
 
   // 3. Helper para calcular pontos ganhos para um atributo específico
   const calcPoints = (ms: number, type: 'hp' | 'atk' | 'mp') => {
-    // Aplica o multiplicador de velocidade de treino da classe (menor = mais rápido)
+    // Aplica o multiplicador de velocidade de treino da classe
     const speedMultiplier = classDef.trainSpeed?.[type] ?? 1;
     const effectiveBaseMs = BASE_TRAIN_TIME_MS * speedMultiplier;
     
-    // Calcula quantos pontos conseguiu gerar nesse tempo usando a fórmula de PA do jogo
+    // Calcula quantos pontos conseguiu gerar nesse tempo usando a fórmula de progressão do jogo
     const { points } = computePointsFromMs(effectiveBaseMs, TRAIN_INFLATION_FACTOR, ms);
     return points;
   };

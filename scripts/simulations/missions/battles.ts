@@ -1,15 +1,37 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { CLASS_DEFS } from '../../../src/constants/classes';
-import { MISSIONS } from '../../../src/constants/missions';
+import { MISSIONS, MissionTemplate } from '../../../src/constants/missions';
 import { ClassId } from '../../../src/types/index';
 import { generateTrainedHero } from '../../utils/trainedHeroGenerator';
 import { runMissionSimulation } from '../../utils/simulationRunner';
 
-const ITERATIONS = 1000;
+const ITERATIONS = 10000;
 const OUTPUT_DIR = 'scripts/simulations/missions';
-const DAYS = [0, 1, 3, 5, 7];
 const CLASSES = Object.keys(CLASS_DEFS) as ClassId[];
+
+interface ProgressionStep {
+  label: string;
+  ms: number;
+}
+
+/**
+ * Define os passos de progressão para cada missão.
+ */
+const MISSION_PROGRESSION: Record<string, ProgressionStep[]> = {
+  'mission_1': [
+    { label: 'Sem Treino (0 min)', ms: 0 },
+    { label: '30 Minutos', ms: 30 * 60 * 1000 },
+    { label: '1 Hora', ms: 60 * 60 * 1000 },
+  ],
+  'default': [
+    { label: 'Dia 0', ms: 0 },
+    { label: 'Dia 1', ms: 1 * 24 * 60 * 60 * 1000 },
+    { label: 'Dia 3', ms: 3 * 24 * 60 * 60 * 1000 },
+    { label: 'Dia 5', ms: 5 * 24 * 60 * 60 * 1000 },
+    { label: 'Dia 7', ms: 7 * 24 * 60 * 60 * 1000 },
+  ]
+};
 
 function getFocusForClass(classId: ClassId): 'ATK' | 'HP' | 'MP' | 'BALANCED' {
   if (classId === 'TANK') return 'HP';
@@ -17,9 +39,6 @@ function getFocusForClass(classId: ClassId): 'ATK' | 'HP' | 'MP' | 'BALANCED' {
   return 'ATK';
 }
 
-/**
- * Gera todas as combinações de N elementos com repetição.
- */
 function getCombinationsWithReplacement<T>(arr: T[], n: number): T[][] {
   if (n === 0) return [[]];
   const results: T[][] = [];
@@ -36,26 +55,20 @@ function getCombinationsWithReplacement<T>(arr: T[], n: number): T[][] {
 function formatTable(data: Record<string, any>) {
   const keys = Object.keys(data);
   if (keys.length === 0) return '';
-  
   const columns = Object.keys(data[keys[0]]);
   let table = '';
-  
-  // Header
-  table += `| ${'Classe/Grupo'.padEnd(20)} | ` + columns.map(c => c.padEnd(18)).join(' | ') + ' |\n';
-  table += `| ${'-'.repeat(20)} | ` + columns.map(c => '-'.repeat(18)).join(' | ') + ' |\n';
-  
-  // Rows
+  table += `| ${'Classe/Grupo'.padEnd(35)} | ` + columns.map(c => c.padEnd(18)).join(' | ') + ' |\n';
+  table += `| ${'-'.repeat(35)} | ` + columns.map(c => '-'.repeat(18)).join(' | ') + ' |\n';
   for (const key of keys) {
-    table += `| ${key.padEnd(20)} | ` + columns.map(col => String(data[key][col]).padEnd(18)).join(' | ') + ' |\n';
+    table += `| ${key.padEnd(35)} | ` + columns.map(col => String(data[key][col]).padEnd(18)).join(' | ') + ' |\n';
   }
   return table;
 }
 
 function runScenarios() {
   console.log(`======================================================`);
-  console.log(`  FRAMEWORK DE SIMULAÇÃO MASSIVA DE BALANCEAMENTO`);
-  console.log(`  Iterações por cenário: ${ITERATIONS}`);
-  console.log(`  Classes: ${CLASSES.join(', ')}`);
+  console.log(`  FRAMEWORK DE SIMULAÇÃO DE BALANCEAMENTO (v2)`);
+  console.log(`  Iterações: ${ITERATIONS}`);
   console.log(`  Data: ${new Date().toLocaleString()}`);
   console.log(`======================================================\n`);
 
@@ -64,82 +77,90 @@ function runScenarios() {
 
   for (const mission of MISSIONS) {
     let output = '';
-    const logToMission = (msg: string) => output += msg + '\n';
+    const log = (msg: string) => output += msg + '\n';
+    const steps = MISSION_PROGRESSION[mission.id] || MISSION_PROGRESSION['default'];
 
-    logToMission(`======================================================`);
-    logToMission(`  RELATÓRIO MASSIVO: ${mission.name.toUpperCase()} (${mission.id})`);
-    logToMission(`  Inimigos: ${mission.enemies?.map(e => `${e.count}x (HP:${e.hp} ATK:${e.atk})`).join(', ') || 'Template Padrão'}`);
-    logToMission(`======================================================\n`);
+    log(`======================================================`);
+    log(`  RELATÓRIO: ${mission.name.toUpperCase()} (${mission.id})`);
+    log(`  Min Heróis: ${mission.minHeroes}`);
+    log(`  Inimigos: ${mission.enemies?.map(e => `${e.count}x (HP:${e.hp} ATK:${e.atk})`).join(', ') || 'Template Padrão'}`);
+    log(`======================================================\n`);
 
-    for (const day of DAYS) {
-      logToMission(`\n\n### PROGRESSÃO: DIA ${day} ###\n`);
+    for (const step of steps) {
+      log(`\n### ESTÁGIO: ${step.label} ###\n`);
 
       // 1. Solos
-      logToMission(`[ESTÁGIO] Solos - Dia ${day}`);
-      const soloResults: Record<string, any> = {};
-      for (const classId of CLASSES) {
-        const hero = generateTrainedHero(classId, { days: day, focus: 'BALANCED' });
-        soloResults[CLASS_DEFS[classId].displayName] = runMissionSimulation({
-          heroes: [hero],
-          missionId: mission.id,
-          iterations: ITERATIONS
-        });
+      if (mission.minHeroes <= 1) {
+        log(`[Solos]`);
+        const soloResults: Record<string, any> = {};
+        for (const classId of CLASSES) {
+          const hero = generateTrainedHero(classId, { ms: step.ms, focus: 'BALANCED' });
+          soloResults[CLASS_DEFS[classId].displayName] = runMissionSimulation({
+            heroes: [hero],
+            missionId: mission.id,
+            iterations: ITERATIONS
+          });
+        }
+        log(formatTable(soloResults));
       }
-      logToMission(formatTable(soloResults));
 
       // 2. Duplas
-      logToMission(`[ESTÁGIO] Todas as Duplas Possíveis - Dia ${day}`);
-      const duoResults: Record<string, any> = {};
-      for (const combo of duoCombos) {
-        const heroes = combo.map((classId, idx) => {
-          const hero = generateTrainedHero(classId, { days: day, focus: getFocusForClass(classId) });
-          hero.id = `hero_${idx}`;
-          return hero;
-        });
-        const name = combo.map(c => CLASS_DEFS[c].displayName).join(' + ');
-        duoResults[name] = runMissionSimulation({
-          heroes,
-          missionId: mission.id,
-          iterations: ITERATIONS
-        });
+      if (mission.minHeroes <= 2) {
+        log(`[Duplas]`);
+        const duoResults: Record<string, any> = {};
+        for (const combo of duoCombos) {
+          const heroes = combo.map((classId, idx) => {
+            const hero = generateTrainedHero(classId, { ms: step.ms, focus: getFocusForClass(classId) });
+            hero.id = `hero_${idx}`;
+            return hero;
+          });
+          const name = combo.map(c => CLASS_DEFS[c].displayName).join(' + ');
+          duoResults[name] = runMissionSimulation({
+            heroes,
+            missionId: mission.id,
+            iterations: ITERATIONS
+          });
+        }
+        log(formatTable(duoResults));
       }
-      logToMission(formatTable(duoResults));
 
       // 3. Trios
-      logToMission(`[ESTÁGIO] Todos os Trios Possíveis - Dia ${day}`);
-      const trioResults: Record<string, any> = {};
-      for (const combo of trioCombos) {
-        const heroes = combo.map((classId, idx) => {
-          const hero = generateTrainedHero(classId, { days: day, focus: getFocusForClass(classId) });
-          hero.id = `hero_${idx}`;
-          return hero;
-        });
-        const name = combo.map(c => CLASS_DEFS[c].displayName).join(' + ');
-        trioResults[name] = runMissionSimulation({
-          heroes,
-          missionId: mission.id,
-          iterations: ITERATIONS
-        });
+      if (mission.minHeroes <= 3) {
+        log(`[Trios]`);
+        const trioResults: Record<string, any> = {};
+        for (const combo of trioCombos) {
+          const heroes = combo.map((classId, idx) => {
+            const hero = generateTrainedHero(classId, { ms: step.ms, focus: getFocusForClass(classId) });
+            hero.id = `hero_${idx}`;
+            return hero;
+          });
+          const name = combo.map(c => CLASS_DEFS[c].displayName).join(' + ');
+          trioResults[name] = runMissionSimulation({
+            heroes,
+            missionId: mission.id,
+            iterations: ITERATIONS
+          });
+        }
+        log(formatTable(trioResults));
       }
-      logToMission(formatTable(trioResults));
     }
 
-    logToMission(`\n\nLegenda:`);
-    logToMission(`- Win Rate: Taxa de vitória do grupo.`);
-    logToMission(`- Loss Rate: Taxa de derrota do grupo.`);
-    logToMission(`- Timeout Rate: Batalhas que atingiram o limite de rounds.`);
-    logToMission(`- Avg Rounds (Win): Média de rounds para vencer.`);
-    logToMission(`- Avg HP Lost (Win): HP total perdido pelo grupo em vitórias.`);
-    logToMission(`- Incapacitated Rate: Porcentagem de heróis do grupo com HP < 3 após a missão.`);
+    log(`\nLegenda:`);
+    log(`- Win Rate: Taxa de vitória do grupo.`);
+    log(`- Loss Rate: Taxa de derrota do grupo.`);
+    log(`- Timeout Rate: Batalhas que atingiram o limite de rounds.`);
+    log(`- Avg Rounds (Win): Média de rounds para vencer.`);
+    log(`- Avg HP Lost (Win): HP total perdido pelo grupo em vitórias.`);
+    log(`- Incapacitated Rate: Porcentagem de heróis do grupo com HP < 3 após a missão.`);
 
     const fileName = path.join(OUTPUT_DIR, `${mission.id}_results.txt`);
     fs.writeFileSync(fileName, output);
-    console.log(`Relatório massivo gerado: ${fileName}`);
+    console.log(`Relatório v2 gerado: ${fileName}`);
   }
 }
 
 try {
   runScenarios();
 } catch (e) {
-  console.error("Erro ao rodar simulações:", e);
+  console.error("Erro fatal na simulação:", e);
 }
