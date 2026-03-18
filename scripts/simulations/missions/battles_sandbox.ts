@@ -6,27 +6,120 @@ import { ClassId } from '../../../src/types/index';
 import { generateTrainedHero } from '../../utils/trainedHeroGenerator';
 import { runMissionSimulation } from '../../utils/simulationRunner';
 import { PERSONALITY_LIST } from '../../../src/constants/personalities';
+import { BattleEngine } from '../../../src/utils/battleEngine';
+import { GameMath } from '../../../src/utils/gameMath';
 
-// --- CONFIGURAÇÃO DO SANDBOX ---
-configProvider.overrideConfig({
-  classes: {
-    ARCHER: {
-      baseStatDelta: { hp: -5, atk: 3, defense: -3, crit: 20, agility: 10 }
-    },
-    HEALER: {
-      baseStatDelta: { hp: 5, mp: 8, defense: 5, crit: 5, agility: 12, atk: -2 }
-    },
-    WARRIOR: {
-      baseStatDelta: { hp: 8, atk: 6, defense: 10, crit: 10, agility: 5 }
-    },
-    MAGE: {
-      baseStatDelta: { hp: -5, mp: 12, defense: 0, crit: 15, agility: 10, atk: 1 }
+const ITERATIONS = 3000;
+const OUTPUT_DIR = 'scripts/simulations/missions';
+const TARGET_MISSION_ID = 'mission_1';
+
+// Hooks da Sandbox para alterar comportamento das personalidades
+const originalCalculateAttack = BattleEngine.calculateAttack;
+const sandboxDamageBonusMap = new Map<string, number>();
+
+BattleEngine.selectTarget = function(attacker: any, attackerPos: number, candidates: any[], rng: () => number, context: any) {
+  if (!candidates || candidates.length === 0) return undefined;
+  
+  // Limpa apenas limpando o cache geral do atacante iterando as chaves.
+  for (const key of sandboxDamageBonusMap.keys()) {
+    if (key.startsWith(attacker.id + '->')) {
+      sandboxDamageBonusMap.delete(key);
     }
   }
-});
 
-const ITERATIONS = 2000;
-const OUTPUT_DIR = 'scripts/simulations/missions';
+  const hpOf = (c: any) => (typeof c.hp === 'number' ? c.hp : c.hpCurrent ?? 0);
+  const maxHpOf = (c: any) => (typeof c.maxHp === 'number' ? c.maxHp : 100);
+
+  const scores = candidates.map(target => {
+    let score = 100;
+    const dist = GameMath.getHexDistance(attackerPos, target.position ?? 0);
+    const targetHpPct = hpOf(target) / maxHpOf(target);
+    
+    score -= dist * 10;
+
+    if (attacker.classId === 'TANK' || attacker.classId === 'WARRIOR') {
+      if (dist <= 1) score += 20;
+    } else if (attacker.classId === 'ROGUE' || attacker.classId === 'ARCHER' || attacker.classId === 'MAGE') {
+      if (target.classId !== 'TANK') score += 15;
+      if (targetHpPct < 0.5) score += 10;
+    }
+
+    switch (attacker.personality) {
+      case 'AGGRESSIVE':
+        if (targetHpPct < 0.3) {
+          score += 100;
+        } else if (targetHpPct <= 0.5) {
+          score += 40;
+        }
+        break;
+      case 'PROTECTOR':
+        if (context?.threats && target.id in context.threats) {
+          sandboxDamageBonusMap.set(attacker.id + '->' + target.id, 0.05);
+          const targetOfEnemy = context.threats[target.id];
+          if (context.alliesInDanger?.includes(targetOfEnemy)) {
+            score += 100;
+          }
+        }
+        break;
+      case 'CAUTIOUS':
+        const range = attacker.range ?? 1;
+        if (dist <= range) score += 30;
+        break;
+      case 'VENGEFUL':
+        if (target.id === context?.lastAttackerId) {
+          score += 200;
+          sandboxDamageBonusMap.set(attacker.id + '->' + target.id, 0.05);
+        }
+        break;
+      case 'OPPORTUNIST':
+        if (target.classId !== 'TANK') score += 20;
+        if (targetHpPct < 0.4) score += 30;
+        break;
+    }
+
+    return { target, score };
+  });
+
+  scores.sort((a, b) => b.score - a.score);
+  
+  const topCandidates = scores.slice(0, 2);
+  if (topCandidates.length > 1 && rng() < 0.2) {
+    return topCandidates[1].target;
+  }
+  return topCandidates[0]?.target;
+};
+
+BattleEngine.calculateAttack = function(attacker: any, target: any, baseHitChance: number, actorType: any, round: number, rng: () => number, distance: number = 1) {
+  const result = originalCalculateAttack.call(BattleEngine, attacker, target, baseHitChance, actorType, round, rng, distance);
+  
+  if (result && result.dmg > 0) {
+    const key = attacker.id + '->' + target.id;
+    const bonus = sandboxDamageBonusMap.get(key) || 0;
+    if (bonus > 0) {
+      const extraDmg = Math.max(1, Math.floor(result.dmg * bonus));
+      result.dmg += extraDmg;
+      result.action.amount = result.dmg;
+      result.action.text = `${attacker.name ?? attacker.id} causou ${result.dmg} de dano em ${target.name ?? target.id}${result.action.isCrit ? ' (CRÍTICO!)' : ''} (Bônus Personalidade)`;
+    }
+  }
+  return result;
+};
+
+// Aplica buff de inimigos SOMENTE na sandbox de forma isolada.
+// Objetivo: sandbox igual ao original, com a única diferença
+// sendo: +2 HP e +1 defesa nos inimigos da mission_1.
+const missionToBuff = MISSIONS.find(m => m.id === TARGET_MISSION_ID);
+if (!missionToBuff?.enemies) {
+  throw new Error(`Configuração inválida: mission_1 sem composição de inimigos em MISSIONS.`);
+}
+
+const originalEnemies = missionToBuff.enemies.map(e => ({ ...e }));
+missionToBuff.enemies = originalEnemies.map(e => ({
+  ...e,
+  hp: e.hp + 2,
+  defense: (e.defense ?? 0) + 1,
+}));
+
 const CLASSES = Object.keys(configProvider.getAllClassDefs()) as ClassId[];
 
 interface ProgressionStep {
@@ -76,7 +169,7 @@ function formatTable(data: Record<string, any>) {
 
 function runScenarios() {
   const startTime = Date.now();
-  const targetMission = 'mission_1';
+  const targetMission = TARGET_MISSION_ID;
 
   console.log(`======================================================`);
   console.log(`  SIMULAÇÃO SANDBOX - BALANCEAMENTO PROPOSTO`);
@@ -98,7 +191,6 @@ function runScenarios() {
     log(`  RELATÓRIO SANDBOX: ${mission.name.toUpperCase()} (${mission.id})`);
     log(`  Min Heróis: ${mission.minHeroes}`);
     log(`  Inimigos: ${mission.enemies?.map(e => `${e.count}x (HP:${e.hp} ATK:${e.atk})`).join(', ') || 'Template Padrão'}`);
-    log(`  Nota: Valores customizados via ConfigProvider`);
     log(`======================================================\n`);
 
     for (const step of steps) {
@@ -134,4 +226,9 @@ function runScenarios() {
   console.log(`======================================================\n`);
 }
 
-runScenarios();
+try {
+  runScenarios();
+} finally {
+  // Restaura para não contaminar futuras execuções no mesmo processo.
+  missionToBuff.enemies = originalEnemies;
+}

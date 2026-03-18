@@ -1,8 +1,7 @@
 ======================================================
   RELATÓRIO SANDBOX: PRIMEIRA PATRULHA (mission_1)
   Min Heróis: 1
-  Inimigos: 2x (HP:5 ATK:1)
-  Nota: Valores customizados via ConfigProvider
+  Inimigos: 2x (HP:7 ATK:1)
 ======================================================
 
 
@@ -11,36 +10,36 @@
 [Solos - Combinações Classe + Personalidade]
 | Classe/Grupo                                  | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
 | --------------------------------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Guerreiro (Sanguinário)                       | 99.5%              | 0.1%               | 0.4%               | 4.8                | 2.4                | 0.4%               |
-| Guerreiro (Guardião)                          | 99.8%              | 0.1%               | 0.2%               | 4.8                | 2.4                | 0.3%               |
-| Guerreiro (Prudente)                          | 99.5%              | 0.1%               | 0.4%               | 4.9                | 2.4                | 0.3%               |
-| Guerreiro (Vingativo)                         | 100.0%             | 0.0%               | 0.0%               | 4.7                | 2.2                | 0.0%               |
-| Guerreiro (Oportunista)                       | 99.7%              | 0.0%               | 0.3%               | 4.8                | 2.2                | 0.1%               |
-| Tanque (Sanguinário)                          | 97.6%              | 0.1%               | 2.4%               | 8.1                | 7.0                | 0.2%               |
-| Tanque (Guardião)                             | 81.9%              | 0.1%               | 18.0%              | 15.3               | 16.2               | 0.9%               |
-| Tanque (Prudente)                             | 96.8%              | 0.1%               | 3.1%               | 8.0                | 7.6                | 0.4%               |
-| Tanque (Vingativo)                            | 98.6%              | 0.1%               | 1.4%               | 7.9                | 7.5                | 0.4%               |
-| Tanque (Oportunista)                          | 95.3%              | 0.0%               | 4.7%               | 10.6               | 10.5               | 0.0%               |
-| Ladino (Sanguinário)                          | 99.9%              | 0.1%               | 0.0%               | 4.1                | 1.0                | 0.2%               |
-| Ladino (Guardião)                             | 99.9%              | 0.1%               | 0.1%               | 4.0                | 1.0                | 0.3%               |
-| Ladino (Prudente)                             | 99.9%              | 0.1%               | 0.1%               | 4.2                | 1.1                | 0.1%               |
-| Ladino (Vingativo)                            | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.0                | 0.0%               |
-| Ladino (Oportunista)                          | 99.9%              | 0.1%               | 0.0%               | 4.1                | 1.0                | 0.4%               |
-| Arqueiro (Sanguinário)                        | 99.7%              | 0.3%               | 0.0%               | 3.8                | 1.1                | 2.8%               |
-| Arqueiro (Guardião)                           | 99.9%              | 0.1%               | 0.0%               | 3.8                | 1.0                | 0.7%               |
-| Arqueiro (Prudente)                           | 99.9%              | 0.1%               | 0.0%               | 3.8                | 1.0                | 0.9%               |
-| Arqueiro (Vingativo)                          | 100.0%             | 0.1%               | 0.0%               | 3.7                | 1.0                | 0.1%               |
-| Arqueiro (Oportunista)                        | 100.0%             | 0.0%               | 0.0%               | 3.7                | 1.0                | 0.0%               |
-| Mago (Sanguinário)                            | 92.4%              | 7.6%               | 0.0%               | 5.9                | 2.3                | 27.5%              |
-| Mago (Guardião)                               | 99.9%              | 0.1%               | 0.0%               | 4.0                | 1.0                | 1.7%               |
-| Mago (Prudente)                               | 79.5%              | 20.5%              | 0.0%               | 3.5                | 0.5                | 100.0%             |
-| Mago (Vingativo)                              | 100.0%             | 0.0%               | 0.0%               | 3.8                | 0.9                | 0.1%               |
-| Mago (Oportunista)                            | 100.0%             | 0.0%               | 0.0%               | 3.8                | 0.9                | 0.0%               |
-| Curandeiro (Sanguinário)                      | 99.2%              | 0.4%               | 0.4%               | 9.6                | 5.5                | 0.7%               |
-| Curandeiro (Guardião)                         | 98.8%              | 0.4%               | 0.9%               | 9.6                | 5.4                | 0.5%               |
-| Curandeiro (Prudente)                         | 93.3%              | 1.4%               | 5.3%               | 14.6               | 9.5                | 4.3%               |
-| Curandeiro (Vingativo)                        | 99.7%              | 0.1%               | 0.3%               | 9.6                | 6.0                | 0.3%               |
-| Curandeiro (Oportunista)                      | 99.2%              | 0.5%               | 0.4%               | 9.6                | 5.5                | 0.7%               |
+| Guerreiro (Sanguinário)                       | 99.7%              | 0.1%               | 0.3%               | 4.8                | 2.4                | 0.1%               |
+| Guerreiro (Guardião)                          | 99.8%              | 0.0%               | 0.2%               | 4.8                | 2.2                | 0.1%               |
+| Guerreiro (Prudente)                          | 99.6%              | 0.0%               | 0.4%               | 4.8                | 2.3                | 0.0%               |
+| Guerreiro (Vingativo)                         | 100.0%             | 0.0%               | 0.0%               | 4.7                | 2.3                | 0.1%               |
+| Guerreiro (Oportunista)                       | 99.7%              | 0.1%               | 0.2%               | 4.8                | 2.4                | 0.2%               |
+| Tanque (Sanguinário)                          | 96.0%              | 0.3%               | 3.7%               | 10.3               | 10.7               | 1.0%               |
+| Tanque (Guardião)                             | 94.1%              | 0.0%               | 5.9%               | 10.4               | 9.8                | 0.0%               |
+| Tanque (Prudente)                             | 93.3%              | 0.0%               | 6.7%               | 10.3               | 10.6               | 0.9%               |
+| Tanque (Vingativo)                            | 97.1%              | 0.0%               | 2.9%               | 10.8               | 10.6               | 0.2%               |
+| Tanque (Oportunista)                          | 91.0%              | 0.1%               | 8.8%               | 13.0               | 12.9               | 0.9%               |
+| Ladino (Sanguinário)                          | 99.9%              | 0.0%               | 0.0%               | 4.2                | 1.1                | 0.1%               |
+| Ladino (Guardião)                             | 99.9%              | 0.1%               | 0.0%               | 4.1                | 1.0                | 0.2%               |
+| Ladino (Prudente)                             | 99.6%              | 0.3%               | 0.0%               | 4.1                | 1.0                | 0.6%               |
+| Ladino (Vingativo)                            | 100.0%             | 0.0%               | 0.0%               | 4.1                | 1.0                | 0.1%               |
+| Ladino (Oportunista)                          | 99.8%              | 0.1%               | 0.0%               | 4.2                | 1.1                | 0.4%               |
+| Arqueiro (Sanguinário)                        | 99.9%              | 0.1%               | 0.0%               | 3.8                | 1.0                | 1.1%               |
+| Arqueiro (Guardião)                           | 100.0%             | 0.0%               | 0.0%               | 4.9                | 1.9                | 0.0%               |
+| Arqueiro (Prudente)                           | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.9                | 0.0%               |
+| Arqueiro (Vingativo)                          | 100.0%             | 0.0%               | 0.0%               | 3.8                | 1.0                | 0.2%               |
+| Arqueiro (Oportunista)                        | 99.9%              | 0.1%               | 0.0%               | 3.8                | 1.0                | 0.6%               |
+| Mago (Sanguinário)                            | 100.0%             | 0.0%               | 0.0%               | 3.8                | 0.9                | 0.0%               |
+| Mago (Guardião)                               | 100.0%             | 0.0%               | 0.0%               | 5.1                | 1.8                | 0.0%               |
+| Mago (Prudente)                               | 95.7%              | 4.3%               | 0.0%               | 5.8                | 2.1                | 20.8%              |
+| Mago (Vingativo)                              | 100.0%             | 0.0%               | 0.0%               | 5.1                | 1.9                | 0.2%               |
+| Mago (Oportunista)                            | 100.0%             | 0.0%               | 0.0%               | 5.9                | 2.3                | 0.0%               |
+| Curandeiro (Sanguinário)                      | 98.7%              | 0.1%               | 1.2%               | 12.2               | 7.1                | 0.4%               |
+| Curandeiro (Guardião)                         | 99.3%              | 0.2%               | 0.5%               | 7.7                | 4.1                | 0.6%               |
+| Curandeiro (Prudente)                         | 97.8%              | 0.3%               | 1.9%               | 12.1               | 7.5                | 0.6%               |
+| Curandeiro (Vingativo)                        | 93.8%              | 4.9%               | 1.3%               | 13.3               | 9.0                | 11.1%              |
+| Curandeiro (Oportunista)                      | 99.4%              | 0.3%               | 0.3%               | 6.8                | 3.4                | 0.6%               |
 
 
 ### ESTÁGIO: 30 Minutos ###
@@ -48,36 +47,36 @@
 [Solos - Combinações Classe + Personalidade]
 | Classe/Grupo                                  | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
 | --------------------------------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Guerreiro (Sanguinário)                       | 99.7%              | 0.0%               | 0.4%               | 4.9                | 2.4                | 0.0%               |
-| Guerreiro (Guardião)                          | 99.7%              | 0.0%               | 0.3%               | 4.8                | 2.2                | 0.0%               |
-| Guerreiro (Prudente)                          | 99.8%              | 0.0%               | 0.2%               | 4.9                | 2.3                | 0.0%               |
-| Guerreiro (Vingativo)                         | 100.0%             | 0.0%               | 0.0%               | 4.7                | 2.2                | 0.0%               |
+| Guerreiro (Sanguinário)                       | 99.6%              | 0.0%               | 0.4%               | 4.8                | 2.2                | 0.0%               |
+| Guerreiro (Guardião)                          | 99.9%              | 0.0%               | 0.1%               | 4.8                | 2.3                | 0.0%               |
+| Guerreiro (Prudente)                          | 99.5%              | 0.0%               | 0.5%               | 4.8                | 2.3                | 0.0%               |
+| Guerreiro (Vingativo)                         | 100.0%             | 0.0%               | 0.0%               | 4.7                | 2.1                | 0.0%               |
 | Guerreiro (Oportunista)                       | 99.6%              | 0.0%               | 0.4%               | 4.8                | 2.4                | 0.0%               |
-| Tanque (Sanguinário)                          | 99.7%              | 0.0%               | 0.4%               | 4.9                | 3.3                | 0.0%               |
-| Tanque (Guardião)                             | 99.8%              | 0.0%               | 0.3%               | 4.9                | 3.2                | 0.0%               |
-| Tanque (Prudente)                             | 99.5%              | 0.0%               | 0.5%               | 4.9                | 3.5                | 0.0%               |
-| Tanque (Vingativo)                            | 100.0%             | 0.0%               | 0.1%               | 4.7                | 3.3                | 0.0%               |
-| Tanque (Oportunista)                          | 99.8%              | 0.0%               | 0.3%               | 4.8                | 3.4                | 0.0%               |
-| Ladino (Sanguinário)                          | 100.0%             | 0.0%               | 0.0%               | 4.0                | 0.9                | 0.0%               |
-| Ladino (Guardião)                             | 100.0%             | 0.0%               | 0.1%               | 4.0                | 0.9                | 0.0%               |
-| Ladino (Prudente)                             | 100.0%             | 0.0%               | 0.1%               | 4.0                | 1.0                | 0.0%               |
+| Tanque (Sanguinário)                          | 99.6%              | 0.0%               | 0.4%               | 4.9                | 3.3                | 0.0%               |
+| Tanque (Guardião)                             | 99.6%              | 0.0%               | 0.4%               | 4.8                | 3.3                | 0.0%               |
+| Tanque (Prudente)                             | 99.4%              | 0.0%               | 0.6%               | 4.8                | 3.6                | 0.0%               |
+| Tanque (Vingativo)                            | 100.0%             | 0.0%               | 0.0%               | 4.7                | 3.0                | 0.0%               |
+| Tanque (Oportunista)                          | 99.4%              | 0.0%               | 0.6%               | 4.9                | 3.2                | 0.0%               |
+| Ladino (Sanguinário)                          | 99.9%              | 0.0%               | 0.1%               | 4.1                | 1.1                | 0.0%               |
+| Ladino (Guardião)                             | 99.9%              | 0.0%               | 0.1%               | 4.0                | 1.0                | 0.0%               |
+| Ladino (Prudente)                             | 100.0%             | 0.0%               | 0.0%               | 4.0                | 0.9                | 0.0%               |
 | Ladino (Vingativo)                            | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.0                | 0.0%               |
-| Ladino (Oportunista)                          | 100.0%             | 0.0%               | 0.1%               | 4.0                | 1.0                | 0.0%               |
+| Ladino (Oportunista)                          | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.0                | 0.0%               |
 | Arqueiro (Sanguinário)                        | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.9                | 0.0%               |
 | Arqueiro (Guardião)                           | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.9                | 0.0%               |
-| Arqueiro (Prudente)                           | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.9                | 0.0%               |
-| Arqueiro (Vingativo)                          | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.9                | 0.0%               |
+| Arqueiro (Prudente)                           | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.8                | 0.0%               |
+| Arqueiro (Vingativo)                          | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.8                | 0.0%               |
 | Arqueiro (Oportunista)                        | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.9                | 0.0%               |
 | Mago (Sanguinário)                            | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.8                | 0.0%               |
-| Mago (Guardião)                               | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.7                | 0.0%               |
-| Mago (Prudente)                               | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.6                | 0.0%               |
-| Mago (Vingativo)                              | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.7                | 0.0%               |
-| Mago (Oportunista)                            | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.7                | 0.0%               |
+| Mago (Guardião)                               | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.7                | 0.0%               |
+| Mago (Prudente)                               | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.7                | 0.0%               |
+| Mago (Vingativo)                              | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.7                | 0.0%               |
+| Mago (Oportunista)                            | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.8                | 0.0%               |
 | Curandeiro (Sanguinário)                      | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.3                | 0.0%               |
-| Curandeiro (Guardião)                         | 100.0%             | 0.0%               | 0.1%               | 4.0                | 1.3                | 0.0%               |
-| Curandeiro (Prudente)                         | 99.9%              | 0.0%               | 0.1%               | 4.0                | 1.2                | 0.0%               |
-| Curandeiro (Vingativo)                        | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.2                | 0.0%               |
-| Curandeiro (Oportunista)                      | 100.0%             | 0.0%               | 0.1%               | 4.0                | 1.2                | 0.0%               |
+| Curandeiro (Guardião)                         | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.2                | 0.0%               |
+| Curandeiro (Prudente)                         | 99.9%              | 0.0%               | 0.1%               | 4.0                | 1.3                | 0.0%               |
+| Curandeiro (Vingativo)                        | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.3                | 0.0%               |
+| Curandeiro (Oportunista)                      | 99.9%              | 0.0%               | 0.1%               | 4.0                | 1.3                | 0.0%               |
 
 
 ### ESTÁGIO: 1 Hora ###
@@ -85,34 +84,34 @@
 [Solos - Combinações Classe + Personalidade]
 | Classe/Grupo                                  | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
 | --------------------------------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Guerreiro (Sanguinário)                       | 99.7%              | 0.0%               | 0.4%               | 4.9                | 2.5                | 0.0%               |
-| Guerreiro (Guardião)                          | 99.3%              | 0.0%               | 0.7%               | 4.8                | 2.5                | 0.0%               |
-| Guerreiro (Prudente)                          | 99.7%              | 0.0%               | 0.4%               | 4.8                | 2.4                | 0.0%               |
-| Guerreiro (Vingativo)                         | 100.0%             | 0.0%               | 0.0%               | 4.7                | 2.1                | 0.0%               |
-| Guerreiro (Oportunista)                       | 99.5%              | 0.0%               | 0.5%               | 4.8                | 2.4                | 0.0%               |
-| Tanque (Sanguinário)                          | 99.6%              | 0.0%               | 0.4%               | 4.8                | 3.3                | 0.0%               |
-| Tanque (Guardião)                             | 99.4%              | 0.0%               | 0.6%               | 4.8                | 3.0                | 0.0%               |
-| Tanque (Prudente)                             | 99.7%              | 0.0%               | 0.4%               | 5.0                | 3.8                | 0.0%               |
-| Tanque (Vingativo)                            | 100.0%             | 0.0%               | 0.0%               | 4.7                | 3.2                | 0.0%               |
-| Tanque (Oportunista)                          | 99.4%              | 0.0%               | 0.6%               | 4.8                | 3.4                | 0.0%               |
-| Ladino (Sanguinário)                          | 100.0%             | 0.0%               | 0.1%               | 4.0                | 0.9                | 0.0%               |
-| Ladino (Guardião)                             | 99.9%              | 0.0%               | 0.1%               | 4.0                | 1.0                | 0.0%               |
-| Ladino (Prudente)                             | 100.0%             | 0.0%               | 0.1%               | 4.0                | 1.0                | 0.0%               |
-| Ladino (Vingativo)                            | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.0                | 0.0%               |
-| Ladino (Oportunista)                          | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.1                | 0.0%               |
-| Arqueiro (Sanguinário)                        | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.9                | 0.0%               |
-| Arqueiro (Guardião)                           | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.8                | 0.0%               |
+| Guerreiro (Sanguinário)                       | 99.6%              | 0.0%               | 0.4%               | 4.8                | 2.4                | 0.0%               |
+| Guerreiro (Guardião)                          | 99.6%              | 0.0%               | 0.4%               | 4.9                | 2.2                | 0.0%               |
+| Guerreiro (Prudente)                          | 99.6%              | 0.0%               | 0.4%               | 4.9                | 2.5                | 0.0%               |
+| Guerreiro (Vingativo)                         | 100.0%             | 0.0%               | 0.0%               | 4.7                | 2.2                | 0.0%               |
+| Guerreiro (Oportunista)                       | 99.6%              | 0.0%               | 0.4%               | 4.9                | 2.3                | 0.0%               |
+| Tanque (Sanguinário)                          | 99.5%              | 0.0%               | 0.5%               | 4.8                | 3.4                | 0.0%               |
+| Tanque (Guardião)                             | 99.5%              | 0.0%               | 0.5%               | 4.9                | 3.6                | 0.0%               |
+| Tanque (Prudente)                             | 99.6%              | 0.0%               | 0.4%               | 4.8                | 3.5                | 0.0%               |
+| Tanque (Vingativo)                            | 99.9%              | 0.0%               | 0.1%               | 4.7                | 3.4                | 0.0%               |
+| Tanque (Oportunista)                          | 99.5%              | 0.0%               | 0.5%               | 4.8                | 3.2                | 0.0%               |
+| Ladino (Sanguinário)                          | 99.9%              | 0.0%               | 0.1%               | 4.0                | 1.0                | 0.0%               |
+| Ladino (Guardião)                             | 99.9%              | 0.0%               | 0.1%               | 4.0                | 0.9                | 0.0%               |
+| Ladino (Prudente)                             | 99.9%              | 0.0%               | 0.1%               | 4.0                | 0.9                | 0.0%               |
+| Ladino (Vingativo)                            | 100.0%             | 0.0%               | 0.0%               | 4.0                | 0.9                | 0.0%               |
+| Ladino (Oportunista)                          | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.0                | 0.0%               |
+| Arqueiro (Sanguinário)                        | 100.0%             | 0.0%               | 0.0%               | 3.7                | 0.9                | 0.0%               |
+| Arqueiro (Guardião)                           | 100.0%             | 0.0%               | 0.0%               | 3.6                | 1.0                | 0.0%               |
 | Arqueiro (Prudente)                           | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.9                | 0.0%               |
 | Arqueiro (Vingativo)                          | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.9                | 0.0%               |
 | Arqueiro (Oportunista)                        | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.9                | 0.0%               |
-| Mago (Sanguinário)                            | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.7                | 0.0%               |
-| Mago (Guardião)                               | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.8                | 0.0%               |
+| Mago (Sanguinário)                            | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.8                | 0.0%               |
+| Mago (Guardião)                               | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.7                | 0.0%               |
 | Mago (Prudente)                               | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.7                | 0.0%               |
-| Mago (Vingativo)                              | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.7                | 0.0%               |
-| Mago (Oportunista)                            | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.8                | 0.0%               |
-| Curandeiro (Sanguinário)                      | 100.0%             | 0.0%               | 0.1%               | 4.0                | 1.3                | 0.0%               |
-| Curandeiro (Guardião)                         | 99.9%              | 0.0%               | 0.1%               | 4.0                | 1.3                | 0.0%               |
-| Curandeiro (Prudente)                         | 99.9%              | 0.0%               | 0.1%               | 4.0                | 1.2                | 0.0%               |
+| Mago (Vingativo)                              | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.7                | 0.0%               |
+| Mago (Oportunista)                            | 100.0%             | 0.0%               | 0.0%               | 3.6                | 0.7                | 0.0%               |
+| Curandeiro (Sanguinário)                      | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.3                | 0.0%               |
+| Curandeiro (Guardião)                         | 99.8%              | 0.0%               | 0.2%               | 4.1                | 1.4                | 0.0%               |
+| Curandeiro (Prudente)                         | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.2                | 0.0%               |
 | Curandeiro (Vingativo)                        | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.3                | 0.0%               |
-| Curandeiro (Oportunista)                      | 99.9%              | 0.0%               | 0.1%               | 4.0                | 1.3                | 0.0%               |
+| Curandeiro (Oportunista)                      | 100.0%             | 0.0%               | 0.0%               | 4.0                | 1.3                | 0.0%               |
 
