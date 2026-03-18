@@ -10,7 +10,8 @@
     "test": "jest --config jest.unit.config.js",
     "test:unit": "jest --config jest.unit.config.js --runInBand",
     "test:all": "jest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "simulate": "npx ts-node --project tsconfig.json scripts/simulations/missions/battles.ts"
   },
   "dependencies": {
     "@expo/metro-runtime": "^55.0.6",
