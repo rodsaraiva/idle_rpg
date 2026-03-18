@@ -129,14 +129,13 @@ function runScenarios() {
       }
 
       // 2. Duplas
-      if (mission.minHeroes <= 2) {
-        const isMission1 = mission.id === 'mission_1';
+      if (mission.id !== 'mission_1' && mission.minHeroes <= 2) {
         process.stdout.write(`     ├─ Duplas (${duoCombos.length} combinações)... `);
         const duoResults: Record<string, any> = {};
         
         for (const combo of duoCombos) {
-          // Para Missão 1, vamos equalizar personalidades também (mesma para ambos no par para evitar explosão combinatória)
-          const personalitiesToTest = isMission1 ? PERSONALITY_LIST.map(p => p.id) : [undefined];
+          // Para outras missões, não equalizamos personalidades para evitar explosão
+          const personalitiesToTest = [undefined];
           
           for (const pId of personalitiesToTest) {
             const heroes = combo.map((classId, idx) => {
@@ -158,9 +157,11 @@ function runScenarios() {
             });
           }
         }
-        log(`[Duplas${isMission1 ? ' - Com Personalidades' : ''}]`);
+        log(`[Duplas]`);
         log(formatTable(duoResults));
         console.log(`Concluído`);
+      } else if (mission.id === 'mission_1') {
+        console.log(`     ├─ Duplas... Ignorado (Configuração da Missão 1)`);
       }
 
       // 3. Trios (Pular se for Missão 1)

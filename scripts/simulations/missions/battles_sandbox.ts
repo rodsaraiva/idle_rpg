@@ -122,33 +122,6 @@ function runScenarios() {
       log(`[Solos - Combinações Classe + Personalidade]`);
       log(formatTable(soloResults));
       console.log(`Concluído`);
-
-      // 2. Duplas
-      process.stdout.write(`     └─ Duplas... `);
-      const duoResults: Record<string, any> = {};
-      for (const combo of duoCombos) {
-        const personalitiesToTest = PERSONALITY_LIST.map(p => p.id);
-        for (const pId of personalitiesToTest) {
-          const heroes = combo.map((classId, idx) => {
-            const hero = generateTrainedHero(classId, { ms: step.ms, focus: getFocusForClass(classId), personality: pId as any });
-            hero.id = `hero_${idx}`;
-            return hero;
-          });
-          
-          let name = combo.map(c => configProvider.getClassDef(c).displayName).join(' + ');
-          const pName = PERSONALITY_LIST.find(p => p.id === pId)?.displayName;
-          name += ` [${pName}]`;
-
-          duoResults[name] = runMissionSimulation({
-            heroes,
-            missionId: mission.id,
-            iterations: ITERATIONS
-          });
-        }
-      }
-      log(`[Duplas - Com Personalidades]`);
-      log(formatTable(duoResults));
-      console.log(`Concluído`);
     }
 
     const fileName = path.join(OUTPUT_DIR, `mission_1_sandbox_results.txt`);
