@@ -4,10 +4,13 @@ import { CLASS_DEFS } from '../../src/constants/classes';
 import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR } from '../../src/constants/game';
 import { computePointsFromMs } from '../../src/utils/trainingMath';
 
+import { PersonalityId } from '../../src/types';
+
 export interface TrainingFocus {
   days?: number;
   ms?: number;
   focus: 'ATK' | 'HP' | 'MP' | 'BALANCED'; // BALANCED divide o tempo igualmente entre os 3
+  personality?: PersonalityId;
 }
 
 /**
@@ -18,6 +21,11 @@ export function generateTrainedHero(classId: ClassId, training: TrainingFocus): 
   // 1. Gera o herói base com variância e atributos da classe
   const hero = createHero(classId);
   const classDef = CLASS_DEFS[classId];
+
+  // Sobrescreve personalidade se fornecida
+  if (training.personality) {
+    hero.personality = training.personality;
+  }
 
   // 2. Calcula tempo total em ms
   let totalMs = 0;

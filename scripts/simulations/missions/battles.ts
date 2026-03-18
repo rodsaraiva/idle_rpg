@@ -5,6 +5,7 @@ import { MISSIONS, MissionTemplate } from '../../../src/constants/missions';
 import { ClassId } from '../../../src/types/index';
 import { generateTrainedHero } from '../../utils/trainedHeroGenerator';
 import { runMissionSimulation } from '../../utils/simulationRunner';
+import { PERSONALITY_LIST } from '../../../src/constants/personalities';
 
 const ITERATIONS = 10000;
 const OUTPUT_DIR = 'scripts/simulations/missions';
@@ -57,10 +58,10 @@ function formatTable(data: Record<string, any>) {
   if (keys.length === 0) return '';
   const columns = Object.keys(data[keys[0]]);
   let table = '';
-  table += `| ${'Classe/Grupo'.padEnd(35)} | ` + columns.map(c => c.padEnd(18)).join(' | ') + ' |\n';
-  table += `| ${'-'.repeat(35)} | ` + columns.map(c => '-'.repeat(18)).join(' | ') + ' |\n';
+  table += `| ${'Classe/Grupo'.padEnd(45)} | ` + columns.map(c => c.padEnd(18)).join(' | ') + ' |\n';
+  table += `| ${'-'.repeat(45)} | ` + columns.map(c => '-'.repeat(18)).join(' | ') + ' |\n';
   for (const key of keys) {
-    table += `| ${key.padEnd(35)} | ` + columns.map(col => String(data[key][col]).padEnd(18)).join(' | ') + ' |\n';
+    table += `| ${key.padEnd(45)} | ` + columns.map(col => String(data[key][col]).padEnd(18)).join(' | ') + ' |\n';
   }
   return table;
 }
@@ -94,45 +95,61 @@ function runScenarios() {
 
       // 1. Solos
       if (mission.minHeroes <= 1) {
-        process.stdout.write(`     ├─ Solos... `);
+        process.stdout.write(`     ├─ Solos (Equalizando Personalidades)... `);
         const soloResults: Record<string, any> = {};
         for (const classId of CLASSES) {
-          const hero = generateTrainedHero(classId, { ms: step.ms, focus: 'BALANCED' });
-          soloResults[CLASS_DEFS[classId].displayName] = runMissionSimulation({
-            heroes: [hero],
-            missionId: mission.id,
-            iterations: ITERATIONS
-          });
+          for (const personality of PERSONALITY_LIST) {
+            const hero = generateTrainedHero(classId, { ms: step.ms, focus: 'BALANCED', personality: personality.id });
+            const key = `${CLASS_DEFS[classId].displayName} (${personality.displayName})`;
+            soloResults[key] = runMissionSimulation({
+              heroes: [hero],
+              missionId: mission.id,
+              iterations: ITERATIONS
+            });
+          }
         }
-        log(`[Solos]`);
+        log(`[Solos - Combinações Classe + Personalidade]`);
         log(formatTable(soloResults));
         console.log(`Concluído`);
       }
 
       // 2. Duplas
       if (mission.minHeroes <= 2) {
+        const isMission1 = mission.id === 'mission_1';
         process.stdout.write(`     ├─ Duplas (${duoCombos.length} combinações)... `);
         const duoResults: Record<string, any> = {};
+        
         for (const combo of duoCombos) {
-          const heroes = combo.map((classId, idx) => {
-            const hero = generateTrainedHero(classId, { ms: step.ms, focus: getFocusForClass(classId) });
-            hero.id = `hero_${idx}`;
-            return hero;
-          });
-          const name = combo.map(c => CLASS_DEFS[c].displayName).join(' + ');
-          duoResults[name] = runMissionSimulation({
-            heroes,
-            missionId: mission.id,
-            iterations: ITERATIONS
-          });
+          // Para Missão 1, vamos equalizar personalidades também (mesma para ambos no par para evitar explosão combinatória)
+          const personalitiesToTest = isMission1 ? PERSONALITY_LIST.map(p => p.id) : [undefined];
+          
+          for (const pId of personalitiesToTest) {
+            const heroes = combo.map((classId, idx) => {
+              const hero = generateTrainedHero(classId, { ms: step.ms, focus: getFocusForClass(classId), personality: pId as any });
+              hero.id = `hero_${idx}`;
+              return hero;
+            });
+            
+            let name = combo.map(c => CLASS_DEFS[c].displayName).join(' + ');
+            if (pId) {
+              const pName = PERSONALITY_LIST.find(p => p.id === pId)?.displayName;
+              name += ` [${pName}]`;
+            }
+
+            duoResults[name] = runMissionSimulation({
+              heroes,
+              missionId: mission.id,
+              iterations: ITERATIONS
+            });
+          }
         }
-        log(`[Duplas]`);
+        log(`[Duplas${isMission1 ? ' - Com Personalidades' : ''}]`);
         log(formatTable(duoResults));
         console.log(`Concluído`);
       }
 
-      // 3. Trios
-      if (mission.minHeroes <= 3) {
+      // 3. Trios (Pular se for Missão 1)
+      if (mission.id !== 'mission_1' && mission.minHeroes <= 3) {
         process.stdout.write(`     └─ Trios (${trioCombos.length} combinações)... `);
         const trioResults: Record<string, any> = {};
         for (const combo of trioCombos) {
@@ -151,6 +168,8 @@ function runScenarios() {
         log(`[Trios]`);
         log(formatTable(trioResults));
         console.log(`Concluído`);
+      } else if (mission.id === 'mission_1') {
+        console.log(`     └─ Trios... Ignorado (Configuração da Missão 1)`);
       }
     }
 
