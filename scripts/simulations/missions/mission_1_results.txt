@@ -1,0 +1,48 @@
+======================================================
+  RELATÓRIO DE BALANCEAMENTO: PRIMEIRA PATRULHA (mission_1)
+  Dificuldade: 1
+  Min Heróis: 1
+======================================================
+
+
+[ESTÁGIO] Solo - Dia 0 (Recém Recrutado)
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro            | 99.2%              | 0.6%               | 0.2%               | 5.1                | 3.0                | 0.9%               |
+| Tanque               | 95.3%              | 0.1%               | 4.6%               | 10.5               | 10.2               | 0.1%               |
+| Ladino               | 99.8%              | 0.1%               | 0.1%               | 4.0                | 0.9                | 0.3%               |
+| Arqueiro             | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.7                | 0.0%               |
+| Mago                 | 100.0%             | 0.0%               | 0.0%               | 3.7                | 0.9                | 0.0%               |
+| Curandeiro           | 99.4%              | 0.1%               | 0.5%               | 6.8                | 3.5                | 0.1%               |
+
+
+[ESTÁGIO] Solo - Dia 3 (Treino Balanceado)
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro            | 99.7%              | 0.0%               | 0.3%               | 4.8                | 2.4                | 0.0%               |
+| Tanque               | 99.6%              | 0.0%               | 0.4%               | 4.9                | 3.6                | 0.0%               |
+| Ladino               | 100.0%             | 0.0%               | 0.0%               | 3.9                | 0.7                | 0.0%               |
+| Arqueiro             | 100.0%             | 0.0%               | 0.0%               | 3.5                | 0.6                | 0.0%               |
+| Mago                 | 100.0%             | 0.0%               | 0.0%               | 3.3                | 0.6                | 0.0%               |
+| Curandeiro           | 100.0%             | 0.0%               | 0.0%               | 3.9                | 1.3                | 0.0%               |
+
+
+[ESTÁGIO] Duo - Dia 7 (Sinergia Básica)
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Tanque + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 3.4                | 1.3                | 0.0%               |
+
+
+[ESTÁGIO] Trio - Dia 14 (Sinergia Clássica)
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Tanque + Curandeiro + Mago | 100.0%             | 0.0%               | 0.0%               | 2.8                | 0.7                | 0.0%               |
+
+
+Legenda:
+- Win Rate: Taxa de vitória do grupo.
+- Loss Rate: Taxa de derrota do grupo.
+- Timeout Rate: Batalhas que atingiram o limite de rounds.
+- Avg Rounds (Win): Média de rounds para vencer.
+- Avg HP Lost (Win): HP total perdido pelo grupo em vitórias.
+- Incapacitated Rate: Porcentagem de heróis do grupo com HP < 3 após a missão.

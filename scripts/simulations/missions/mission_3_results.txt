@@ -1,0 +1,48 @@
+======================================================
+  RELATÓRIO DE BALANCEAMENTO: ASSALTO À CARAVANA (mission_3)
+  Dificuldade: 3
+  Min Heróis: 3
+======================================================
+
+
+[ESTÁGIO] Solo - Dia 0 (Recém Recrutado)
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro            | 37.9%              | 62.0%              | 0.1%               | 8.5                | 14.6               | 68.5%              |
+| Tanque               | 0.0%               | 99.2%              | 0.8%               | -                  | -                  | 99.9%              |
+| Ladino               | 73.6%              | 26.4%              | 0.0%               | 9.5                | 8.3                | 35.7%              |
+| Arqueiro             | 94.1%              | 5.9%               | 0.0%               | 7.0                | 6.5                | 11.6%              |
+| Mago                 | 1.2%               | 98.8%              | 0.0%               | 10.9               | 5.8                | 99.5%              |
+| Curandeiro           | 29.1%              | 70.8%              | 0.1%               | 13.4               | 19.1               | 77.3%              |
+
+
+[ESTÁGIO] Solo - Dia 3 (Treino Balanceado)
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Guerreiro            | 70.9%              | 0.9%               | 28.2%              | 10.6               | 22.9               | 1.1%               |
+| Tanque               | 72.7%              | 5.4%               | 21.9%              | 10.2               | 28.3               | 6.6%               |
+| Ladino               | 93.6%              | 0.0%               | 6.4%               | 8.3                | 8.2                | 0.0%               |
+| Arqueiro             | 100.0%             | 0.0%               | 0.0%               | 7.1                | 6.8                | 0.0%               |
+| Mago                 | 100.0%             | 0.0%               | 0.0%               | 7.0                | 8.0                | 0.0%               |
+| Curandeiro           | 92.7%              | 0.0%               | 7.3%               | 8.2                | 12.8               | 0.0%               |
+
+
+[ESTÁGIO] Duo - Dia 7 (Sinergia Básica)
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Tanque + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 6.8                | 13.2               | 0.4%               |
+
+
+[ESTÁGIO] Trio - Dia 14 (Sinergia Clássica)
+| Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
+| -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
+| Tanque + Curandeiro + Mago | 100.0%             | 0.0%               | 0.0%               | 7.7                | 16.1               | 0.0%               |
+
+
+Legenda:
+- Win Rate: Taxa de vitória do grupo.
+- Loss Rate: Taxa de derrota do grupo.
+- Timeout Rate: Batalhas que atingiram o limite de rounds.
+- Avg Rounds (Win): Média de rounds para vencer.
+- Avg HP Lost (Win): HP total perdido pelo grupo em vitórias.
+- Incapacitated Rate: Porcentagem de heróis do grupo com HP < 3 após a missão.
