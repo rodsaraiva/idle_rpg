@@ -66,6 +66,7 @@ function formatTable(data: Record<string, any>) {
 }
 
 function runScenarios() {
+  const startTime = Date.now();
   console.log(`======================================================`);
   console.log(`  FRAMEWORK DE SIMULAÇÃO DE BALANCEAMENTO (v2)`);
   console.log(`  Iterações: ${ITERATIONS}`);
@@ -76,6 +77,7 @@ function runScenarios() {
   const trioCombos = getCombinationsWithReplacement(CLASSES, 3);
 
   for (const mission of MISSIONS) {
+    console.log(`\n>>> Iniciando Missão: ${mission.name.toUpperCase()} (${mission.id})`);
     let output = '';
     const log = (msg: string) => output += msg + '\n';
     const steps = MISSION_PROGRESSION[mission.id] || MISSION_PROGRESSION['default'];
@@ -87,11 +89,12 @@ function runScenarios() {
     log(`======================================================\n`);
 
     for (const step of steps) {
+      console.log(`  └─ Estágio: ${step.label}`);
       log(`\n### ESTÁGIO: ${step.label} ###\n`);
 
       // 1. Solos
       if (mission.minHeroes <= 1) {
-        log(`[Solos]`);
+        process.stdout.write(`     ├─ Solos... `);
         const soloResults: Record<string, any> = {};
         for (const classId of CLASSES) {
           const hero = generateTrainedHero(classId, { ms: step.ms, focus: 'BALANCED' });
@@ -101,12 +104,14 @@ function runScenarios() {
             iterations: ITERATIONS
           });
         }
+        log(`[Solos]`);
         log(formatTable(soloResults));
+        console.log(`Concluído`);
       }
 
       // 2. Duplas
       if (mission.minHeroes <= 2) {
-        log(`[Duplas]`);
+        process.stdout.write(`     ├─ Duplas (${duoCombos.length} combinações)... `);
         const duoResults: Record<string, any> = {};
         for (const combo of duoCombos) {
           const heroes = combo.map((classId, idx) => {
@@ -121,12 +126,14 @@ function runScenarios() {
             iterations: ITERATIONS
           });
         }
+        log(`[Duplas]`);
         log(formatTable(duoResults));
+        console.log(`Concluído`);
       }
 
       // 3. Trios
       if (mission.minHeroes <= 3) {
-        log(`[Trios]`);
+        process.stdout.write(`     └─ Trios (${trioCombos.length} combinações)... `);
         const trioResults: Record<string, any> = {};
         for (const combo of trioCombos) {
           const heroes = combo.map((classId, idx) => {
@@ -141,7 +148,9 @@ function runScenarios() {
             iterations: ITERATIONS
           });
         }
+        log(`[Trios]`);
         log(formatTable(trioResults));
+        console.log(`Concluído`);
       }
     }
 
@@ -155,8 +164,12 @@ function runScenarios() {
 
     const fileName = path.join(OUTPUT_DIR, `${mission.id}_results.txt`);
     fs.writeFileSync(fileName, output);
-    console.log(`Relatório v2 gerado: ${fileName}`);
+    console.log(`  └─ Relatório gerado: ${fileName}`);
   }
+  const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+  console.log(`\n======================================================`);
+  console.log(`  Simulação concluída em ${duration}s!`);
+  console.log(`======================================================\n`);
 }
 
 try {
