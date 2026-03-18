@@ -8,35 +8,41 @@
 [ESTÁGIO] Solo - Dia 0 (Recém Recrutado)
 | Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
 | -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Guerreiro            | 37.9%              | 62.0%              | 0.1%               | 8.5                | 14.6               | 68.5%              |
-| Tanque               | 0.0%               | 99.2%              | 0.8%               | -                  | -                  | 99.9%              |
-| Ladino               | 73.6%              | 26.4%              | 0.0%               | 9.5                | 8.3                | 35.7%              |
-| Arqueiro             | 94.1%              | 5.9%               | 0.0%               | 7.0                | 6.5                | 11.6%              |
-| Mago                 | 1.2%               | 98.8%              | 0.0%               | 10.9               | 5.8                | 99.5%              |
-| Curandeiro           | 29.1%              | 70.8%              | 0.1%               | 13.4               | 19.1               | 77.3%              |
+| Guerreiro            | 15.1%              | 84.9%              | 0.0%               | 10.0               | 13.7               | 89.2%              |
+| Tanque               | 0.0%               | 99.2%              | 0.8%               | -                  | -                  | 99.6%              |
+| Ladino               | 60.5%              | 39.2%              | 0.3%               | 8.9                | 6.7                | 50.4%              |
+| Arqueiro             | 88.5%              | 11.5%              | 0.0%               | 6.9                | 5.7                | 26.1%              |
+| Mago                 | 1.3%               | 98.7%              | 0.0%               | 11.1               | 5.9                | 99.5%              |
+| Curandeiro           | 10.1%              | 87.8%              | 2.1%               | 17.4               | 22.3               | 91.2%              |
 
 
 [ESTÁGIO] Solo - Dia 3 (Treino Balanceado)
 | Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
 | -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Guerreiro            | 70.9%              | 0.9%               | 28.2%              | 10.6               | 22.9               | 1.1%               |
-| Tanque               | 72.7%              | 5.4%               | 21.9%              | 10.2               | 28.3               | 6.6%               |
-| Ladino               | 93.6%              | 0.0%               | 6.4%               | 8.3                | 8.2                | 0.0%               |
-| Arqueiro             | 100.0%             | 0.0%               | 0.0%               | 7.1                | 6.8                | 0.0%               |
-| Mago                 | 100.0%             | 0.0%               | 0.0%               | 7.0                | 8.0                | 0.0%               |
-| Curandeiro           | 92.7%              | 0.0%               | 7.3%               | 8.2                | 12.8               | 0.0%               |
+| Guerreiro            | 69.5%              | 1.0%               | 29.5%              | 10.7               | 22.6               | 1.6%               |
+| Tanque               | 79.9%              | 8.3%               | 11.8%              | 10.6               | 28.3               | 8.9%               |
+| Ladino               | 94.1%              | 0.0%               | 5.9%               | 8.3                | 7.3                | 0.0%               |
+| Arqueiro             | 99.9%              | 0.0%               | 0.1%               | 7.1                | 7.1                | 0.0%               |
+| Mago                 | 100.0%             | 0.0%               | 0.0%               | 6.9                | 8.0                | 0.0%               |
+| Curandeiro           | 94.1%              | 0.0%               | 5.9%               | 8.1                | 12.1               | 0.0%               |
 
 
-[ESTÁGIO] Duo - Dia 7 (Sinergia Básica)
+[ESTÁGIO] Duplas - Dia 7 (Treino Especializado)
 | Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
 | -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Tanque + Arqueiro    | 100.0%             | 0.0%               | 0.0%               | 6.8                | 13.2               | 0.4%               |
+| Tank + Healer (Sustentação) | 93.5%              | 0.0%               | 6.5%               | 11.2               | 29.6               | 0.0%               |
+| Warrior + Rogue (Agressivo Melee) | 99.8%              | 0.1%               | 0.1%               | 5.7                | 6.8                | 0.5%               |
+| Mage + Archer (Dano à Distância) | 98.8%              | 1.2%               | 0.0%               | 6.3                | 5.7                | 25.7%              |
+| Tank + Archer (Equilibrado) | 100.0%             | 0.0%               | 0.0%               | 6.9                | 12.8               | 1.1%               |
 
 
-[ESTÁGIO] Trio - Dia 14 (Sinergia Clássica)
+[ESTÁGIO] Trios - Dia 14 (Treino Especializado)
 | Classe/Grupo         | winRate            | lossRate           | timeoutRate        | avgRoundsWin       | avgHpLostWin       | incapacitatedRate  |
 | -------------------- | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ | ------------------ |
-| Tanque + Curandeiro + Mago | 100.0%             | 0.0%               | 0.0%               | 7.7                | 16.1               | 0.0%               |
+| Tank + Healer + Mage (Clássico) | 100.0%             | 0.0%               | 0.0%               | 8.7                | 19.0               | 0.0%               |
+| Tank + Warrior + Healer (Linha de Frente) | 99.1%              | 0.0%               | 0.9%               | 8.2                | 16.6               | 0.0%               |
+| Warrior + Rogue + Archer (Dano Total) | 100.0%             | 0.0%               | 0.0%               | 4.1                | 3.3                | 0.0%               |
+| Tank + Rogue + Mage (Controle e Dano) | 100.0%             | 0.0%               | 0.0%               | 6.2                | 12.0               | 1.1%               |
 
 
 Legenda:

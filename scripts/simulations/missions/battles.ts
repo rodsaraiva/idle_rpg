@@ -24,20 +24,27 @@ const STAGES: ProgressionStage[] = [
     heroes: [{ classId: 'WARRIOR', focus: 'BALANCED', days: 3 }]
   },
   {
-    name: 'Duo - Dia 7 (Sinergia Básica)',
-    heroes: [
-      { classId: 'TANK', focus: 'HP', days: 7 },
-      { classId: 'ARCHER', focus: 'ATK', days: 7 }
-    ]
+    name: 'Duplas - Dia 7 (Treino Especializado)',
+    heroes: [] // Marcador para rodar múltiplas combinações
   },
   {
-    name: 'Trio - Dia 14 (Sinergia Clássica)',
-    heroes: [
-      { classId: 'TANK', focus: 'HP', days: 14 },
-      { classId: 'HEALER', focus: 'MP', days: 14 },
-      { classId: 'MAGE', focus: 'MP', days: 14 }
-    ]
+    name: 'Trios - Dia 14 (Treino Especializado)',
+    heroes: [] // Marcador para rodar múltiplas combinações
   }
+];
+
+const DUO_CONFIGS = [
+  { name: 'Tank + Healer (Sustentação)', heroes: [{ classId: 'TANK', focus: 'HP' }, { classId: 'HEALER', focus: 'MP' }] },
+  { name: 'Warrior + Rogue (Agressivo Melee)', heroes: [{ classId: 'WARRIOR', focus: 'ATK' }, { classId: 'ROGUE', focus: 'ATK' }] },
+  { name: 'Mage + Archer (Dano à Distância)', heroes: [{ classId: 'MAGE', focus: 'MP' }, { classId: 'ARCHER', focus: 'ATK' }] },
+  { name: 'Tank + Archer (Equilibrado)', heroes: [{ classId: 'TANK', focus: 'HP' }, { classId: 'ARCHER', focus: 'ATK' }] },
+];
+
+const TRIO_CONFIGS = [
+  { name: 'Tank + Healer + Mage (Clássico)', heroes: [{ classId: 'TANK', focus: 'HP' }, { classId: 'HEALER', focus: 'MP' }, { classId: 'MAGE', focus: 'MP' }] },
+  { name: 'Tank + Warrior + Healer (Linha de Frente)', heroes: [{ classId: 'TANK', focus: 'HP' }, { classId: 'WARRIOR', focus: 'ATK' }, { classId: 'HEALER', focus: 'MP' }] },
+  { name: 'Warrior + Rogue + Archer (Dano Total)', heroes: [{ classId: 'WARRIOR', focus: 'ATK' }, { classId: 'ROGUE', focus: 'ATK' }, { classId: 'ARCHER', focus: 'ATK' }] },
+  { name: 'Tank + Rogue + Mage (Controle e Dano)', heroes: [{ classId: 'TANK', focus: 'HP' }, { classId: 'ROGUE', focus: 'ATK' }, { classId: 'MAGE', focus: 'MP' }] },
 ];
 
 function runScenarios() {
@@ -61,30 +68,43 @@ function runScenarios() {
       logToMission(`\n[ESTÁGIO] ${stage.name}`);
       const results: Record<string, any> = {};
 
-      if (stage.heroes.length === 1) {
+      if (stage.name.startsWith('Solo')) {
         // Solo stage: run for all classes
+        const days = stage.name.includes('Dia 3') ? 3 : 0;
         for (const classId of Object.keys(CLASS_DEFS) as ClassId[]) {
-          const hero = generateTrainedHero(classId, { days: stage.heroes[0].days, focus: stage.heroes[0].focus });
+          const hero = generateTrainedHero(classId, { days, focus: 'BALANCED' });
           results[CLASS_DEFS[classId].displayName] = runMissionSimulation({
             heroes: [hero],
             missionId: mission.id,
             iterations: ITERATIONS
           });
         }
-      } else {
-        // Group stage: run defined composition
-        const heroes = stage.heroes.map((h, idx) => {
-          const hero = generateTrainedHero(h.classId, { days: h.days, focus: h.focus });
-          hero.id = `hero_${idx}`; // Unique IDs
-          return hero;
-        });
-
-        const groupName = stage.heroes.map(h => CLASS_DEFS[h.classId].displayName).join(' + ');
-        results[groupName] = runMissionSimulation({
-          heroes,
-          missionId: mission.id,
-          iterations: ITERATIONS
-        });
+      } else if (stage.name.startsWith('Duplas')) {
+        for (const config of DUO_CONFIGS) {
+          const heroes = config.heroes.map((h, idx) => {
+            const hero = generateTrainedHero(h.classId as ClassId, { days: 7, focus: h.focus as any });
+            hero.id = `hero_${idx}`;
+            return hero;
+          });
+          results[config.name] = runMissionSimulation({
+            heroes,
+            missionId: mission.id,
+            iterations: ITERATIONS
+          });
+        }
+      } else if (stage.name.startsWith('Trios')) {
+        for (const config of TRIO_CONFIGS) {
+          const heroes = config.heroes.map((h, idx) => {
+            const hero = generateTrainedHero(h.classId as ClassId, { days: 14, focus: h.focus as any });
+            hero.id = `hero_${idx}`;
+            return hero;
+          });
+          results[config.name] = runMissionSimulation({
+            heroes,
+            missionId: mission.id,
+            iterations: ITERATIONS
+          });
+        }
       }
 
       logToMission(formatTable(results));
