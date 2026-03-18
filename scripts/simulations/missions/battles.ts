@@ -68,16 +68,31 @@ function formatTable(data: Record<string, any>) {
 
 function runScenarios() {
   const startTime = Date.now();
+  const args = process.argv.slice(2);
+  const targetMission = args.find(a => a.startsWith('--mission='))?.split('=')[1];
+
   console.log(`======================================================`);
   console.log(`  FRAMEWORK DE SIMULAÇÃO DE BALANCEAMENTO (v2)`);
   console.log(`  Iterações: ${ITERATIONS}`);
   console.log(`  Data: ${new Date().toLocaleString()}`);
+  if (targetMission) {
+    console.log(`  Foco: Apenas Missão ${targetMission}`);
+  }
   console.log(`======================================================\n`);
 
   const duoCombos = getCombinationsWithReplacement(CLASSES, 2);
   const trioCombos = getCombinationsWithReplacement(CLASSES, 3);
 
-  for (const mission of MISSIONS) {
+  const missionsToRun = targetMission 
+    ? MISSIONS.filter(m => m.id === targetMission || m.id === `mission_${targetMission}`)
+    : MISSIONS;
+
+  if (missionsToRun.length === 0) {
+    console.error(`Erro: Nenhuma missão encontrada para o filtro "${targetMission}"`);
+    return;
+  }
+
+  for (const mission of missionsToRun) {
     console.log(`\n>>> Iniciando Missão: ${mission.name.toUpperCase()} (${mission.id})`);
     let output = '';
     const log = (msg: string) => output += msg + '\n';
