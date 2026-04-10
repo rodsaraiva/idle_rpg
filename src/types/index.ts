@@ -4,9 +4,6 @@ export enum HeroTask {
   TRAIN_HP = 'TRAIN_HP',
   TRAIN_ATK = 'TRAIN_ATK',
   TRAIN_MP = 'TRAIN_MP',
-  TRAIN_DEF = 'TRAIN_DEF',
-  TRAIN_CRIT = 'TRAIN_CRIT',
-  TRAIN_AGI = 'TRAIN_AGI',
   INFIRMARY = 'INFIRMARY',
   MISSION = 'MISSION',
 }
@@ -53,18 +50,12 @@ export interface TrainingProgress {
   hp: number; // ms
   atk: number;
   mp: number;
-  defense: number;
-  crit: number;
-  agility: number;
 }
 
 export interface TrainingCount {
   hp: number; // points gained via training
   atk: number;
   mp: number;
-  defense: number;
-  crit: number;
-  agility: number;
 }
 
 /** Estado global do jogo */

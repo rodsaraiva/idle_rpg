@@ -10,9 +10,6 @@ export const BASE_TRAIN_TIME_MS = 10000;
 /** Fator de inflação logarítmica por ponto (k = 0.5) */
 export const TRAIN_INFLATION_FACTOR = 0.5;
 
-/** Multiplicador de velocidade de treino para stats secundários (DEF, CRIT, AGI) */
-export const SECONDARY_STAT_TRAIN_SPEED = 0.7;
-
 /** HP regen: amount and interval */
 export const HP_REGEN_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
 export const HP_REGEN_AMOUNT = 1;

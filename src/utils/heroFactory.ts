@@ -45,7 +45,7 @@ export function createHero(classId?: ClassId, variance?: { mean: number; stdDev:
     attackType: classDef?.attackType ?? 'MELEE',
     range: classDef?.range ?? 1,
     // training progress in milliseconds and counts for inflation
-    trainingProgressMs: { hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0 },
-    trainingCount: { hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0 },
+    trainingProgressMs: { hp: 0, atk: 0, mp: 0 },
+    trainingCount: { hp: 0, atk: 0, mp: 0 },
   };
 }

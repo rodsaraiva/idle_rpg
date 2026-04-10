@@ -9,7 +9,6 @@ import {
   MISSION_FINISH_DELAY_MS,
   TICK_INTERVAL_MS,
   TRAIN_INFLATION_FACTOR,
-  SECONDARY_STAT_TRAIN_SPEED
 } from '../constants/game';
 import { configProvider } from '../services/configProvider';
 import { MISSIONS } from '../constants/missions';
@@ -22,32 +21,24 @@ function processTraining(heroes: Hero[], tickMs: number, inflation: number): Her
     switch (hero.currentTask) {
       case HeroTask.TRAIN_HP:
       case HeroTask.TRAIN_ATK:
-      case HeroTask.TRAIN_MP:
-      case HeroTask.TRAIN_DEF:
-      case HeroTask.TRAIN_CRIT:
-      case HeroTask.TRAIN_AGI: {
+      case HeroTask.TRAIN_MP: {
         const statKey = hero.currentTask === HeroTask.TRAIN_HP ? 'hp' :
-                        hero.currentTask === HeroTask.TRAIN_ATK ? 'atk' :
-                        hero.currentTask === HeroTask.TRAIN_MP ? 'mp' :
-                        hero.currentTask === HeroTask.TRAIN_DEF ? 'defense' :
-                        hero.currentTask === HeroTask.TRAIN_CRIT ? 'crit' : 'agility';
+                        hero.currentTask === HeroTask.TRAIN_ATK ? 'atk' : 'mp';
 
-        const isSecondary = statKey === 'defense' || statKey === 'crit' || statKey === 'agility';
         const progress = (hero.trainingProgressMs?.[statKey] ?? 0) + tickMs;
         let remaining = progress;
         let count = (hero.trainingCount?.[statKey] ?? 0);
 
         const classDef = hero.classId ? configProvider.getClassDef(hero.classId) : undefined;
         const classSpeed = classDef?.trainSpeed?.[statKey] ?? 1;
-        const secondaryMult = isSecondary ? SECONDARY_STAT_TRAIN_SPEED : 1;
-        let timePerPoint = (BASE_TRAIN_TIME_MS * (1 + inflation * Math.log(count + 1))) / (classSpeed * secondaryMult);
+        let timePerPoint = (BASE_TRAIN_TIME_MS * (1 + inflation * Math.log(count + 1))) / classSpeed;
 
         let pointsGained = 0;
         while (remaining >= timePerPoint) {
           remaining -= timePerPoint;
           pointsGained += 1;
           count += 1;
-          timePerPoint = (BASE_TRAIN_TIME_MS * (1 + inflation * Math.log(count + 1))) / (classSpeed * secondaryMult);
+          timePerPoint = (BASE_TRAIN_TIME_MS * (1 + inflation * Math.log(count + 1))) / classSpeed;
         }
 
         if (statKey === 'hp') {
@@ -57,17 +48,11 @@ function processTraining(heroes: Hero[], tickMs: number, inflation: number): Her
           newHero.hpCurrent = pointsGained > 0 ? Math.min(newHero.hpMax, prevCurrent + pointsGained) : Math.min(prevCurrent, newHero.hpMax);
         } else if (statKey === 'atk') {
           newHero.atk += pointsGained;
-        } else if (statKey === 'mp') {
-          newHero.mp += pointsGained;
-        } else if (statKey === 'defense') {
-          newHero.defense += pointsGained;
-        } else if (statKey === 'crit') {
-          newHero.crit += pointsGained;
         } else {
-          newHero.agility += pointsGained;
+          newHero.mp += pointsGained;
         }
 
-        const defaultProgress = { hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0 };
+        const defaultProgress = { hp: 0, atk: 0, mp: 0 };
         newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? defaultProgress), [statKey]: remaining };
         newHero.trainingCount = { ...(hero.trainingCount ?? defaultProgress), [statKey]: count };
         return newHero;

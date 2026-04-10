@@ -22,24 +22,6 @@ export function getHeroActions(hero: Hero, setHeroTask: (id: string, task: HeroT
       onPress: () => setHeroTask(hero.id, HeroTask.TRAIN_MP),
     },
     {
-      label: 'Treinar DEF',
-      isActive: hero.currentTask === HeroTask.TRAIN_DEF,
-      color: theme.colors.border,
-      onPress: () => setHeroTask(hero.id, HeroTask.TRAIN_DEF),
-    },
-    {
-      label: 'Treinar CRIT',
-      isActive: hero.currentTask === HeroTask.TRAIN_CRIT,
-      color: theme.colors.gold,
-      onPress: () => setHeroTask(hero.id, HeroTask.TRAIN_CRIT),
-    },
-    {
-      label: 'Treinar AGI',
-      isActive: hero.currentTask === HeroTask.TRAIN_AGI,
-      color: theme.colors.success,
-      onPress: () => setHeroTask(hero.id, HeroTask.TRAIN_AGI),
-    },
-    {
       label: 'Descansar',
       isActive: hero.currentTask === HeroTask.IDLE,
       color: theme.colors.textMuted,

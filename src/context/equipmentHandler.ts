@@ -6,10 +6,11 @@ function generateEquipment(tier: number): Equipment {
   const template = EQUIPMENT_TEMPLATES[Math.floor(Math.random() * EQUIPMENT_TEMPLATES.length)];
   const name = template.names[Math.floor(Math.random() * template.names.length)];
   const tierDef = EQUIPMENT_TIERS.find(t => t.tier === tier)!;
-  const statBonus: any = {};
+  const statBonus: Record<string, number> = {};
   for (const sr of template.statRange) {
-    const range = sr.max - sr.min;
-    statBonus[sr.stat] = sr.min + Math.floor(Math.random() * range * tier * 0.7);
+    const tierMin = sr.min * tier;
+    const tierMax = sr.max * tier;
+    statBonus[sr.stat] = tierMin + Math.floor(Math.random() * (tierMax - tierMin + 1));
   }
   return { id: uuidv4(), name: `${name} ${tierDef.label}`, type: template.type, statBonus, tier };
 }
