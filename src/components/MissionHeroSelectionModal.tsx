@@ -28,6 +28,7 @@ import {
 import { MISSIONS } from '../constants/missions';
 import { BattleEngine, BattleEnemy } from '../utils/battleEngine';
 import { getActiveSynergies } from '../constants/synergies';
+import { PERSONALITIES } from '../constants/personalities';
 import { ClassId } from '../types';
 
 import { Hexagon } from './Hexagon';
@@ -361,7 +362,9 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                     accessibilityLabel={`Herói ${item.name}. Toque para posicionar ou pressione e arraste para mover.`}
                   >
                     <Text style={styles.heroEmojiSmall}>{CLASS_EMOJI[item.classId ?? ''] ?? '❓'}</Text>
-                    <Text style={styles.heroName}>{item.name}</Text>
+                    <Text style={styles.heroName}>
+                      {item.personality && PERSONALITIES[item.personality] ? `${PERSONALITIES[item.personality].emoji} ` : ''}{item.name}
+                    </Text>
                     <Text style={styles.heroInfo}>
                       HP {Math.floor(item.hpCurrent)}/{Math.floor(item.hpMax)}
                     </Text>

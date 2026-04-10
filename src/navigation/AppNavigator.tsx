@@ -8,6 +8,8 @@ import { ShopScreen } from '../screens/ShopScreen';
 import { VillageScreen } from '../screens/VillageScreen';
 import { BlacksmithScreen } from '../screens/BlacksmithScreen';
 import { PantheonScreen } from '../screens/PantheonScreen';
+import { AchievementsScreen } from '../screens/AchievementsScreen';
+import { DailyQuestsScreen } from '../screens/DailyQuestsScreen';
 import { theme } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -85,6 +87,22 @@ export function AppNavigator() {
         <Tab.Screen
           name="Panteao"
           component={PantheonScreen}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Conquistas"
+          component={AchievementsScreen}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="MissoesDiarias"
+          component={DailyQuestsScreen}
           options={{
             tabBarButton: () => null,
             tabBarItemStyle: { display: 'none' },

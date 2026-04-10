@@ -1,17 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { GameState } from '../types';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
-import { 
-  BATTLE_HIGHLIGHT_DURATION_MS, 
-  FEEDBACK_GOLD_COLOR, 
-  FEEDBACK_HP_GAIN_COLOR, 
-  FEEDBACK_HP_LOSS_COLOR, 
+import {
+  BATTLE_HIGHLIGHT_DURATION_MS,
+  FEEDBACK_GOLD_COLOR,
+  FEEDBACK_HP_GAIN_COLOR,
+  FEEDBACK_HP_LOSS_COLOR,
   FEEDBACK_ATK_GAIN_COLOR,
   FEEDBACK_MP_GAIN_COLOR,
   FEEDBACK_DEF_GAIN_COLOR,
   FEEDBACK_CRIT_GAIN_COLOR,
   FEEDBACK_AGI_GAIN_COLOR
 } from '../constants/game';
+import { ACHIEVEMENTS } from '../constants/achievements';
 
 export function useGameFeedback(state: GameState) {
   const prevStateRef = useRef<GameState | null>(null);
@@ -116,7 +117,20 @@ export function useGameFeedback(state: GameState) {
         });
       });
 
-      // 5. Mission completion notifications
+      // 5. Achievement unlock notifications
+      const prevAchievements = prev.unlockedAchievements ?? [];
+      const curAchievements = state.unlockedAchievements ?? [];
+      if (curAchievements.length > prevAchievements.length) {
+        const newIds = curAchievements.filter(id => !prevAchievements.includes(id));
+        for (const id of newIds) {
+          const def = ACHIEVEMENTS.find(a => a.id === id);
+          if (def) {
+            emit(FEEDBACK_EVENTS.TOAST, { text: `${def.icon} Conquista: ${def.name}!`, type: 'success' });
+          }
+        }
+      }
+
+      // 6. Mission completion notifications
       const prevMissionCount = (prev.activeMissions || []).length;
       const curMissionCount = (state.activeMissions || []).length;
       if (prevMissionCount > curMissionCount) {

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Animated, 
 import LottieView from 'lottie-react-native';
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
-import { INCAPACITATED_HP_THRESHOLD } from '../constants/game';
+import { MAX_BATTLE_ROUNDS } from '../constants/game';
 import { BattleRunner } from '../services/battleRunner';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { playSound } from '../services/sound';
@@ -55,7 +55,7 @@ export function MissionResultModal() {
 
       const handleAction = (action: any) => {
         setDisplayedLog((s) => [...s, action.text]);
-        
+
         if (action.actionType === 'hit' && action.amount) {
           emit(FEEDBACK_EVENTS.FLOAT, { text: `-${Math.floor(action.amount)}`, color: '#ff4d4d' });
           lightTap();
@@ -63,7 +63,7 @@ export function MissionResultModal() {
           emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor(action.amount)}`, color: '#2ecc71' });
           lightTap();
         }
-        
+
         if (action.targetId) {
           emit(FEEDBACK_EVENTS.BATTLE_HIGHLIGHT, { id: action.targetId, duration: 600 });
         }
@@ -109,15 +109,29 @@ export function MissionResultModal() {
     });
   };
 
+  // Battle summary label
+  const isTimeout = result.rounds >= MAX_BATTLE_ROUNDS && !result.success;
+  const battleSummaryText = isTimeout
+    ? `Timeout apos ${MAX_BATTLE_ROUNDS} rounds`
+    : result.success
+      ? `Vitoria em ${result.rounds} rounds`
+      : `Derrota no round ${result.rounds}`;
+
+  // Enemy summary
+  const totalEnemies = result.totalEnemies ?? 0;
+  const enemySummaryText = totalEnemies > 0
+    ? `${result.enemyCasualties}/${totalEnemies} inimigos derrotados`
+    : `${result.enemyCasualties} inimigos derrotados`;
+
   return (
     <Modal visible={true} animationType="none" transparent={true}>
       <View style={styles.backdrop}>
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.container, 
-            { 
-              opacity: fadeAnim, 
-              transform: [{ translateY: slideAnim }] 
+            styles.container,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
             }
           ]}
         >
@@ -133,7 +147,8 @@ export function MissionResultModal() {
 
           <View style={[styles.header, { backgroundColor: result.success ? '#27AE60' : '#C0392B' }]}>
             <Text style={styles.headerEmoji}>{result.success ? '🏆' : '💀'}</Text>
-            <Text style={styles.title}>{result.success ? 'Vitória Real' : 'Missão Fracassada'}</Text>
+            <Text style={styles.title}>{result.success ? 'Vitoria Real' : 'Missao Fracassada'}</Text>
+            <Text style={styles.battleSummary}>{battleSummaryText}</Text>
           </View>
 
           <View style={styles.summaryContainer}>
@@ -142,16 +157,38 @@ export function MissionResultModal() {
               <Text style={styles.goldValue}>💰 {Math.floor(result.reward)}</Text>
             </View>
             <View style={styles.summaryBox}>
-              <Text style={styles.summaryLabel}>Duração</Text>
+              <Text style={styles.summaryLabel}>Duracao</Text>
               <Text style={styles.summaryValue}>{result.rounds} Turnos</Text>
+            </View>
+            <View style={[styles.summaryBox, { borderRightWidth: 0 }]}>
+              <Text style={styles.summaryLabel}>Inimigos</Text>
+              <Text style={[
+                styles.summaryValue,
+                { color: result.enemyCasualties === totalEnemies && totalEnemies > 0 ? theme.colors.success : theme.colors.textPrimary }
+              ]}>
+                ⚔️ {enemySummaryText}
+              </Text>
             </View>
           </View>
 
+          {result.activeSynergies && result.activeSynergies.length > 0 && (
+            <View style={styles.synergiesContainer}>
+              <Text style={styles.synergiesLabel}>Sinergias Ativas</Text>
+              <View style={styles.synergiesBadges}>
+                {result.activeSynergies.map((name) => (
+                  <View key={name} style={styles.synergyBadge}>
+                    <Text style={styles.synergyText}>{name}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
           <View style={styles.content}>
-            <Text style={styles.sectionTitle}>Relatório do Comandante</Text>
+            <Text style={styles.sectionTitle}>Relatorio do Comandante</Text>
             <View style={styles.logContainer}>
-              <ScrollView 
-                style={styles.log} 
+              <ScrollView
+                style={styles.log}
                 contentContainerStyle={styles.logContent}
                 ref={(ref) => ref?.scrollToEnd({ animated: true })}
               >
@@ -163,23 +200,44 @@ export function MissionResultModal() {
 
             <Text style={styles.sectionTitle}>Estado da Tropa</Text>
             <View style={styles.casualties}>
-              {result.casualties.map((c) => (
-                <View key={c.heroId} style={styles.casualtyRow}>
-                  <View style={styles.heroInfo}>
-                    <Text style={styles.heroName}>
-                      {state.heroes.find(h => h.id === c.heroId)?.name || 'Herói'}
-                    </Text>
-                    {c.hpAfter < INCAPACITATED_HP_THRESHOLD && (
-                      <View style={styles.incapBadge}>
-                        <Text style={styles.incapText}>FERIDO</Text>
-                      </View>
-                    )}
+              {result.casualties.map((c) => {
+                const hero = state.heroes.find(h => h.id === c.heroId);
+                const heroName = hero?.name || 'Heroi';
+                const heroMaxHp = hero?.hpMax ?? 0;
+                const isIncapacitated = c.hpAfter <= 0;
+                const isUnharmed = c.hpLost === 0;
+
+                return (
+                  <View key={c.heroId} style={styles.casualtyRow}>
+                    <View style={styles.heroInfo}>
+                      <Text style={styles.heroName}>{heroName}</Text>
+                      {isIncapacitated && (
+                        <View style={styles.incapBadge}>
+                          <Text style={styles.incapText}>💀 INCAPACITADO</Text>
+                        </View>
+                      )}
+                      {isUnharmed && !isIncapacitated && (
+                        <View style={styles.ilesoBadge}>
+                          <Text style={styles.ilesoText}>✨ ILESO</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.hpDetail}>
+                      {!isUnharmed && (
+                        <Text style={styles.hpLost}>
+                          ❤️ -{Math.floor(c.hpLost)} HP
+                        </Text>
+                      )}
+                      <Text style={[
+                        styles.hpRemaining,
+                        { color: isIncapacitated ? '#ff4d4d' : isUnharmed ? theme.colors.success : theme.colors.textSecondary }
+                      ]}>
+                        {Math.floor(Math.max(0, c.hpAfter))}/{heroMaxHp}
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={[styles.hpChange, { color: c.hpLost > 0 ? '#ff4d4d' : '#2ecc71' }]}>
-                    {c.hpLost > 0 ? `-${Math.floor(c.hpLost)} HP` : 'INTACTO'}
-                  </Text>
-                </View>
-              ))}
+                );
+              })}
             </View>
           </View>
 
@@ -188,7 +246,7 @@ export function MissionResultModal() {
               <Text style={styles.skipText}>Pular Relato</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-              <Text style={styles.closeButtonText}>Retornar à Guilda</Text>
+              <Text style={styles.closeButtonText}>Retornar a Guilda</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -230,23 +288,30 @@ const styles = StyleSheet.create({
     fontSize: 40,
     marginBottom: 8,
   },
-  title: { 
-    fontSize: 22, 
-    fontWeight: '900', 
+  title: {
+    fontSize: 22,
+    fontWeight: '900',
     color: '#fff',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
+  battleSummary: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.75)',
+    marginTop: 6,
+  },
   summaryContainer: {
     flexDirection: 'row',
     backgroundColor: 'rgba(0,0,0,0.3)',
-    paddingVertical: 16,
+    paddingVertical: 12,
   },
   summaryBox: {
     flex: 1,
     alignItems: 'center',
     borderRightWidth: 1,
     borderRightColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 4,
   },
   summaryLabel: {
     color: theme.colors.textSecondary,
@@ -257,20 +322,52 @@ const styles = StyleSheet.create({
   },
   goldValue: {
     color: theme.colors.gold,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
   },
   summaryValue: {
     color: theme.colors.textPrimary,
-    fontSize: 18,
+    fontSize: 13,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  synergiesContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  synergiesLabel: {
+    color: theme.colors.textSecondary,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginBottom: 8,
+  },
+  synergiesBadges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  synergyBadge: {
+    backgroundColor: theme.colors.primaryDark,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.primaryLight,
+  },
+  synergyText: {
+    color: theme.colors.primaryLight,
+    fontSize: 11,
     fontWeight: '700',
   },
   content: {
     padding: 16,
   },
-  sectionTitle: { 
-    fontWeight: '800', 
-    color: theme.colors.textSecondary, 
+  sectionTitle: {
+    fontWeight: '800',
+    color: theme.colors.textSecondary,
     fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
@@ -284,19 +381,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
-  log: { 
+  log: {
     padding: 12,
   },
   logContent: {
     paddingBottom: 8,
   },
-  logLine: { 
-    color: 'rgba(255,255,255,0.7)', 
-    fontSize: 12, 
+  logLine: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
     marginBottom: 6,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
-  casualties: { 
+  casualties: {
     gap: 8,
   },
   casualtyRow: {
@@ -311,6 +408,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flexShrink: 1,
   },
   heroName: {
     color: theme.colors.textPrimary,
@@ -328,12 +426,34 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '900',
   },
-  hpChange: {
+  ilesoBadge: {
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.success,
+  },
+  ilesoText: {
+    color: theme.colors.success,
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  hpDetail: {
+    alignItems: 'flex-end',
+  },
+  hpLost: {
+    color: '#ff4d4d',
     fontSize: 13,
     fontWeight: '800',
   },
-  actions: { 
-    flexDirection: 'row', 
+  hpRemaining: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  actions: {
+    flexDirection: 'row',
     padding: 16,
     gap: 12,
     backgroundColor: 'rgba(0,0,0,0.1)',

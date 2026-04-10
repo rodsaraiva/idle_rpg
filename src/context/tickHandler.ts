@@ -22,10 +22,13 @@ import { computeBattleOutcome } from '../utils/battleSim';
 import { BattleEngine } from '../utils/battleEngine';
 import { getActiveSynergies } from '../constants/synergies';
 import { v4 as uuidv4 } from 'uuid';
+import { checkAchievements } from './achievementHandler';
+import { refreshDailyQuests, updateDailyProgress } from './dailyQuestHandler';
 
-/** Processa o treinamento de todos os heróis */
-function processTraining(heroes: Hero[], tickMs: number, inflation: number): Hero[] {
-  return heroes.map((hero) => {
+/** Processa o treinamento de todos os heróis, returns updated heroes and total points trained */
+function processTraining(heroes: Hero[], tickMs: number, inflation: number): { heroes: Hero[]; totalPointsTrained: number } {
+  let totalPointsTrained = 0;
+  const updatedHeroes = heroes.map((hero) => {
     let newHero = { ...hero };
     switch (hero.currentTask) {
       case HeroTask.TRAIN_HP:
@@ -61,6 +64,8 @@ function processTraining(heroes: Hero[], tickMs: number, inflation: number): Her
           newHero.mp += pointsGained;
         }
 
+        totalPointsTrained += pointsGained;
+
         const defaultProgress = { hp: 0, atk: 0, mp: 0 };
         newHero.trainingProgressMs = { ...(hero.trainingProgressMs ?? defaultProgress), [statKey]: remaining };
         newHero.trainingCount = { ...(hero.trainingCount ?? defaultProgress), [statKey]: count };
@@ -70,6 +75,7 @@ function processTraining(heroes: Hero[], tickMs: number, inflation: number): Her
         return hero;
     }
   });
+  return { heroes: updatedHeroes, totalPointsTrained };
 }
 
 /** Processa a regeneração passiva e enfermaria */
@@ -325,11 +331,17 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
     }
   });
 
-  const newResults: MissionResult[] = completed.map(c => ({
-    ...c.outcome,
-    missionId: c.mission.id,
-    templateId: c.mission.templateId,
-  }));
+  const newResults: MissionResult[] = completed.map(c => {
+    const tpl = MISSIONS.find(m => m.id === c.mission.templateId);
+    const totalEnemies = tpl?.enemies?.reduce((sum, e) => sum + (e.count ?? 1), 0) ?? 0;
+    return {
+      ...c.outcome,
+      missionId: c.mission.id,
+      templateId: c.mission.templateId,
+      totalEnemies,
+      activeSynergies: c.mission.activeSynergies,
+    };
+  });
 
   return { 
     newHeroes: currentHeroes, 
@@ -343,8 +355,11 @@ export function handleTick(state: GameState, now: number): GameState {
   const tickMs = state.tickIntervalMs ?? TICK_INTERVAL_MS;
   const inflation = state.trainInflationFactor ?? TRAIN_INFLATION_FACTOR;
 
+  // 0. Refresh daily quests if seed changed (new day)
+  let currentState = refreshDailyQuests(state);
+
   // 1. Process Training
-  const heroesAfterTraining = processTraining(state.heroes, tickMs, inflation);
+  const { heroes: heroesAfterTraining, totalPointsTrained } = processTraining(currentState.heroes, tickMs, inflation);
 
   // 2. Process Passive Regeneration / Infirmary
   const heroesAfterRegen = processRegeneration(heroesAfterTraining, tickMs);
@@ -355,16 +370,42 @@ export function handleTick(state: GameState, now: number): GameState {
     activeMissions,
     goldGained,
     newResults
-  } = processMissions(state, heroesAfterRegen, now);
+  } = processMissions(currentState, heroesAfterRegen, now);
 
-  const existingResults = state.recentMissionResults ? [...state.recentMissionResults] : [];
+  const existingResults = currentState.recentMissionResults ? [...currentState.recentMissionResults] : [];
   const updatedResults = [...newResults, ...existingResults].slice(0, 10);
 
-  return {
-    ...state,
+  // Track completed mission count and unique template IDs for achievements
+  const completedMissionCount = (currentState.completedMissionCount ?? 0) + newResults.length;
+  const completedMissionIds = [
+    ...new Set([
+      ...(currentState.completedMissionIds ?? []),
+      ...newResults.filter(r => r.success).map(r => r.templateId),
+    ]),
+  ];
+
+  let stateAfterTick: GameState = {
+    ...currentState,
     heroes: newHeroes,
-    gold: state.gold + goldGained,
+    gold: currentState.gold + goldGained,
     activeMissions,
     recentMissionResults: updatedResults,
+    completedMissionCount,
+    completedMissionIds,
   };
+
+  // 4. Update daily quest progress trackers
+  const missionsCompletedCount = newResults.length;
+  if (missionsCompletedCount > 0) {
+    stateAfterTick = updateDailyProgress(stateAfterTick, 'missionsCompleted', missionsCompletedCount);
+  }
+  if (totalPointsTrained > 0) {
+    stateAfterTick = updateDailyProgress(stateAfterTick, 'pointsTrained', totalPointsTrained);
+  }
+  if (goldGained > 0) {
+    stateAfterTick = updateDailyProgress(stateAfterTick, 'goldEarned', goldGained);
+  }
+
+  // Check and award achievements
+  return checkAchievements(stateAfterTick);
 }

@@ -82,9 +82,21 @@ export function VillageScreen() {
             description="Forje e melhore equipamentos"
             screen="Ferreiro"
           />
-          <VillageCard 
-            title="Panteão" 
-            icon="🏛️" 
+          <VillageCard
+            title="Missoes Diarias"
+            icon="📋"
+            description="Complete objetivos diarios por recompensas"
+            screen="MissoesDiarias"
+          />
+          <VillageCard
+            title="Conquistas"
+            icon="🏆"
+            description="Veja suas conquistas e recompensas"
+            screen="Conquistas"
+          />
+          <VillageCard
+            title="Panteão"
+            icon="🏛️"
             description="Honre seus heróis lendários (Em breve)"
             screen="Panteao"
           />

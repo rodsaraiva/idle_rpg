@@ -23,6 +23,7 @@ import {
   handleEquipItem,
   handleUnequipItem
 } from './equipmentHandler';
+import { claimDailyQuest } from './dailyQuestHandler';
 import { TICK_INTERVAL_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 
 /** Estado inicial quando não há save */
@@ -86,6 +87,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'UNEQUIP_ITEM':
       return handleUnequipItem(state, action.heroId, action.equipmentId);
+
+    case 'CLAIM_DAILY_QUEST':
+      return claimDailyQuest(state, action.questId);
 
     case 'LOAD_STATE':
       return { ...action.state };

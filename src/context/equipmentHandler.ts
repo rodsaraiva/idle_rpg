@@ -1,6 +1,7 @@
 import { GameState, Equipment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { EQUIPMENT_TIERS, EQUIPMENT_TEMPLATES, MAX_EQUIPPED_ITEMS } from '../constants/equipment';
+import { updateDailyProgress } from './dailyQuestHandler';
 
 function generateEquipment(tier: number): Equipment {
   const template = EQUIPMENT_TEMPLATES[Math.floor(Math.random() * EQUIPMENT_TEMPLATES.length)];
@@ -20,12 +21,13 @@ export function handleForgeEquipment(state: GameState, tier: number, now: number
   if (!tierDef || state.gold < tierDef.cost) return state;
   const equipment = generateEquipment(tier);
   const finishAt = now + tierDef.forgeTimeMs;
-  return {
+  const newState = {
     ...state,
     gold: state.gold - tierDef.cost,
     forgingQueue: [...(state.forgingQueue || []), { equipmentId: equipment.id, finishAt }],
     inventory: [...(state.inventory || []), equipment],
   };
+  return updateDailyProgress(newState, 'itemsForged', 1);
 }
 
 export function handleCollectEquipment(state: GameState, equipmentId: string): GameState {

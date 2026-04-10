@@ -4,6 +4,7 @@ import { createHero } from '../utils/heroFactory';
 import { CLASS_DEFS } from '../constants/classes';
 import { isHeroInMission, isHeroInjured } from '../utils/heroUtils';
 import { SHOP_ITEMS } from '../constants/shop';
+import { updateDailyProgress } from './dailyQuestHandler';
 
 export function handleRecruitHero(state: GameState): GameState {
   const cost = getRecruitCost(state.heroesRecruited);
@@ -13,12 +14,13 @@ export function handleRecruitHero(state: GameState): GameState {
   const randClass = classKeys[Math.floor(Math.random() * classKeys.length)];
   const newHero = createHero(randClass);
 
-  return {
+  const newState = {
     ...state,
     gold: state.gold - cost,
     heroes: [...state.heroes, newHero],
     heroesRecruited: state.heroesRecruited + 1,
   };
+  return updateDailyProgress(newState, 'heroesRecruited', 1);
 }
 
 export function handleBuyChest(state: GameState, chestId: string): GameState {

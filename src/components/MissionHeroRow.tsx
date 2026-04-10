@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { theme } from '../theme';
 import { Hero } from '../types';
+import { PERSONALITIES } from '../constants/personalities';
 
 interface MissionHeroRowProps {
   hero: Hero;
@@ -12,7 +13,9 @@ export function MissionHeroRow({ hero, perHeroGold }: MissionHeroRowProps) {
   return (
     <View style={styles.container}>
       <View style={styles.mainInfo}>
-        <Text style={styles.name}>{hero.name}</Text>
+        <Text style={styles.name}>
+          {hero.personality && PERSONALITIES[hero.personality] ? `${PERSONALITIES[hero.personality].emoji} ` : ''}{hero.name}
+        </Text>
         <Text style={styles.stats}>
           HP {Math.floor(hero.hpCurrent)}/{Math.floor(hero.hpMax)} • ATK {Math.floor(hero.atk)}
         </Text>

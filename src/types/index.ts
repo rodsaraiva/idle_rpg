@@ -76,6 +76,18 @@ export interface GameState {
   perHeroGold?: Record<string, number>;
   // recent mission results to show in UI
   recentMissionResults?: MissionResult[];
+  // achievements system
+  unlockedAchievements?: string[]; // achievement IDs
+  completedMissionCount?: number; // total missions completed (for achievement tracking)
+  completedMissionIds?: string[]; // unique template IDs completed at least once
+  permanentBonuses?: { atk: number; hp: number }; // from achievements
+  // daily quests system
+  dailyQuests?: {
+    seed: number; // date-based seed to determine which quests are active
+    quests: { id: string; claimed: boolean }[];
+    progress: Record<string, number>; // tracker -> current value
+    allClaimed: boolean;
+  };
 }
 
 /** Ação disparada para alterar o estado do jogo */
@@ -96,6 +108,7 @@ export type GameAction =
   | { type: 'COLLECT_EQUIPMENT'; equipmentId: string }
   | { type: 'EQUIP_ITEM'; heroId: string; equipmentId: string }
   | { type: 'UNEQUIP_ITEM'; heroId: string; equipmentId: string }
+  | { type: 'CLAIM_DAILY_QUEST'; questId: string }
   | { type: 'LOAD_STATE'; state: GameState };
 
 export type MissionActorType = 'hero' | 'enemy';
@@ -163,6 +176,8 @@ export interface MissionOutcome {
 export interface MissionResult extends MissionOutcome {
   missionId: string;
   templateId: string;
+  totalEnemies?: number;
+  activeSynergies?: string[];
 }
 
 /** Resumo do progresso offline aplicado ao carregar o save */ 

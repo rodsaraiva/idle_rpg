@@ -7,6 +7,7 @@ import { TaskButton } from './TaskButton';
 import { AttributeProgress } from './AttributeProgress';
 import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR, INCAPACITATED_HP_THRESHOLD } from '../constants/game';
 import { CLASS_DEFS } from '../constants/classes';
+import { PERSONALITIES } from '../constants/personalities';
 import { useGame } from '../hooks/useGame';
 
 import { HPBar } from './HPBar';
@@ -69,7 +70,10 @@ export function HeroCard({
         </View>
         <View style={styles.compactInfo}>
           <Text style={styles.name}>{hero.name}</Text>
-          <Text style={styles.classLabel}>{CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}</Text>
+          <Text style={styles.classLabel}>
+            {CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}
+            {hero.personality && PERSONALITIES[hero.personality] ? ` · ${PERSONALITIES[hero.personality].emoji} ${PERSONALITIES[hero.personality].displayName}` : ''}
+          </Text>
           <Text style={styles.smallStats}>
             HP {Math.floor(hero.hpCurrent)}/{Math.floor(hero.hpMax)} • ATK {Math.floor(hero.atk)}
           </Text>
@@ -130,7 +134,10 @@ export function HeroCard({
           <View style={styles.nameRow}>
             <Text style={styles.name}>{hero.name}</Text>
           </View>
-          <Text style={styles.classLabel}>{CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}</Text>
+          <Text style={styles.classLabel}>
+            {CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}
+            {hero.personality && PERSONALITIES[hero.personality] ? ` · ${PERSONALITIES[hero.personality].emoji} ${PERSONALITIES[hero.personality].displayName}` : ''}
+          </Text>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
           <Text style={styles.taskBadge}>{TASK_LABEL_MAP[hero.currentTask]}</Text>
