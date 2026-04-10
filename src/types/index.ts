@@ -126,6 +126,8 @@ export interface ActiveMission {
     attackType?: 'MELEE' | 'RANGED';
     position?: number; // Grid index (0-14 for enemies)
   }[];
+  // active class synergy names for UI display
+  activeSynergies?: string[];
   // precomputed reward/summary to avoid recomputing on completion
   precomputedOutcome?: MissionOutcome;
 }

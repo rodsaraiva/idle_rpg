@@ -293,7 +293,7 @@ export const BattleEngine = {
         .sort((a, b) => (a.hpCurrent / a.hpMax) - (b.hpCurrent / b.hpMax))[0];
 
       if (mostInjured && (mostInjured.hpCurrent / mostInjured.hpMax) < 0.7) {
-        const healAmount = Math.max(1, Math.floor(hero.atk * 0.5));
+        const healAmount = Math.max(1, Math.floor(hero.mp * 0.8));
         const prevHp = mostInjured.hpCurrent;
         mostInjured.hpCurrent = Math.min(mostInjured.hpMax, mostInjured.hpCurrent + healAmount);
         const actualHeal = mostInjured.hpCurrent - prevHp;

@@ -85,33 +85,50 @@ export function runMissionSimulation(params: SimulationParams): SimulationResult
         break;
       }
 
-      // Turno dos Heróis
-      activeHeroes.forEach(hero => {
-        if (!battleOver && hero.hpCurrent > 0) {
-          BattleEngine.processHeroTurn(hero, state, Math.random);
-        }
-        if (state.enemies.every(e => !e.alive || e.hp <= 0)) {
-          groupWon = true;
-          battleOver = true;
-        }
-      });
-
-      if (battleOver) break;
-
       // Cálculo de mitigação do Tanque para este turno
       const countTanks = activeHeroes.filter(h => h.classId === 'TANK' && h.hpCurrent > 0).length;
       const tankMitigation = Math.min(0.5, countTanks * 0.15); // Constantes do jogo
 
-      // Turno dos Inimigos
-      state.enemies.forEach(enemy => {
-        if (!battleOver && enemy.alive && enemy.hp > 0) {
-          BattleEngine.processEnemyTurn(enemy, state, Math.random, tankMitigation);
+      // --- Initiative-based turn order ---
+      const combatants: { type: 'hero' | 'enemy'; id: string; agility: number }[] = [];
+      for (const h of activeHeroes) {
+        if (h.hpCurrent > 0) combatants.push({ type: 'hero', id: h.id, agility: h.agility ?? 10 });
+      }
+      for (const e of state.enemies) {
+        if (e.hp > 0) combatants.push({ type: 'enemy', id: e.id, agility: e.agility ?? 5 });
+      }
+      // Sort by agility descending with small random tiebreaker
+      combatants.sort((a, b) => (b.agility + Math.random() * 2) - (a.agility + Math.random() * 2));
+
+      for (const c of combatants) {
+        if (battleOver) break;
+        if (state.enemies.every(e => !e.alive || e.hp <= 0)) {
+          groupWon = true;
+          battleOver = true;
+          break;
         }
         if (activeHeroes.every(h => h.hpCurrent <= 0)) {
           groupWon = false;
           battleOver = true;
+          break;
         }
-      });
+        if (c.type === 'hero') {
+          const hero = activeHeroes.find(h => h.id === c.id);
+          if (hero && hero.hpCurrent > 0) BattleEngine.processHeroTurn(hero, state, Math.random);
+        } else {
+          const enemy = state.enemies.find(e => e.id === c.id);
+          if (enemy && enemy.alive && enemy.hp > 0) BattleEngine.processEnemyTurn(enemy, state, Math.random, tankMitigation);
+        }
+      }
+      // Check end conditions after all turns
+      if (state.enemies.every(e => !e.alive || e.hp <= 0)) {
+        groupWon = true;
+        battleOver = true;
+      }
+      if (activeHeroes.every(h => h.hpCurrent <= 0)) {
+        groupWon = false;
+        battleOver = true;
+      }
 
       if (battleOver) break;
 

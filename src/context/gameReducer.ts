@@ -52,7 +52,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return handleRecruitHero(state);
 
     case 'BUY_CHEST':
-      return handleBuyChest(state);
+      return handleBuyChest(state, action.chestId);
 
     case 'CONFIRM_CHEST_REVEAL':
       return handleConfirmChestReveal(state, action.hero);

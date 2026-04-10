@@ -3,6 +3,7 @@ import { getRecruitCost } from '../utils/math';
 import { createHero } from '../utils/heroFactory';
 import { CLASS_DEFS } from '../constants/classes';
 import { isHeroInMission, isHeroInjured } from '../utils/heroUtils';
+import { SHOP_ITEMS } from '../constants/shop';
 
 export function handleRecruitHero(state: GameState): GameState {
   const cost = getRecruitCost(state.heroesRecruited);
@@ -20,8 +21,11 @@ export function handleRecruitHero(state: GameState): GameState {
   };
 }
 
-export function handleBuyChest(state: GameState): GameState {
-  const cost = getRecruitCost(state.heroesRecruited);
+export function handleBuyChest(state: GameState, chestId: string): GameState {
+  const chest = SHOP_ITEMS.find((item) => item.id === chestId);
+  if (!chest) return state;
+
+  const cost = getRecruitCost(state.heroesRecruited) * chest.costMultiplier;
   if (state.gold < cost) return state;
 
   return {

@@ -3,6 +3,8 @@ import { Hero, MissionOutcome, MissionAction } from '../types';
 import { calcMissionReward } from './missionMath';
 import { BattleEngine, BattleEnemy, BattleState } from './battleEngine';
 import { GameMath } from './gameMath';
+import { getSynergyMultipliers } from '../constants/synergies';
+import { ClassId } from '../types';
 
 import { 
   MAX_BATTLE_ROUNDS, 
@@ -34,6 +36,18 @@ export function computeBattleOutcome(
 ): MissionOutcome {
   const rng = opts.rng ?? Math.random;
   const heroes = heroesIn.map((h) => ({ ...h }));
+
+  // Apply class synergy bonuses
+  const classIds = heroes.map(h => h.classId).filter(Boolean) as ClassId[];
+  const synergy = getSynergyMultipliers(classIds);
+  for (const hero of heroes) {
+    hero.atk = Math.floor(hero.atk * synergy.atk);
+    hero.defense = Math.floor((hero.defense ?? 5) * synergy.defense);
+    if (hero.classId === 'HEALER') {
+      hero.mp = Math.floor(hero.mp * synergy.heal);
+    }
+  }
+
   const enemies = BattleEngine.createEnemies(template);
 
   const heroPositions = { ...(opts.heroPositions || {}) };
@@ -63,17 +77,25 @@ export function computeBattleOutcome(
     state.rounds += 1;
     state.log.push(`-- Round ${state.rounds} --`);
 
-    // --- Heroes Turn ---
-    for (const hero of state.heroes) {
-      BattleEngine.processHeroTurn(hero, state, rng);
-      if (aliveEnemies().length === 0) break;
+    // --- Initiative-based turn order ---
+    const combatants: { type: 'hero' | 'enemy'; id: string; agility: number }[] = [];
+    for (const h of state.heroes) {
+      if (h.hpCurrent > 0) combatants.push({ type: 'hero', id: h.id, agility: h.agility ?? 10 });
     }
+    for (const e of state.enemies) {
+      if (e.hp > 0) combatants.push({ type: 'enemy', id: e.id, agility: e.agility ?? 5 });
+    }
+    // Sort by agility descending with small random tiebreaker
+    combatants.sort((a, b) => (b.agility + rng() * 2) - (a.agility + rng() * 2));
 
-    // --- Enemies Turn ---
-    if (aliveEnemies().length > 0) {
-      for (const enemy of state.enemies) {
-        BattleEngine.processEnemyTurn(enemy, state, rng, tankMitigation, ENEMY_HIT_CHANCE);
-        if (aliveHeroes().length === 0) break;
+    for (const c of combatants) {
+      if (aliveEnemies().length === 0 || aliveHeroes().length === 0) break;
+      if (c.type === 'hero') {
+        const hero = state.heroes.find(h => h.id === c.id);
+        if (hero && hero.hpCurrent > 0) BattleEngine.processHeroTurn(hero, state, rng);
+      } else {
+        const enemy = state.enemies.find(e => e.id === c.id);
+        if (enemy && enemy.hp > 0) BattleEngine.processEnemyTurn(enemy, state, rng, tankMitigation, ENEMY_HIT_CHANCE);
       }
     }
   }

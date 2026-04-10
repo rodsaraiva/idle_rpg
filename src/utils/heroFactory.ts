@@ -6,18 +6,19 @@ import { PERSONALITY_LIST } from '../constants/personalities';
 import { getGaussianVariance } from './math';
 
 /** Cria um novo herói com stats iniciais e nome aleatório */
-export function createHero(classId?: ClassId): Hero {
+export function createHero(classId?: ClassId, variance?: { mean: number; stdDev: number; min: number; max: number }): Hero {
   const randomName = HERO_NAMES[Math.floor(Math.random() * HERO_NAMES.length)];
   const suffix = Math.floor(Math.random() * 99) + 1;
   const classDef = classId ? configProvider.getClassDef(classId) : undefined;
 
-  // Aplica variância Gaussiana de ±50% nos atributos base ANTES dos deltas de classe
-  const hpBase = Math.floor(INITIAL_HERO_STATS.hp * getGaussianVariance());
-  const atkBase = Math.floor(INITIAL_HERO_STATS.atk * getGaussianVariance());
-  const mpBase = Math.floor(INITIAL_HERO_STATS.mp * getGaussianVariance());
-  const defBase = Math.floor(INITIAL_HERO_STATS.defense * getGaussianVariance());
-  const critBase = Math.floor(INITIAL_HERO_STATS.crit * getGaussianVariance());
-  const agiBase = Math.floor(INITIAL_HERO_STATS.agility * getGaussianVariance());
+  // Aplica variância Gaussiana nos atributos base ANTES dos deltas de classe
+  const v = variance ?? { mean: 1.0, stdDev: 0.16, min: 0.5, max: 1.5 };
+  const hpBase = Math.floor(INITIAL_HERO_STATS.hp * getGaussianVariance(v.mean, v.stdDev, v.min, v.max));
+  const atkBase = Math.floor(INITIAL_HERO_STATS.atk * getGaussianVariance(v.mean, v.stdDev, v.min, v.max));
+  const mpBase = Math.floor(INITIAL_HERO_STATS.mp * getGaussianVariance(v.mean, v.stdDev, v.min, v.max));
+  const defBase = Math.floor(INITIAL_HERO_STATS.defense * getGaussianVariance(v.mean, v.stdDev, v.min, v.max));
+  const critBase = Math.floor(INITIAL_HERO_STATS.crit * getGaussianVariance(v.mean, v.stdDev, v.min, v.max));
+  const agiBase = Math.floor(INITIAL_HERO_STATS.agility * getGaussianVariance(v.mean, v.stdDev, v.min, v.max));
 
   const hp = hpBase + (classDef?.baseStatDelta?.hp ?? 0);
   const atk = atkBase + (classDef?.baseStatDelta?.atk ?? 0);

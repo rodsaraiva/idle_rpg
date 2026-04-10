@@ -97,6 +97,21 @@ export function useGameFeedback(state: GameState) {
           }
         });
       });
+
+      // 5. Mission completion notifications
+      const prevMissionCount = (prev.activeMissions || []).length;
+      const curMissionCount = (state.activeMissions || []).length;
+      if (prevMissionCount > curMissionCount) {
+        const completedCount = prevMissionCount - curMissionCount;
+        const newResults = (state.recentMissionResults || []).slice(0, completedCount);
+        for (const result of newResults) {
+          if (result.success) {
+            emit(FEEDBACK_EVENTS.TOAST, { text: `Missão concluída! +${result.reward} ouro`, type: 'success' });
+          } else {
+            emit(FEEDBACK_EVENTS.TOAST, { text: `Missão falhou...`, type: 'error' });
+          }
+        }
+      }
     }
     prevStateRef.current = state;
   }, [state]);

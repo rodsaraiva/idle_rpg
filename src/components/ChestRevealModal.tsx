@@ -35,6 +35,7 @@ const CLASS_EMOJI: Record<ClassId, string> = {
 interface ChestRevealModalProps {
   visible: boolean;
   chestLabel: string;
+  statVariance?: { mean: number; stdDev: number; min: number; max: number };
   onComplete: (hero: Hero) => void;
   onCancel: () => void;
 }
@@ -42,6 +43,7 @@ interface ChestRevealModalProps {
 export function ChestRevealModal({
   visible,
   chestLabel,
+  statVariance,
   onComplete,
   onCancel,
 }: ChestRevealModalProps) {
@@ -225,7 +227,7 @@ export function ChestRevealModal({
   const generateHero = (): Hero => {
     const classKeys = Object.keys(CLASS_DEFS) as ClassId[];
     const randClass = classKeys[Math.floor(Math.random() * classKeys.length)];
-    const h = createHero(randClass);
+    const h = createHero(randClass, statVariance);
     if (typeof __DEV__ !== 'undefined' && __DEV__) {
       console.log('[ChestRevealModal] generated hero', { id: h.id, classId: h.classId, name: h.name });
     }

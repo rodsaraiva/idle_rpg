@@ -13,6 +13,8 @@ import {
   MISSION_ACTION_INTERVAL_MS,
 } from '../constants/game';
 import { isHeroAvailableForMission } from '../utils/heroUtils';
+import { getActiveSynergies } from '../constants/synergies';
+import { ClassId } from '../types';
 
 function validateMissionRequirements(template: MissionTemplate, heroes: Hero[]): string | null {
   if (!template.requirements) return null;
@@ -68,6 +70,9 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
   const healerBuffMultiplier = 1 + Math.min(HEALER_BUFF_CAP, countHealers * HEALER_BUFF_PER_HERO);
   const rogueRngBonus = Math.min(ROGUE_RNG_BONUS_CAP, countRogues * ROGUE_RNG_BONUS_PER_HERO);
 
+  const teamClassIds = heroesForMission.map(h => h.classId).filter(Boolean) as ClassId[];
+  const activeSynergyNames = getActiveSynergies(teamClassIds).map(s => s.name);
+
   const newMission: ActiveMission = {
     id: missionId,
     templateId: template.id,
@@ -76,6 +81,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     startedAt: timestamp,
     healerBuffMultiplier,
     rogueRngBonus,
+    activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,
   };
 
   try {

@@ -11,10 +11,10 @@ import { ChestCard } from '../components/ChestCard';
 export function ShopScreen() {
   const {
     state,
-    cost,
-    canAfford,
+    chestCosts,
     revealVisible,
     activeChestLabel,
+    activeStatVariance,
     handleBuyChest,
     handleRevealComplete,
     handleRevealCancel,
@@ -36,23 +36,27 @@ export function ShopScreen() {
         </View>
 
         <View style={styles.items}>
-          {SHOP_ITEMS.map((it) => (
-            <ChestCard
-              key={it.id}
-              label={it.label}
-              cost={cost}
-              canAfford={canAfford}
-              onPress={() => handleBuyChest(it.id, it.label)}
-              description="Contrate um herói aleatório para sua guilda."
-              icon={it.id === 'special' ? '💎' : '🎁'}
-            />
-          ))}
+          {SHOP_ITEMS.map((it) => {
+            const chestCost = chestCosts[it.id] ?? 0;
+            return (
+              <ChestCard
+                key={it.id}
+                label={it.label}
+                cost={chestCost}
+                canAfford={state.gold >= chestCost}
+                onPress={() => handleBuyChest(it.id, it.label)}
+                description="Contrate um herói aleatório para sua guilda."
+                icon={it.id === 'chest_gold' ? '💎' : it.id === 'chest_silver' ? '🥈' : '🎁'}
+              />
+            );
+          })}
         </View>
       </ScrollView>
 
       <ChestRevealModal
         visible={revealVisible}
         chestLabel={activeChestLabel}
+        statVariance={activeStatVariance}
         onComplete={handleRevealComplete}
         onCancel={handleRevealCancel}
       />
