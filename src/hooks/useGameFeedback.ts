@@ -6,8 +6,11 @@ import {
   FEEDBACK_GOLD_COLOR, 
   FEEDBACK_HP_GAIN_COLOR, 
   FEEDBACK_HP_LOSS_COLOR, 
-  FEEDBACK_ATK_GAIN_COLOR, 
-  FEEDBACK_MP_GAIN_COLOR 
+  FEEDBACK_ATK_GAIN_COLOR,
+  FEEDBACK_MP_GAIN_COLOR,
+  FEEDBACK_DEF_GAIN_COLOR,
+  FEEDBACK_CRIT_GAIN_COLOR,
+  FEEDBACK_AGI_GAIN_COLOR
 } from '../constants/game';
 
 export function useGameFeedback(state: GameState) {
@@ -63,6 +66,21 @@ export function useGameFeedback(state: GameState) {
         // Check mp increase
         if (h.mp > prevHero.mp) {
           emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor(h.mp - prevHero.mp)} MP`, color: FEEDBACK_MP_GAIN_COLOR });
+        }
+
+        // Check defense increase
+        if ((h.defense ?? 0) > (prevHero.defense ?? 0)) {
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor((h.defense ?? 0) - (prevHero.defense ?? 0))} DEF`, color: FEEDBACK_DEF_GAIN_COLOR });
+        }
+
+        // Check crit increase
+        if ((h.crit ?? 0) > (prevHero.crit ?? 0)) {
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor((h.crit ?? 0) - (prevHero.crit ?? 0))} CRIT`, color: FEEDBACK_CRIT_GAIN_COLOR });
+        }
+
+        // Check agility increase
+        if ((h.agility ?? 0) > (prevHero.agility ?? 0)) {
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor((h.agility ?? 0) - (prevHero.agility ?? 0))} AGI`, color: FEEDBACK_AGI_GAIN_COLOR });
         }
       });
 

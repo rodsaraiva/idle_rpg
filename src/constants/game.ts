@@ -90,6 +90,9 @@ export const FEEDBACK_HP_GAIN_COLOR = '#7ed957';
 export const FEEDBACK_HP_LOSS_COLOR = '#ff7a7a';
 export const FEEDBACK_ATK_GAIN_COLOR = '#ff8a65';
 export const FEEDBACK_MP_GAIN_COLOR = '#66b2ff';
+export const FEEDBACK_DEF_GAIN_COLOR = '#94A3B8'; // slate/gray for defense
+export const FEEDBACK_CRIT_GAIN_COLOR = '#F59E0B'; // gold/amber for crit
+export const FEEDBACK_AGI_GAIN_COLOR = '#10B981'; // green for agility
 
 /** Stats iniciais de um herói recém-recrutado */
 export const INITIAL_HERO_STATS = {

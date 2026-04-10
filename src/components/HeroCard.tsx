@@ -7,6 +7,7 @@ import { TaskButton } from './TaskButton';
 import { AttributeProgress } from './AttributeProgress';
 import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR, INCAPACITATED_HP_THRESHOLD } from '../constants/game';
 import { CLASS_DEFS } from '../constants/classes';
+import { useGame } from '../hooks/useGame';
 
 import { HPBar } from './HPBar';
 
@@ -48,6 +49,12 @@ export function HeroCard({
   onSetTask,
   onPress,
 }: HeroCardProps) {
+  const { state } = useGame();
+  const inventory = state.inventory ?? [];
+  const equippedEquipment = (hero.equippedItems ?? [])
+    .map((id) => inventory.find((eq) => eq.id === id))
+    .filter(Boolean);
+
   if (variant === 'compact') {
     return (
       <TouchableOpacity
@@ -163,6 +170,16 @@ export function HeroCard({
             <Text style={styles.statIcon}>🏃</Text>
             <Text style={styles.statValue}>{Math.floor(hero.agility || 0)}</Text>
           </View>
+        </View>
+      )}
+
+      {equippedEquipment.length > 0 && (
+        <View style={styles.equipmentRow}>
+          {equippedEquipment.map((eq) => (
+            <View key={eq!.id} style={styles.equipmentPill}>
+              <Text style={styles.equipmentPillText}>{eq!.name}</Text>
+            </View>
+          ))}
         </View>
       )}
 
@@ -295,6 +312,22 @@ const styles = StyleSheet.create({
     fontWeight: theme.fontWeight.semibold,
   },
   // statBadge removed (attack type no longer shown)
+  equipmentRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginBottom: theme.spacing.sm,
+  },
+  equipmentPill: {
+    backgroundColor: theme.colors.surfaceLight,
+    borderRadius: theme.borderRadius.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  equipmentPillText: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textSecondary,
+  },
   actions: {
     flexDirection: 'row',
     gap: theme.spacing.sm,

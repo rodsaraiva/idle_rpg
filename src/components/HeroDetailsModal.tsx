@@ -1,10 +1,11 @@
 import React from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Hero } from '../types';
+import { Hero, Equipment } from '../types';
 import { theme } from '../theme';
 import { CLASS_DEFS } from '../constants/classes';
 import { PERSONALITIES } from '../constants/personalities';
 import { HPBar } from './HPBar';
+import { useGame } from '../hooks/useGame';
 
 interface HeroDetailsModalProps {
   hero: Hero | null;
@@ -13,10 +14,31 @@ interface HeroDetailsModalProps {
 }
 
 export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalProps) {
+  const { state } = useGame();
+
   if (!hero) return null;
 
   const classDef = hero.classId ? CLASS_DEFS[hero.classId] : null;
   const personalityDef = hero.personality ? PERSONALITIES[hero.personality] : null;
+  const inventory = state.inventory ?? [];
+  const equippedEquipment = (hero.equippedItems ?? [])
+    .map((id) => inventory.find((eq) => eq.id === id))
+    .filter((eq): eq is Equipment => eq != null);
+
+  const typeIcons: Record<Equipment['type'], string> = {
+    weapon: '\u2694\uFE0F',
+    armor: '\uD83D\uDEE1\uFE0F',
+    accessory: '\uD83D\uDC8D',
+  };
+
+  const statLabelMap: Record<string, { label: string; color: string }> = {
+    hp: { label: 'HP', color: theme.colors.hp },
+    atk: { label: 'ATK', color: theme.colors.atk },
+    mp: { label: 'MP', color: theme.colors.mp },
+    defense: { label: 'DEF', color: theme.colors.textSecondary },
+    crit: { label: 'CRIT', color: theme.colors.gold },
+    agility: { label: 'AGI', color: theme.colors.success },
+  };
 
   const StatItem = ({ label, value, icon, color }: { label: string; value: string | number; icon: string; color?: string }) => (
     <View style={styles.statRow}>
@@ -91,6 +113,34 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
                 )}
               </View>
             )}
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Equipamentos</Text>
+              {equippedEquipment.length === 0 ? (
+                <Text style={styles.noEquipmentText}>Nenhum equipamento</Text>
+              ) : (
+                equippedEquipment.map((eq) => (
+                  <View key={eq.id} style={styles.equipmentItem}>
+                    <View style={styles.equipmentHeader}>
+                      <Text style={styles.equipmentIcon}>{typeIcons[eq.type]}</Text>
+                      <Text style={styles.equipmentName}>{eq.name}</Text>
+                    </View>
+                    <View style={styles.equipmentBonuses}>
+                      {Object.entries(eq.statBonus).map(([stat, value]) => {
+                        if (!value) return null;
+                        const info = statLabelMap[stat];
+                        if (!info) return null;
+                        return (
+                          <Text key={stat} style={[styles.equipmentBonusText, { color: info.color }]}>
+                            +{value} {info.label}
+                          </Text>
+                        );
+                      })}
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
           </ScrollView>
 
           <TouchableOpacity style={styles.footerButton} onPress={onClose}>
@@ -234,6 +284,40 @@ const styles = StyleSheet.create({
   abilityValue: {
     fontSize: 15,
     color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  noEquipmentText: {
+    fontSize: 14,
+    color: theme.colors.textMuted,
+    fontStyle: 'italic',
+  },
+  equipmentItem: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  equipmentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  equipmentIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  equipmentName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+  },
+  equipmentBonuses: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginLeft: 26,
+  },
+  equipmentBonusText: {
+    fontSize: 13,
     fontWeight: '600',
   },
   footerButton: {

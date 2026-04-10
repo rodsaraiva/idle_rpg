@@ -98,6 +98,16 @@ export function MissionActiveItem({ mission, onWatch }: Props) {
       <View style={styles.progressBar}>
         <View style={[styles.progressFill, { width: `${Math.min(100, Math.round(progress * 100))}%` }]} />
       </View>
+
+      {mission.activeSynergies && mission.activeSynergies.length > 0 && (
+        <View style={styles.synergiesRow}>
+          {mission.activeSynergies.map((name) => (
+            <View key={name} style={styles.synergyBadge}>
+              <Text style={styles.synergyBadgeText}>{name}</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -231,6 +241,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: theme.colors.textSecondary,
     textTransform: 'uppercase',
+  },
+  synergiesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  synergyBadge: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  synergyBadgeText: {
+    color: theme.colors.textPrimary,
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });
 

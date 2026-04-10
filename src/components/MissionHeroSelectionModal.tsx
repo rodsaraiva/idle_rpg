@@ -27,6 +27,8 @@ import {
 } from '../constants/game';
 import { MISSIONS } from '../constants/missions';
 import { BattleEngine, BattleEnemy } from '../utils/battleEngine';
+import { getActiveSynergies } from '../constants/synergies';
+import { ClassId } from '../types';
 
 import { Hexagon } from './Hexagon';
 
@@ -92,6 +94,12 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
   }, [selectableHeroes]);
 
   const placedSet = useMemo(() => new Set(slots.filter(Boolean) as string[]), [slots]);
+
+  const previewSynergies = useMemo(() => {
+    const placedHeroes = selectableHeroes.filter((h) => placedSet.has(h.id));
+    const classIds = placedHeroes.map((h) => h.classId).filter(Boolean) as ClassId[];
+    return getActiveSynergies(classIds);
+  }, [placedSet, selectableHeroes]);
   const containerViewRef = useRef<View | null>(null);
 
   const placeHero = (heroId: string) => {
@@ -360,6 +368,20 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
               }}
             />
 
+            {previewSynergies.length > 0 && (
+              <View style={styles.synergiesPreview}>
+                <Text style={styles.synergiesTitle}>Sinergias Ativas</Text>
+                <View style={styles.synergiesList}>
+                  {previewSynergies.map((s) => (
+                    <View key={s.name} style={styles.synergyPreviewBadge}>
+                      <Text style={styles.synergyPreviewName}>{s.name}</Text>
+                      <Text style={styles.synergyPreviewDesc}>{s.description}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
             <View style={styles.actions}>
               <Text style={styles.helperText}>
                 Selecionados: {placedCount} {minHeroes > 0 ? `(min ${minHeroes})` : ''}
@@ -466,6 +488,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  synergiesPreview: {
+    marginTop: 8,
+    marginBottom: 4,
+    padding: 8,
+    backgroundColor: theme.colors.surfaceLight,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  synergiesTitle: {
+    color: theme.colors.primaryLight,
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  synergiesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  synergyPreviewBadge: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  synergyPreviewName: {
+    color: theme.colors.textPrimary,
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  synergyPreviewDesc: {
+    color: 'rgba(248, 250, 252, 0.75)',
+    fontSize: 9,
   },
 });
 
