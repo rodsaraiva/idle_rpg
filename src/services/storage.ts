@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameState } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
-const CURRENT_VERSION = 2; // Incremented for migrations
+const CURRENT_VERSION = 3; // Incremented for migrations
 
 interface SaveData extends GameState {
   _version: number;
@@ -24,6 +24,17 @@ const migrations: Record<number, (data: any) => any> = {
       }));
     }
     data.perHeroGold = data.perHeroGold ?? {};
+    return data;
+  },
+  3: (data) => {
+    // Version 3 Migration: Ensure hpCurrent is always set
+    if (data && Array.isArray(data.heroes)) {
+      data.heroes = data.heroes.map((h: any) => ({
+        ...h,
+        hpCurrent: h.hpCurrent ?? h.hpMax ?? h.hp ?? 0,
+        hpRegenProgressMs: h.hpRegenProgressMs ?? 0,
+      }));
+    }
     return data;
   },
 };

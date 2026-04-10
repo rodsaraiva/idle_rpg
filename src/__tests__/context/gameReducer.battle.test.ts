@@ -16,23 +16,18 @@ describe('gameReducer mission integration', () => {
     const missionTemplate = MISSIONS.find((m) => m.id === 'mission_1')!;
 
     // start mission
-    const afterStart = gameReducer(state as any, { type: 'START_MISSION', templateId: missionTemplate.id, heroIds: [hero.id] });
+    const startTime = Date.now();
+    const afterStart = gameReducer(state as any, { type: 'START_MISSION', templateId: missionTemplate.id, heroIds: [hero.id], now: startTime });
     expect(afterStart.activeMissions && afterStart.activeMissions.length).toBeGreaterThanOrEqual(1);
 
     // run ticks until missions complete (safety cap)
     let s = afterStart;
     let steps = 0;
-    
-    // We need to mock Date.now because mission completion depends on real time
-    const realDateNow = Date.now;
-    Date.now = jest.fn(() => realDateNow() + steps * 5000);
 
     while ((s.activeMissions?.length ?? 0) > 0 && steps < 50) {
-      s = gameReducer(s as any, { type: 'TICK' });
+      s = gameReducer(s as any, { type: 'TICK', now: startTime + (steps + 1) * 5000 });
       steps++;
     }
-    
-    Date.now = realDateNow;
 
     expect((s.recentMissionResults ?? []).length).toBeGreaterThanOrEqual(1);
     const res = s.recentMissionResults![0];

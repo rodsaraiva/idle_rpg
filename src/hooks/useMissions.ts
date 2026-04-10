@@ -47,7 +47,7 @@ export function useMissions() {
       return;
     }
 
-    dispatch({ type: 'START_MISSION', templateId, heroIds: valid, heroPositions });
+    dispatch({ type: 'START_MISSION', templateId, heroIds: valid, heroPositions, now: Date.now() });
     closeSelectionModal();
   };
 

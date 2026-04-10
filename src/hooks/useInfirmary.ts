@@ -8,7 +8,7 @@ export function useInfirmary() {
 
   const injuredIdle = useMemo(
     () => state.heroes.filter(
-      (h) => h.currentTask === HeroTask.IDLE && (h.hpCurrent ?? 0) < (h.hpMax ?? 0)
+      (h) => h.currentTask === HeroTask.IDLE && h.hpCurrent < h.hpMax
     ),
     [state.heroes]
   );

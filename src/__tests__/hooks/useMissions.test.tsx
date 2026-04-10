@@ -68,11 +68,13 @@ describe('useMissions', () => {
       result.current.handleConfirmMission('m1', ['h1']);
     });
     
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'START_MISSION',
-      templateId: 'm1',
-      heroIds: ['h1'],
-    });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'START_MISSION',
+        templateId: 'm1',
+        heroIds: ['h1'],
+      })
+    );
     expect(result.current.selectionModalVisible).toBe(false);
   });
 });

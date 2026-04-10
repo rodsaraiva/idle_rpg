@@ -19,7 +19,7 @@ describe('gameReducer', () => {
   test('TRAIN_HP accumulates trainingProgressMs when base time > tick', () => {
     const hero = createHero({ currentTask: HeroTask.TRAIN_HP, hp: 10 });
     const state = { ...initialGameState, heroes: [hero] };
-    const next = gameReducer(state, { type: 'TICK' });
+    const next = gameReducer(state, { type: 'TICK', now: Date.now() });
     expect(next.heroes[0].hpCurrent).toBe(10); // no full point yet
     expect(next.heroes[0].trainingProgressMs?.hp).toBeGreaterThanOrEqual(1000);
   });
@@ -27,7 +27,7 @@ describe('gameReducer', () => {
   test('TRAIN_ATK accumulates trainingProgressMs when base time > tick', () => {
     const hero = createHero({ currentTask: HeroTask.TRAIN_ATK, atk: 2.5 });
     const state = { ...initialGameState, heroes: [hero] };
-    const next = gameReducer(state, { type: 'TICK' });
+    const next = gameReducer(state, { type: 'TICK', now: Date.now() });
     expect(next.heroes[0].atk).toBeCloseTo(2.5);
     expect(next.heroes[0].trainingProgressMs?.atk).toBeGreaterThanOrEqual(1000);
   });
@@ -35,7 +35,7 @@ describe('gameReducer', () => {
   test('TRAIN_MP accumulates trainingProgressMs when base time > tick', () => {
     const hero = createHero({ currentTask: HeroTask.TRAIN_MP, mp: 1.5 });
     const state = { ...initialGameState, heroes: [hero] };
-    const next = gameReducer(state, { type: 'TICK' });
+    const next = gameReducer(state, { type: 'TICK', now: Date.now() });
     expect(next.heroes[0].mp).toBeCloseTo(1.5);
     expect(next.heroes[0].trainingProgressMs?.mp).toBeGreaterThanOrEqual(1000);
   });
@@ -52,7 +52,7 @@ describe('gameReducer', () => {
       finishAt: Date.now() - 1000,
     };
     const state = { ...initialGameState, heroes: [hero], gold: 0, activeMissions: [activeMission] };
-    const next = gameReducer(state, { type: 'TICK' });
+    const next = gameReducer(state, { type: 'TICK', now: Date.now() });
     // reward should be applied and hero released from mission
     expect(next.gold).toBeGreaterThanOrEqual(0);
     expect(next.heroes[0].currentTask).toBe(HeroTask.IDLE);

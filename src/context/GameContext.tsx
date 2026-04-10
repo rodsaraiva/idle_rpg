@@ -57,7 +57,7 @@ export function GameProvider({ children }: GameProviderProps) {
 
   // Manage Game Tick and Auto-save
   const handleTick = useCallback(() => {
-    dispatch({ type: 'TICK' });
+    dispatch({ type: 'TICK', now: Date.now() });
   }, [dispatch]);
 
   useGameLoop({

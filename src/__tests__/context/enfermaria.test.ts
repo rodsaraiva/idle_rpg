@@ -15,7 +15,7 @@ test('send to enfermaria and regen doubled', () => {
   const effectiveIntervalMs = Math.floor(HP_REGEN_INTERVAL_MS / ENFERMARIA_TIME_SCALE);
   const ticks = effectiveIntervalMs / 1000; // tickInterval 1000ms
   let s = afterStart;
-  for (let i = 0; i < ticks; i++) s = gameReducer(s as any, { type: 'TICK' });
+  for (let i = 0; i < ticks; i++) s = gameReducer(s as any, { type: 'TICK', now: Date.now() });
 
   const h = s.heroes.find((x) => x.id === 'h1')!;
   // effective multiplier = base * (1 + healerMpSum * k)

@@ -16,7 +16,7 @@ function createHero(id = 'h1', task = HeroTask.IDLE): Hero {
 test('START_MISSION assigns heroes and creates active mission', () => {
   const hero = createHero('h1', HeroTask.IDLE);
   const state = { ...initialGameState, heroes: [hero], activeMissions: [], gold: 0 };
-  const next = gameReducer(state, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'] });
+  const next = gameReducer(state, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'], now: Date.now() });
   expect(next.activeMissions && next.activeMissions.length).toBe(1);
   expect(next.heroes[0].currentTask).toBe(HeroTask.MISSION);
 });
@@ -40,14 +40,14 @@ test('DISMISS_MISSION_RESULT removes result from state', () => {
 
 test('START_MISSION returns state if template not found', () => {
   const state = { ...initialGameState };
-  const next = gameReducer(state, { type: 'START_MISSION', templateId: 'invalid', heroIds: [] });
+  const next = gameReducer(state, { type: 'START_MISSION', templateId: 'invalid', heroIds: [], now: Date.now() });
   expect(next).toBe(state);
 });
 
 test('START_MISSION returns state if heroIds length < minHeroes', () => {
   const state = { ...initialGameState };
   // mission_2 needs 2 heroes
-  const next = gameReducer(state, { type: 'START_MISSION', templateId: 'mission_2', heroIds: ['h1'] });
+  const next = gameReducer(state, { type: 'START_MISSION', templateId: 'mission_2', heroIds: ['h1'], now: Date.now() });
   expect(next).toBe(state);
 });
 

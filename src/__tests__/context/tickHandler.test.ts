@@ -22,7 +22,7 @@ describe('tickHandler', () => {
     const hero = createHero({ currentTask: HeroTask.TRAIN_HP });
     const state = { ...initialGameState, heroes: [hero] };
     
-    const next = handleTick(state);
+    const next = handleTick(state, Date.now());
     
     expect(next.heroes[0].trainingProgressMs?.hp).toBeGreaterThan(0);
   });
@@ -32,7 +32,7 @@ describe('tickHandler', () => {
     // tick for longer than regen interval
     const state = { ...initialGameState, heroes: [hero], tickIntervalMs: 20 * 60 * 1000 };
     
-    const next = handleTick(state);
+    const next = handleTick(state, Date.now());
     
     expect(next.heroes[0].hpCurrent).toBeGreaterThan(5);
   });

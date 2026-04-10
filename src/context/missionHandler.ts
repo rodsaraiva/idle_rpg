@@ -38,13 +38,13 @@ function validateMissionRequirements(template: MissionTemplate, heroes: Hero[]):
   return null;
 }
 
-export function handleStartMission(state: GameState, templateId: string, heroIds: string[], heroPositions?: Record<string, number>): GameState {
+export function handleStartMission(state: GameState, templateId: string, heroIds: string[], heroPositions?: Record<string, number>, now?: number): GameState {
   const template = MISSIONS.find((t) => t.id === templateId);
   if (!template) return state;
   if ((heroIds?.length ?? 0) < template.minHeroes) return state;
 
   const heroesMap = new Map(state.heroes.map((h) => [h.id, h]));
-  const now = Date.now();
+  const timestamp = now ?? Date.now();
   const heroesForMission: Hero[] = [];
 
   for (const hid of heroIds) {
@@ -73,7 +73,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     templateId: template.id,
     heroIds: heroIds,
     heroPositions,
-    startedAt: now,
+    startedAt: timestamp,
     healerBuffMultiplier,
     rogueRngBonus,
   };
@@ -105,8 +105,6 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
       ? {
           ...h,
           currentTask: HeroTask.MISSION,
-          trainingProgressMs: undefined,
-          trainingCount: undefined,
         }
       : h
   );

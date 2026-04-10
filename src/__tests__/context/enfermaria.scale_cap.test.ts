@@ -22,7 +22,7 @@ test('infirmary timeScale respects ENFERMARIA_MAX_SCALE', () => {
   const state = { ...initialGameState, heroes: [hero, ...manyHealers], tickIntervalMs: tenMin };
 
   const s1 = gameReducer(state as any, { type: 'START_INFERMARIA', heroIds: ['h1'] });
-  const s2 = gameReducer(s1 as any, { type: 'TICK' });
+  const s2 = gameReducer(s1 as any, { type: 'TICK', now: Date.now() });
   const after = s2.heroes.find((h) => h.id === 'h1')!;
   // should not exceed max hp, and should not throw; basic sanity
   expect(after.hpCurrent).toBeGreaterThanOrEqual(5);

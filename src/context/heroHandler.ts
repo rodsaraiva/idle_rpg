@@ -41,7 +41,7 @@ export function handleStartInfirmary(state: GameState, heroIds: string[]): GameS
   const heroesMap = new Map(state.heroes.map((h) => [h.id, h]));
   const validHeroIds = heroIds.filter((id) => {
     const h = heroesMap.get(id);
-    return !!h && h.currentTask !== HeroTask.MISSION && (h.hpCurrent ?? 0) < (h.hpMax ?? 0);
+    return !!h && h.currentTask !== HeroTask.MISSION && h.hpCurrent < h.hpMax;
   });
 
   if (validHeroIds.length === 0) return state;

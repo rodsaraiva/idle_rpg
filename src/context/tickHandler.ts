@@ -1,12 +1,14 @@
 import { GameState, HeroTask, Hero, ActiveMission, MissionOutcome, MissionResult } from '../types';
-import { 
-  BASE_TRAIN_TIME_MS, 
-  HP_REGEN_INTERVAL_MS, 
-  HP_REGEN_AMOUNT, 
-  ENFERMARIA_HEALER_MP_K, 
-  ENFERMARIA_TIME_SCALE, 
+import {
+  BASE_TRAIN_TIME_MS,
+  HP_REGEN_INTERVAL_MS,
+  HP_REGEN_AMOUNT,
+  ENFERMARIA_HEALER_MP_K,
+  ENFERMARIA_TIME_SCALE,
   ENFERMARIA_MAX_SCALE,
-  MISSION_FINISH_DELAY_MS
+  MISSION_FINISH_DELAY_MS,
+  TICK_INTERVAL_MS,
+  TRAIN_INFLATION_FACTOR
 } from '../constants/game';
 import { configProvider } from '../services/configProvider';
 import { MISSIONS } from '../constants/missions';
@@ -66,7 +68,7 @@ function processRegeneration(heroes: Hero[], tickMs: number): Hero[] {
   const healerMpSum = heroes.reduce((s, hh) => s + (hh.classId === 'HEALER' ? (hh.mp ?? 0) : 0), 0);
   
   return heroes.map((h) => {
-    if ((h.currentTask === HeroTask.IDLE || h.currentTask === HeroTask.INFIRMARY) && (h.hpCurrent ?? 0) < (h.hpMax ?? 0)) {
+    if ((h.currentTask === HeroTask.IDLE || h.currentTask === HeroTask.INFIRMARY) && h.hpCurrent < h.hpMax) {
       let timeScale = 1;
       if (h.currentTask === HeroTask.INFIRMARY) {
         const healerBoost = 1 + healerMpSum * ENFERMARIA_HEALER_MP_K;
@@ -87,7 +89,7 @@ function processRegeneration(heroes: Hero[], tickMs: number): Hero[] {
       return {
         ...h,
         hpRegenProgressMs: remaining,
-        hpCurrent: Math.min(h.hpMax ?? 0, (h.hpCurrent ?? 0) + gain)
+        hpCurrent: Math.min(h.hpMax, h.hpCurrent + gain)
       };
     }
     return h;
@@ -95,7 +97,7 @@ function processRegeneration(heroes: Hero[], tickMs: number): Hero[] {
 }
 
 /** Processa o progresso das missões ativas */
-function processMissions(state: GameState, heroes: Hero[]): { 
+function processMissions(state: GameState, heroes: Hero[], now: number): {
   newHeroes: Hero[], 
   activeMissions: ActiveMission[], 
   goldGained: number, 
@@ -111,7 +113,7 @@ function processMissions(state: GameState, heroes: Hero[]): {
     if (!tpl) continue;
 
     const startedAt = m.startedAt ?? 0;
-    const elapsed = Math.max(0, Date.now() - startedAt);
+    const elapsed = Math.max(0, now - startedAt);
 
     if (m.scheduledActions && Array.isArray(m.scheduledActions)) {
       let ai = 0;
@@ -131,7 +133,7 @@ function processMissions(state: GameState, heroes: Hero[]): {
             if (idx >= 0) {
               currentHeroes[idx] = { 
                 ...currentHeroes[idx], 
-                hpCurrent: Math.max(0, (currentHeroes[idx].hpCurrent ?? 0) - (act.amount ?? 0)) 
+                hpCurrent: Math.max(0, currentHeroes[idx].hpCurrent - (act.amount ?? 0)) 
               };
             }
           }
@@ -160,9 +162,9 @@ function processMissions(state: GameState, heroes: Hero[]): {
 
           if (act.actionType === 'defeat') {
             const aliveEnemiesNow = (m.enemiesState || []).filter((e: any) => (e.hp ?? 0) > 0);
-            const aliveHeroesNow = currentHeroes.filter((h) => m.heroIds.includes(h.id) && (h.hpCurrent ?? 0) > 0);
+            const aliveHeroesNow = currentHeroes.filter((h) => m.heroIds.includes(h.id) && h.hpCurrent > 0);
             if (aliveEnemiesNow.length === 0 || aliveHeroesNow.length === 0) {
-              if (!m.finishAt) m.finishAt = Date.now() + MISSION_FINISH_DELAY_MS;
+              if (!m.finishAt) m.finishAt = now + MISSION_FINISH_DELAY_MS;
             }
             prevWasMiss = false;
           }
@@ -174,12 +176,12 @@ function processMissions(state: GameState, heroes: Hero[]): {
     }
 
     const aliveEnemies = (m.enemiesState || []).filter((e: any) => (e.hp ?? 0) > 0);
-    const aliveHeroes = currentHeroes.filter((h) => m.heroIds.includes(h.id) && (h.hpCurrent ?? 0) > 0);
+    const aliveHeroes = currentHeroes.filter((h) => m.heroIds.includes(h.id) && h.hpCurrent > 0);
     if ((aliveEnemies.length === 0 || aliveHeroes.length === 0) && !m.finishAt) {
-      m.finishAt = Date.now() + MISSION_FINISH_DELAY_MS;
+      m.finishAt = now + MISSION_FINISH_DELAY_MS;
     }
 
-    if (m.finishAt && Date.now() >= m.finishAt) {
+    if (m.finishAt && now >= m.finishAt) {
       let outcome: MissionOutcome;
       if (m.precomputedOutcome) {
         outcome = m.precomputedOutcome;
@@ -237,9 +239,9 @@ function processMissions(state: GameState, heroes: Hero[]): {
   };
 }
 
-export function handleTick(state: GameState): GameState {
-  const tickMs = state.tickIntervalMs ?? 1000;
-  const inflation = state.trainInflationFactor ?? 0.1;
+export function handleTick(state: GameState, now: number): GameState {
+  const tickMs = state.tickIntervalMs ?? TICK_INTERVAL_MS;
+  const inflation = state.trainInflationFactor ?? TRAIN_INFLATION_FACTOR;
 
   // 1. Process Training
   const heroesAfterTraining = processTraining(state.heroes, tickMs, inflation);
@@ -248,12 +250,12 @@ export function handleTick(state: GameState): GameState {
   const heroesAfterRegen = processRegeneration(heroesAfterTraining, tickMs);
 
   // 3. Process Active Missions
-  const { 
-    newHeroes, 
-    activeMissions, 
-    goldGained, 
-    newResults 
-  } = processMissions(state, heroesAfterRegen);
+  const {
+    newHeroes,
+    activeMissions,
+    goldGained,
+    newResults
+  } = processMissions(state, heroesAfterRegen, now);
 
   const existingResults = state.recentMissionResults ? [...state.recentMissionResults] : [];
   const updatedResults = [...newResults, ...existingResults].slice(0, 10);

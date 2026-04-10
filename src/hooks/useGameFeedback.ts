@@ -44,13 +44,13 @@ export function useGameFeedback(state: GameState) {
         }
 
         // Check hpCurrent decrease (damage)
-        if ((h.hpCurrent ?? 0) < (prevHero.hpCurrent ?? 0)) {
-          const lost = Math.max(0, (prevHero.hpCurrent ?? 0) - (h.hpCurrent ?? 0));
+        if (h.hpCurrent < prevHero.hpCurrent) {
+          const lost = prevHero.hpCurrent - h.hpCurrent;
           emit(FEEDBACK_EVENTS.FLOAT, { text: `-${Math.floor(lost)} HP`, color: FEEDBACK_HP_LOSS_COLOR });
           emit(FEEDBACK_EVENTS.BATTLE_HIGHLIGHT, { id: h.id, duration: BATTLE_HIGHLIGHT_DURATION_MS });
           emit(FEEDBACK_EVENTS.BATTLE_HIT, { id: h.id, amount: lost });
           emit(FEEDBACK_EVENTS.BATTLE_TARGET, { id: h.id, duration: BATTLE_HIGHLIGHT_DURATION_MS });
-          if ((h.hpCurrent ?? 0) <= 0) {
+          if (h.hpCurrent <= 0) {
             emit(FEEDBACK_EVENTS.BATTLE_DEATH, { id: h.id });
           }
         }

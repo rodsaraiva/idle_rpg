@@ -1,22 +1,23 @@
 import { GameState, GameAction } from '../types';
 import { handleTick } from './tickHandler';
-import { 
-  handleStartMission, 
-  handleCompleteMission, 
-  handleDismissMissionResult 
+import {
+  handleStartMission,
+  handleCompleteMission,
+  handleDismissMissionResult
 } from './missionHandler';
-import { 
-  handleRecruitHero, 
-  handleStartInfirmary, 
+import {
+  handleRecruitHero,
+  handleStartInfirmary,
   handleReleaseFromInfirmary,
   handleSetHeroTask,
   handleBuyChest,
   handleConfirmChestReveal
 } from './heroHandler';
-import { 
-  handleSetTickInterval, 
-  handleSetTrainInflation 
+import {
+  handleSetTickInterval,
+  handleSetTrainInflation
 } from './systemHandler';
+import { TICK_INTERVAL_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 
 /** Estado inicial quando não há save */
 export const initialGameState: GameState = {
@@ -24,8 +25,8 @@ export const initialGameState: GameState = {
   heroes: [],
   heroesRecruited: 0,
   lastSavedAt: Date.now(),
-  tickIntervalMs: 1000,
-  trainInflationFactor: 0.1,
+  tickIntervalMs: TICK_INTERVAL_MS,
+  trainInflationFactor: TRAIN_INFLATION_FACTOR,
   activeMissions: [],
 };
 
@@ -33,10 +34,10 @@ export const initialGameState: GameState = {
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'TICK':
-      return handleTick(state);
+      return handleTick(state, action.now);
 
     case 'START_MISSION':
-      return handleStartMission(state, action.templateId, action.heroIds, action.heroPositions);
+      return handleStartMission(state, action.templateId, action.heroIds, action.heroPositions, action.now);
 
     case 'DISMISS_MISSION_RESULT':
       return handleDismissMissionResult(state, action.missionId);

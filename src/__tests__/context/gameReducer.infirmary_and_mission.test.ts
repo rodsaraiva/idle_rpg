@@ -23,15 +23,15 @@ test('infirmary time scaling is order-independent (10min in + 10min out == 30min
 
   // Case A: 10min inside then 10min outside
   let s = gameReducer(state as any, { type: 'START_INFERMARIA', heroIds: ['h1'] });
-  s = gameReducer(s as any, { type: 'TICK' }); // 10min in infirmary
+  s = gameReducer(s as any, { type: 'TICK', now: Date.now() }); // 10min in infirmary
   s = gameReducer(s as any, { type: 'RELEASE_FROM_INFERMARIA', heroIds: ['h1'] });
-  s = gameReducer(s as any, { type: 'TICK' }); // 10min outside
+  s = gameReducer(s as any, { type: 'TICK', now: Date.now() }); // 10min outside
   const afterA = s.heroes.find((h) => h.id === 'h1')!;
 
   // Case B: 10min outside then 10min inside
-  let t = gameReducer(state as any, { type: 'TICK' }); // 10min outside
+  let t = gameReducer(state as any, { type: 'TICK', now: Date.now() }); // 10min outside
   t = gameReducer(t as any, { type: 'START_INFERMARIA', heroIds: ['h1'] });
-  t = gameReducer(t as any, { type: 'TICK' }); // 10min in infirmary
+  t = gameReducer(t as any, { type: 'TICK', now: Date.now() }); // 10min in infirmary
   const afterB = t.heroes.find((h) => h.id === 'h1')!;
 
   // Both should have same hp (order independent)
@@ -52,7 +52,7 @@ test('healer MP boosts infirmary timeScale multiplicatively up to cap', () => {
 
   // send hero to infirmary and tick once
   let s = gameReducer(state as any, { type: 'START_INFERMARIA', heroIds: ['h1'] });
-  s = gameReducer(s as any, { type: 'TICK' });
+  s = gameReducer(s as any, { type: 'TICK', now: Date.now() });
   const after = s.heroes.find((h) => h.id === 'h1')!;
   // with heavy healer boost single infirmary tick should produce at least one point
   expect(after.hpCurrent).toBeGreaterThan(5);
@@ -61,7 +61,7 @@ test('healer MP boosts infirmary timeScale multiplicatively up to cap', () => {
 test('START_MISSION rejects incapacitated heroes', () => {
   const hero = makeHero('h1', 10, 2); // hp < 3
   const state = { ...initialGameState, heroes: [hero], activeMissions: [] };
-  const next = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'] });
+  const next = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'], now: Date.now() });
   // should be unchanged (cannot start mission with incapacitated hero)
   expect(next.activeMissions?.length || 0).toBe(0);
 });
@@ -87,7 +87,7 @@ test('COMPLETE mission applies casualties and correctly updates HP', () => {
   } as any;
 
   const state = { ...initialGameState, heroes: [hero], activeMissions: [mission], gold: 0 };
-  const next = gameReducer(state as any, { type: 'TICK' });
+  const next = gameReducer(state as any, { type: 'TICK', now: Date.now() });
   const h = next.heroes.find((x) => x.id === 'h1')!;
   expect(h.hpCurrent).toBe(1);
   // incapacitado é verificado agora pelo HP < 3 na UI e handlers

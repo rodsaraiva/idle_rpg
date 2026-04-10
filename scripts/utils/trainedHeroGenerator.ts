@@ -40,9 +40,10 @@ export function generateTrainedHero(classId: ClassId, training: TrainingFocus): 
   // 3. Helper para calcular pontos ganhos para um atributo específico
   const calcPoints = (ms: number, type: 'hp' | 'atk' | 'mp') => {
     // Aplica o multiplicador de velocidade de treino da classe
+    // trainSpeed > 1 = treina mais rápido, então dividimos o tempo base
     const speedMultiplier = classDef.trainSpeed?.[type] ?? 1;
-    const effectiveBaseMs = BASE_TRAIN_TIME_MS * speedMultiplier;
-    
+    const effectiveBaseMs = BASE_TRAIN_TIME_MS / speedMultiplier;
+
     // Calcula quantos pontos conseguiu gerar nesse tempo usando a fórmula de progressão do jogo
     const { points } = computePointsFromMs(effectiveBaseMs, TRAIN_INFLATION_FACTOR, ms);
     return points;

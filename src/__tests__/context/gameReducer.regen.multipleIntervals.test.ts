@@ -10,7 +10,7 @@ test('multiple regen intervals applied in one large tick', () => {
   const hero = makeHero();
   const largeTick = HP_REGEN_INTERVAL_MS * 3; // should give 3 points
   const state = { ...initialGameState, heroes: [hero], tickIntervalMs: largeTick };
-  const next = gameReducer(state as any, { type: 'TICK' });
+  const next = gameReducer(state as any, { type: 'TICK', now: Date.now() });
   expect(next.heroes[0].hpCurrent).toBeGreaterThanOrEqual(3);
 });
 

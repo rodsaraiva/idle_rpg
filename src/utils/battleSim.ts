@@ -1,7 +1,7 @@
 import { MissionTemplate } from '../constants/missions';
 import { Hero, MissionOutcome, MissionAction } from '../types';
 import { calcMissionReward } from './missionMath';
-import { BattleEngine, BattleEnemy } from './battleEngine';
+import { BattleEngine, BattleEnemy, BattleState } from './battleEngine';
 import { GameMath } from './gameMath';
 
 import { 

@@ -68,7 +68,7 @@ export interface GameState {
 
 /** Ação disparada para alterar o estado do jogo */
 export type GameAction =
-  | { type: 'TICK' }
+  | { type: 'TICK'; now: number }
   | { type: 'START_INFERMARIA'; heroIds: string[] }
   | { type: 'RELEASE_FROM_INFERMARIA'; heroIds: string[] }
   | { type: 'SET_HERO_TASK'; heroId: string; task: HeroTask }
@@ -77,7 +77,7 @@ export type GameAction =
   | { type: 'CONFIRM_CHEST_REVEAL'; hero: Hero }
   | { type: 'SET_TICK_INTERVAL'; ms: number }
   | { type: 'SET_TRAIN_INFLATION'; inflation: number }
-  | { type: 'START_MISSION'; templateId: string; heroIds: string[]; heroPositions?: Record<string, number> }
+  | { type: 'START_MISSION'; templateId: string; heroIds: string[]; heroPositions?: Record<string, number>; now: number }
   | { type: 'COMPLETE_MISSION'; missionId: string; reward: number }
   | { type: 'DISMISS_MISSION_RESULT'; missionId: string }
   | { type: 'LOAD_STATE'; state: GameState };

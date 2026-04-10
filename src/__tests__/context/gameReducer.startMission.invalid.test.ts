@@ -10,19 +10,19 @@ test('START_MISSION rejects missing, incapacitated, or mission heroes', () => {
   const state = { ...initialGameState, heroes: [validHero, incapacitated, inMission], activeMissions: [] };
 
   // missing hero id should abort
-  const s1 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['nope'] });
+  const s1 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['nope'], now: Date.now() });
   expect(s1.activeMissions?.length || 0).toBe(0);
 
   // incapacitated should abort
-  const s2 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h2'] });
+  const s2 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h2'], now: Date.now() });
   expect(s2.activeMissions?.length || 0).toBe(0);
 
   // already in mission should abort
-  const s3 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h3'] });
+  const s3 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h3'], now: Date.now() });
   expect(s3.activeMissions?.length || 0).toBe(0);
 
   // valid should proceed
-  const s4 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'] });
+  const s4 = gameReducer(state as any, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'], now: Date.now() });
   expect(s4.activeMissions && s4.activeMissions.length).toBeGreaterThanOrEqual(1);
 });
 
