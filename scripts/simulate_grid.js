@@ -8,7 +8,7 @@ const ITER = 5000;
 
 const BASE = { hp: 10, atk: 5, mp: 3 };
 const BASE_TRAIN_TIME_MS = 10000; // fixed
-const TRAIN_INFLATION_FACTOR = 0.1; // fixed
+const TRAIN_INFLATION_FACTOR = 0.5; // fixed
 
 const MISSIONS = [
   { id: 'mission_1', name: 'Primeira Patrulha', minHeroes: 1, durationMs: 10000, rewardMin: 1, rewardMax: 10, statWeights: { hp: 0.2, atk: 1.0, mp: 0.1 }, scale: 1.0 },
@@ -32,19 +32,22 @@ const DURATIONS = [
   { name: '2h', ms: 2 * 60 * 60 * 1000 },
 ];
 
-function computePointsFromMs(baseMs, inflation, availableMs) {
+function computePointsFromMs(baseMs, inflationK, availableMs) {
   if (availableMs <= 0) return { points: 0, leftoverMs: 0 };
-  const r = 1 + inflation;
-  if (inflation === 0) {
+  if (inflationK === 0) {
     const n = Math.floor(availableMs / baseMs);
     return { points: n, leftoverMs: availableMs - n * baseMs };
   }
-  const limit = 1 + (availableMs * (r - 1)) / baseMs;
-  if (limit <= 1) return { points: 0, leftoverMs: availableMs };
-  const n = Math.floor(Math.log(limit) / Math.log(r));
-  const sumTime = baseMs * (Math.pow(r, n) - 1) / (r - 1);
-  const leftover = availableMs - sumTime;
-  return { points: n, leftoverMs: leftover };
+  let remaining = availableMs;
+  let points = 0;
+  while (remaining > 0) {
+    const timeForNextPoint = baseMs * (1 + inflationK * Math.log(points + 1));
+    if (remaining < timeForNextPoint) break;
+    remaining -= timeForNextPoint;
+    points++;
+    if (points > 10000) break;
+  }
+  return { points, leftoverMs: remaining };
 }
 
 function calcMissionReward(template, heroes, opts) {

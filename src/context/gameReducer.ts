@@ -17,6 +17,12 @@ import {
   handleSetTickInterval,
   handleSetTrainInflation
 } from './systemHandler';
+import {
+  handleForgeEquipment,
+  handleCollectEquipment,
+  handleEquipItem,
+  handleUnequipItem
+} from './equipmentHandler';
 import { TICK_INTERVAL_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 
 /** Estado inicial quando não há save */
@@ -68,6 +74,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'RELEASE_FROM_INFERMARIA':
       return handleReleaseFromInfirmary(state, action.heroIds);
+
+    case 'FORGE_EQUIPMENT':
+      return handleForgeEquipment(state, action.tier, action.now);
+
+    case 'COLLECT_EQUIPMENT':
+      return handleCollectEquipment(state, action.equipmentId);
+
+    case 'EQUIP_ITEM':
+      return handleEquipItem(state, action.heroId, action.equipmentId);
+
+    case 'UNEQUIP_ITEM':
+      return handleUnequipItem(state, action.heroId, action.equipmentId);
 
     case 'LOAD_STATE':
       return { ...action.state };

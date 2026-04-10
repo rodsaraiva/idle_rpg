@@ -84,8 +84,31 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,
   };
 
+  // Apply equipment stat bonuses to hero copies for battle
+  const heroesWithEquipment = heroesForMission.map(h => {
+    const equipped = h.equippedItems || [];
+    if (equipped.length === 0) return h;
+    const copy = { ...h };
+    for (const eqId of equipped) {
+      const item = (state.inventory || []).find(e => e.id === eqId);
+      if (!item) continue;
+      const bonus = item.statBonus;
+      if (bonus.hp) copy.hpMax += bonus.hp;
+      if (bonus.atk) copy.atk += bonus.atk;
+      if (bonus.mp) copy.mp += bonus.mp;
+      if (bonus.defense) copy.defense = (copy.defense ?? 0) + bonus.defense;
+      if (bonus.crit) copy.crit = (copy.crit ?? 0) + bonus.crit;
+      if (bonus.agility) copy.agility = (copy.agility ?? 0) + bonus.agility;
+    }
+    // Also boost current HP proportionally
+    if (copy.hpMax > h.hpMax) {
+      copy.hpCurrent = Math.min(copy.hpMax, copy.hpCurrent + (copy.hpMax - h.hpMax));
+    }
+    return copy;
+  });
+
   try {
-    const outcome = computeBattleOutcome(template, heroesForMission, {
+    const outcome = computeBattleOutcome(template, heroesWithEquipment, {
       healerBuffMultiplier,
       rogueRngBonus,
       heroPositions,

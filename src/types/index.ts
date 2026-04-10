@@ -4,11 +4,22 @@ export enum HeroTask {
   TRAIN_HP = 'TRAIN_HP',
   TRAIN_ATK = 'TRAIN_ATK',
   TRAIN_MP = 'TRAIN_MP',
+  TRAIN_DEF = 'TRAIN_DEF',
+  TRAIN_CRIT = 'TRAIN_CRIT',
+  TRAIN_AGI = 'TRAIN_AGI',
   INFIRMARY = 'INFIRMARY',
   MISSION = 'MISSION',
 }
 
 export type ClassId = 'WARRIOR' | 'TANK' | 'ROGUE' | 'ARCHER' | 'MAGE' | 'HEALER';
+
+export interface Equipment {
+  id: string;
+  name: string;
+  type: 'weapon' | 'armor' | 'accessory';
+  statBonus: { hp?: number; atk?: number; mp?: number; defense?: number; crit?: number; agility?: number };
+  tier: number; // 1-3
+}
 
 export type PersonalityId = 'AGGRESSIVE' | 'PROTECTOR' | 'CAUTIOUS' | 'VENGEFUL' | 'OPPORTUNIST';
 
@@ -28,6 +39,7 @@ export interface Hero {
   personality?: PersonalityId;
   // optional avatar image URL for UI
   avatarUrl?: string;
+  equippedItems?: string[]; // equipment IDs
   // attack style for targeting behavior
   attackType?: 'MELEE' | 'RANGED';
   range?: number; // Distance in hex grid
@@ -41,12 +53,18 @@ export interface TrainingProgress {
   hp: number; // ms
   atk: number;
   mp: number;
+  defense: number;
+  crit: number;
+  agility: number;
 }
 
 export interface TrainingCount {
   hp: number; // points gained via training
   atk: number;
   mp: number;
+  defense: number;
+  crit: number;
+  agility: number;
 }
 
 /** Estado global do jogo */
@@ -58,6 +76,9 @@ export interface GameState {
   // runtime-configurable pacing and inflation (for experiments)
   tickIntervalMs?: number;
   trainInflationFactor?: number;
+  // equipment inventory and forging
+  inventory?: Equipment[];
+  forgingQueue?: { equipmentId: string; finishAt: number }[];
   // active missions currently running
   activeMissions?: ActiveMission[];
   // total gold earned per hero (accumulated from mission shares)
@@ -80,6 +101,10 @@ export type GameAction =
   | { type: 'START_MISSION'; templateId: string; heroIds: string[]; heroPositions?: Record<string, number>; now: number }
   | { type: 'COMPLETE_MISSION'; missionId: string; reward: number }
   | { type: 'DISMISS_MISSION_RESULT'; missionId: string }
+  | { type: 'FORGE_EQUIPMENT'; tier: number; now: number }
+  | { type: 'COLLECT_EQUIPMENT'; equipmentId: string }
+  | { type: 'EQUIP_ITEM'; heroId: string; equipmentId: string }
+  | { type: 'UNEQUIP_ITEM'; heroId: string; equipmentId: string }
   | { type: 'LOAD_STATE'; state: GameState };
 
 export type MissionActorType = 'hero' | 'enemy';

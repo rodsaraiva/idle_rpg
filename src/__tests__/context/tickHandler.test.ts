@@ -12,8 +12,8 @@ function createHero(overrides: Partial<Hero> = {}): Hero {
     atk: overrides.atk ?? 5,
     mp: overrides.mp ?? 3,
     currentTask: overrides.currentTask ?? HeroTask.IDLE,
-    trainingProgressMs: overrides.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 },
-    trainingCount: overrides.trainingCount ?? { hp: 0, atk: 0, mp: 0 },
+    trainingProgressMs: overrides.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0 },
+    trainingCount: overrides.trainingCount ?? { hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0 },
   } as Hero;
 }
 

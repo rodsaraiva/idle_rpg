@@ -22,8 +22,8 @@ describe('OfflineProgress - Catch-up Logic', () => {
     crit: 5,
     agility: 10,
     currentTask: task,
-    trainingProgressMs: { hp: 0, atk: 0, mp: 0 },
-    trainingCount: { hp: 0, atk: 0, mp: 0 },
+    trainingProgressMs: { hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0 },
+    trainingCount: { hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0 },
   });
 
   test('should process multiple training points over 12 hours', () => {

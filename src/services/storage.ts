@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameState } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
-const CURRENT_VERSION = 3; // Incremented for migrations
+const CURRENT_VERSION = 4; // Incremented for migrations
 
 interface SaveData extends GameState {
   _version: number;
@@ -33,6 +33,23 @@ const migrations: Record<number, (data: any) => any> = {
         ...h,
         hpCurrent: h.hpCurrent ?? h.hpMax ?? h.hp ?? 0,
         hpRegenProgressMs: h.hpRegenProgressMs ?? 0,
+      }));
+    }
+    return data;
+  },
+  4: (data) => {
+    // Version 4 Migration: Add defense, crit, agility to training fields
+    if (data && Array.isArray(data.heroes)) {
+      data.heroes = data.heroes.map((h: any) => ({
+        ...h,
+        trainingProgressMs: {
+          hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0,
+          ...(h.trainingProgressMs ?? {}),
+        },
+        trainingCount: {
+          hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0,
+          ...(h.trainingCount ?? {}),
+        },
       }));
     }
     return data;

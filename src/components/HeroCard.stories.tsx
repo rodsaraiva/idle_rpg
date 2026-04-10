@@ -11,8 +11,8 @@ const baseHero: Hero = {
   atk: 7,
   mp: 3,
   currentTask: HeroTask.IDLE,
-  trainingProgressMs: { hp: 0, atk: 0, mp: 0 },
-  trainingCount: { hp: 0, atk: 0, mp: 0 },
+  trainingProgressMs: { hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0 },
+  trainingCount: { hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0 },
 };
 
 export default {

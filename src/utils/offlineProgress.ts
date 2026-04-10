@@ -1,9 +1,10 @@
 import { GameState, HeroTask, OfflineSummaryFull, PerHeroChange } from '../types';
-import { 
-  TICK_INTERVAL_MS, 
-  BASE_TRAIN_TIME_MS, 
+import {
+  TICK_INTERVAL_MS,
+  BASE_TRAIN_TIME_MS,
   TRAIN_INFLATION_FACTOR,
-  MAX_OFFLINE_MS
+  MAX_OFFLINE_MS,
+  SECONDARY_STAT_TRAIN_SPEED
 } from '../constants/game';
 import { MISSIONS } from '../constants/missions';
 import { calcMissionReward } from './missionMath';
@@ -37,10 +38,15 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
     let afterAtk = beforeAtk;
     let afterMp = beforeMp;
 
-    const beforeProgress = h.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 };
-    const beforeCount = h.trainingCount ?? { hp: 0, atk: 0, mp: 0 };
+    const defaultProgress = { hp: 0, atk: 0, mp: 0, defense: 0, crit: 0, agility: 0 };
+    const beforeProgress = { ...defaultProgress, ...(h.trainingProgressMs ?? {}) };
+    const beforeCount = { ...defaultProgress, ...(h.trainingCount ?? {}) };
     let afterProgress = { ...beforeProgress };
     let afterCount = { ...beforeCount };
+
+    let afterDefense = h.defense ?? 0;
+    let afterCrit = h.crit ?? 0;
+    let afterAgility = h.agility ?? 0;
 
     switch (h.currentTask) {
       case HeroTask.TRAIN_HP: {
@@ -86,6 +92,48 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         break;
       }
 
+      case HeroTask.TRAIN_DEF: {
+        heroesAffected += 1;
+        const available = (h.trainingProgressMs?.defense ?? 0) + ticks * tickInterval;
+        const { points, leftoverMs } = computePointsFromMs(
+          BASE_TRAIN_TIME_MS / SECONDARY_STAT_TRAIN_SPEED,
+          trainInflation,
+          available
+        );
+        afterDefense += points;
+        afterProgress.defense = leftoverMs;
+        afterCount.defense = (h.trainingCount?.defense ?? 0) + points;
+        break;
+      }
+
+      case HeroTask.TRAIN_CRIT: {
+        heroesAffected += 1;
+        const available = (h.trainingProgressMs?.crit ?? 0) + ticks * tickInterval;
+        const { points, leftoverMs } = computePointsFromMs(
+          BASE_TRAIN_TIME_MS / SECONDARY_STAT_TRAIN_SPEED,
+          trainInflation,
+          available
+        );
+        afterCrit += points;
+        afterProgress.crit = leftoverMs;
+        afterCount.crit = (h.trainingCount?.crit ?? 0) + points;
+        break;
+      }
+
+      case HeroTask.TRAIN_AGI: {
+        heroesAffected += 1;
+        const available = (h.trainingProgressMs?.agility ?? 0) + ticks * tickInterval;
+        const { points, leftoverMs } = computePointsFromMs(
+          BASE_TRAIN_TIME_MS / SECONDARY_STAT_TRAIN_SPEED,
+          trainInflation,
+          available
+        );
+        afterAgility += points;
+        afterProgress.agility = leftoverMs;
+        afterCount.agility = (h.trainingCount?.agility ?? 0) + points;
+        break;
+      }
+
       case HeroTask.MISSION:
         heroesAffected += 1;
         break;
@@ -98,7 +146,10 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
       beforeHpMax !== afterHpMax ||
       beforeHpCurrent !== afterHpCurrent ||
       beforeAtk !== afterAtk ||
-      beforeMp !== afterMp
+      beforeMp !== afterMp ||
+      (h.defense ?? 0) !== afterDefense ||
+      (h.crit ?? 0) !== afterCrit ||
+      (h.agility ?? 0) !== afterAgility
     ) {
       perHeroChanges.push({
         id: h.id,
@@ -111,6 +162,12 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         atkAfter: afterAtk,
         mpBefore: beforeMp,
         mpAfter: afterMp,
+        defenseBefore: h.defense ?? 0,
+        defenseAfter: afterDefense,
+        critBefore: h.crit ?? 0,
+        critAfter: afterCrit,
+        agilityBefore: h.agility ?? 0,
+        agilityAfter: afterAgility,
       });
     }
 
@@ -120,6 +177,9 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
       hpCurrent: afterHpCurrent,
       atk: afterAtk,
       mp: afterMp,
+      defense: afterDefense,
+      crit: afterCrit,
+      agility: afterAgility,
       trainingProgressMs: afterProgress,
       trainingCount: afterCount,
     };
