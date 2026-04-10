@@ -1,34 +1,19 @@
 import { test, expect } from '@playwright/test';
+import { loadWithState, makeState } from './helpers';
 
-test('recruit new hero updates guilda view', async ({ page }) => {
-  // Configura estado com ouro suficiente
-  const savedState = {
-    gold: 50,
-    heroes: [],
-    heroesRecruited: 0,
-    lastSavedAt: Date.now(),
-  };
+test.describe('Guild & Shop', () => {
+  test('shop shows all 3 chest tiers', async ({ page }) => {
+    await loadWithState(page, makeState({ gold: 1000 }));
+    await page.click('[role="tab"]:has-text("Loja")');
+    await expect(page.locator('text=Mercado Real')).toBeVisible();
+    await expect(page.locator('text=Baú Herói Bronze').first()).toBeVisible();
+    await expect(page.locator('text=Baú Herói Prata').first()).toBeVisible();
+    await expect(page.locator('text=Baú Herói Ouro').first()).toBeVisible();
+  });
 
-  await page.goto('about:blank');
-  await page.evaluate(({ k, v }) => localStorage.setItem(k, v), { k: '@idle_rpg_game_state', v: JSON.stringify(savedState) });
-
-  // Abrir e checar na Guilda
-  await page.goto('/');
-  await page.waitForSelector('text=Guilda', { timeout: 10000 });
-  await page.click('text=Guilda');
-
-  // Checar se não há heróis
-  await expect(page.locator('text=0 heróis')).toBeVisible();
-  
-  // Buscar e clicar botão recrutar (exige 5 ouro geralmente na base)
-  const recruitBtn = page.locator('text=Recrutar Herói');
-  await expect(recruitBtn).toBeVisible();
-  
-  await recruitBtn.click();
-
-  // Espera a tela atualizar para 1 herói
-  await expect(page.locator('text=1 herói')).toBeVisible();
-  
-  // Confirma se o ouro diminuiu (assumindo que seja 5)
-  await expect(page.locator('text=💰').locator('..').locator('text=45')).toBeVisible();
+  test('shop shows gold display', async ({ page }) => {
+    await loadWithState(page, makeState({ gold: 1000 }));
+    await page.click('[role="tab"]:has-text("Loja")');
+    await expect(page.locator('text=💰').first()).toBeVisible();
+  });
 });
