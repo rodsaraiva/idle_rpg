@@ -32,6 +32,7 @@ export interface MissionTemplate {
     count?: number;
     range?: number;
     movement?: number;
+    attackType?: 'MELEE' | 'RANGED';
   }[];
   requirements?: MissionRequirement[];
   difficulty?: number; // 1-5

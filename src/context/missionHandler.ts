@@ -4,15 +4,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { computeBattleOutcome } from '../utils/battleSim';
 import { BattleEngine } from '../utils/battleEngine';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
-import { 
-  HEALER_BUFF_PER_HERO, 
-  HEALER_BUFF_CAP, 
-  ROGUE_RNG_BONUS_PER_HERO, 
+import {
+  HEALER_BUFF_PER_HERO,
+  HEALER_BUFF_CAP,
+  ROGUE_RNG_BONUS_PER_HERO,
   ROGUE_RNG_BONUS_CAP,
   MISSION_START_DELAY_MS,
   MISSION_ACTION_INTERVAL_MS,
-  INCAPACITATED_HP_THRESHOLD
 } from '../constants/game';
+import { isHeroAvailableForMission } from '../utils/heroUtils';
 
 function validateMissionRequirements(template: MissionTemplate, heroes: Hero[]): string | null {
   if (!template.requirements) return null;
@@ -49,7 +49,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
 
   for (const hid of heroIds) {
     const h = heroesMap.get(hid);
-    if (!h || h.currentTask === HeroTask.MISSION || h.hpCurrent < INCAPACITATED_HP_THRESHOLD) {
+    if (!h || !isHeroAvailableForMission(h)) {
       return state;
     }
     heroesForMission.push(h);

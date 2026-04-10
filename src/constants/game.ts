@@ -22,12 +22,6 @@ export const ENFERMARIA_TIME_SCALE = 2;
 /** Max allowed infirmary time scale (safety cap) */
 export const ENFERMARIA_MAX_SCALE = 6;
 
-/** (compat) Ganho por tick - mantido para compatibilidade de testes antigos (equiv. a 1 ponto por 1s) */
-export const HP_TRAIN_PER_TICK = 1;
-export const ATK_TRAIN_PER_TICK = 1;
-/** Ganho de MP por segundo ao treinar MP */
-export const MP_TRAIN_PER_TICK = 0.3;
-
 /** Battle related constants */
 export const MAX_BATTLE_ROUNDS = 20;
 export const CRIT_BASE_CHANCE = 0.05;

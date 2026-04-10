@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  FlatList,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -95,14 +94,13 @@ export function EnfermariaScreen() {
             </View>
           ) : (
             <>
-              <FlatList
-                data={injuredIdle}
-                renderItem={renderSelectable}
-                keyExtractor={(i) => i.id}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-                scrollEnabled={false}
-              />
+              <View style={styles.listContent}>
+                {injuredIdle.map((item) => (
+                  <React.Fragment key={item.id}>
+                    {renderSelectable({ item })}
+                  </React.Fragment>
+                ))}
+              </View>
               
               <TouchableOpacity 
                 style={[

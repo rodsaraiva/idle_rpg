@@ -14,6 +14,7 @@ import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { calculateOfflineProgress } from '../utils/offlineProgress';
 import { useGameFeedback } from '../hooks/useGameFeedback';
 import { useGameLoop } from '../hooks/useGameLoop';
+import { isHeroInMission } from '../utils/heroUtils';
 
 interface GameContextValue {
   state: GameState;
@@ -94,7 +95,7 @@ export function GameProvider({ children }: GameProviderProps) {
       const hero = stateRef.current.heroes.find((h) => h.id === heroId);
       if (!hero) return;
       
-      if (hero.currentTask === HeroTask.MISSION) {
+      if (isHeroInMission(hero)) {
         emit(FEEDBACK_EVENTS.TOAST, { 
           text: 'Herói em missão — não pode ser interrompido' 
         });

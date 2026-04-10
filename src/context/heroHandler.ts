@@ -2,6 +2,7 @@ import { GameState, HeroTask, ClassId, Hero } from '../types';
 import { getRecruitCost } from '../utils/math';
 import { createHero } from '../utils/heroFactory';
 import { CLASS_DEFS } from '../constants/classes';
+import { isHeroInMission, isHeroInjured } from '../utils/heroUtils';
 
 export function handleRecruitHero(state: GameState): GameState {
   const cost = getRecruitCost(state.heroesRecruited);
@@ -41,7 +42,7 @@ export function handleStartInfirmary(state: GameState, heroIds: string[]): GameS
   const heroesMap = new Map(state.heroes.map((h) => [h.id, h]));
   const validHeroIds = heroIds.filter((id) => {
     const h = heroesMap.get(id);
-    return !!h && h.currentTask !== HeroTask.MISSION && h.hpCurrent < h.hpMax;
+    return !!h && !isHeroInMission(h) && isHeroInjured(h);
   });
 
   if (validHeroIds.length === 0) return state;
@@ -66,7 +67,7 @@ export function handleReleaseFromInfirmary(state: GameState, heroIds: string[]):
 
 export function handleSetHeroTask(state: GameState, heroId: string, task: HeroTask): GameState {
   const target = state.heroes.find((h) => h.id === heroId);
-  if (!target || target.currentTask === HeroTask.MISSION) return state;
+  if (!target || isHeroInMission(target)) return state;
 
   return {
     ...state,

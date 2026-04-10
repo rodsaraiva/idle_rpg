@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useGame } from './useGame';
 import { Hero, HeroTask } from '../types';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
-import { INCAPACITATED_HP_THRESHOLD } from '../constants/game';
+import { isHeroIncapacitated } from '../utils/heroUtils';
 
 export function useMissions() {
   const { state, isLoaded, dispatch } = useGame();
@@ -37,7 +37,7 @@ export function useMissions() {
     if (!templateId) return;
     
     const valid = heroIds.filter((id) =>
-      selectableHeroes.some((h) => h.id === id && h.hpCurrent >= INCAPACITATED_HP_THRESHOLD)
+      selectableHeroes.some((h) => h.id === id && !isHeroIncapacitated(h))
     );
 
     if (valid.length < (pendingTemplate?.minHeroes ?? 0)) {
@@ -52,7 +52,7 @@ export function useMissions() {
   };
 
   const availableCount = selectableHeroes.filter(
-    (h) => h.hpCurrent >= INCAPACITATED_HP_THRESHOLD
+    (h) => !isHeroIncapacitated(h)
   ).length;
 
   const activePlaybackMission = React.useMemo(
