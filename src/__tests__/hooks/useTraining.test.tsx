@@ -5,7 +5,7 @@ import { GameContext } from '../../context/GameContext';
 import { initialGameState } from '../../context/gameReducer';
 import { HeroTask } from '../../types';
 
-const mockHero = { id: 'h1', name: 'Alpha', currentTask: HeroTask.IDLE, hpMax: 10, hpCurrent: 10, atk: 5, mp: 0 };
+const mockHero = { id: 'h1', name: 'Alpha', currentTask: HeroTask.IDLE, hpMax: 10, hpCurrent: 10, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 };
 const mockState = {
   ...initialGameState,
   heroes: [mockHero],

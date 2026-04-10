@@ -104,8 +104,9 @@ export const GameMath = {
 
   calcDamage(atk: number, targetDefense: number = 0, isCrit: boolean = false): number {
     const baseDmg = isCrit ? atk * CRIT_MULTIPLIER : atk;
-    // Defesa com retornos decrescentes: Dano = DanoBase * (100 / (100 + Def))
-    const mitigationFactor = 100 / (100 + targetDefense);
+    // Defesa com retornos decrescentes: Redução = Def / (Def + 50)
+    // DEF=5: ~9%, DEF=20: ~29%, DEF=35 (Tank): ~41%, DEF=50: 50%
+    const mitigationFactor = 1 - targetDefense / (targetDefense + 50);
     return Math.max(1, Math.floor(baseDmg * mitigationFactor));
   },
 

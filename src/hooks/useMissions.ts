@@ -33,21 +33,21 @@ export function useMissions() {
     setPendingTemplate(null);
   };
 
-  const handleConfirmMission = (templateId: string, heroIds: string[], heroPositions?: Record<string, number>) => {
+  const handleConfirmMission = (templateId: string, heroIds: string[], heroPositions?: Record<string, number>, looping?: boolean) => {
     if (!templateId) return;
-    
+
     const valid = heroIds.filter((id) =>
       selectableHeroes.some((h) => h.id === id && !isHeroIncapacitated(h))
     );
 
     if (valid.length < (pendingTemplate?.minHeroes ?? 0)) {
-      emit(FEEDBACK_EVENTS.TOAST, { 
-        text: 'Alguns heróis não podem ir para missão (estão incapacitados ou já em missão)' 
+      emit(FEEDBACK_EVENTS.TOAST, {
+        text: 'Alguns heróis não podem ir para missão (estão incapacitados ou já em missão)'
       });
       return;
     }
 
-    dispatch({ type: 'START_MISSION', templateId, heroIds: valid, heroPositions, now: Date.now() });
+    dispatch({ type: 'START_MISSION', templateId, heroIds: valid, heroPositions, now: Date.now(), looping });
     closeSelectionModal();
   };
 

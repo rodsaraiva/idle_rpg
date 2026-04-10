@@ -8,9 +8,9 @@ import { HeroTask } from '../../types';
 const mockState = {
   ...initialGameState,
   heroes: [
-    { id: 'h1', name: 'Alpha', currentTask: HeroTask.IDLE, hpMax: 10, hpCurrent: 5, atk: 5, mp: 0 }, // injured, idle
-    { id: 'h2', name: 'Beta', currentTask: HeroTask.IDLE, hpMax: 10, hpCurrent: 10, atk: 5, mp: 0 }, // full hp, idle
-    { id: 'h3', name: 'Gamma', currentTask: HeroTask.INFIRMARY, hpMax: 10, hpCurrent: 2, atk: 5, mp: 0 }, // in infirmary
+    { id: 'h1', name: 'Alpha', currentTask: HeroTask.IDLE, hpMax: 10, hpCurrent: 5, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 }, // injured, idle
+    { id: 'h2', name: 'Beta', currentTask: HeroTask.IDLE, hpMax: 10, hpCurrent: 10, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 }, // full hp, idle
+    { id: 'h3', name: 'Gamma', currentTask: HeroTask.INFIRMARY, hpMax: 10, hpCurrent: 2, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 }, // in infirmary
   ],
 };
 

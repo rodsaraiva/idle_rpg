@@ -79,7 +79,7 @@ export function VillageScreen() {
           <VillageCard 
             title="Ferreiro" 
             icon="⚒️" 
-            description="Forje e melhore equipamentos (Em breve)"
+            description="Forje e melhore equipamentos"
             screen="Ferreiro"
           />
           <VillageCard 

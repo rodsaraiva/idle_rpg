@@ -10,7 +10,7 @@ test('battleSim handles zero heroes gracefully', () => {
 
 test('battleSim handles many rounds without throwing (stress)', () => {
   const template = MISSIONS.find((m) => m.id === 'mission_1')!;
-  const heroes = Array.from({ length: 6 }, (_, i) => ({ id: `h${i}`, name: `H${i}`, hpMax: 20, hpCurrent: 20, atk: 5, mp: 0, currentTask: 'IDLE' as any, classId: 'WARRIOR' as any }));
+  const heroes = Array.from({ length: 6 }, (_, i) => ({ id: `h${i}`, name: `H${i}`, hpMax: 20, hpCurrent: 20, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10, currentTask: 'IDLE' as any, classId: 'WARRIOR' as any }));
   const rng = () => 0.42;
   const outcome = computeBattleOutcome(template, heroes, { rng });
   expect(outcome).toBeDefined();

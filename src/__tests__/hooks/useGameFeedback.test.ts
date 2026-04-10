@@ -33,8 +33,8 @@ describe('useGameFeedback', () => {
   });
 
   test('emits TOAST when hero is recruited', () => {
-    const hero1 = { id: 'h1', hpMax: 10, hpCurrent: 10, atk: 5, mp: 0 } as any;
-    const hero2 = { id: 'h2', hpMax: 10, hpCurrent: 10, atk: 5, mp: 0 } as any;
+    const hero1 = { id: 'h1', hpMax: 10, hpCurrent: 10, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 } as any;
+    const hero2 = { id: 'h2', hpMax: 10, hpCurrent: 10, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 } as any;
 
     const { rerender } = renderHook(({ state }) => useGameFeedback(state), {
       initialProps: { state: { ...initialGameState, heroes: [hero1] } },
@@ -48,8 +48,8 @@ describe('useGameFeedback', () => {
   });
 
   test('emits feedback when hero stats increase or decrease', () => {
-    const heroPrev = { id: 'h1', hpMax: 10, hpCurrent: 10, atk: 5, mp: 0 } as any;
-    const heroNext = { id: 'h1', hpMax: 12, hpCurrent: 8, atk: 6, mp: 1 } as any;
+    const heroPrev = { id: 'h1', hpMax: 10, hpCurrent: 10, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 } as any;
+    const heroNext = { id: 'h1', hpMax: 12, hpCurrent: 8, atk: 6, mp: 1, defense: 5, crit: 5, agility: 10 } as any;
 
     const { rerender } = renderHook(({ state }) => useGameFeedback(state), {
       initialProps: { state: { ...initialGameState, heroes: [heroPrev] } },
@@ -65,8 +65,8 @@ describe('useGameFeedback', () => {
   });
 
   test('emits DEATH feedback when hero dies', () => {
-    const heroPrev = { id: 'h1', hpMax: 10, hpCurrent: 5, atk: 5, mp: 0 } as any;
-    const heroNext = { id: 'h1', hpMax: 10, hpCurrent: 0, atk: 5, mp: 0 } as any;
+    const heroPrev = { id: 'h1', hpMax: 10, hpCurrent: 5, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 } as any;
+    const heroNext = { id: 'h1', hpMax: 10, hpCurrent: 0, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 } as any;
 
     const { rerender } = renderHook(({ state }) => useGameFeedback(state), {
       initialProps: { state: { ...initialGameState, heroes: [heroPrev] } },

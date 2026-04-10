@@ -54,6 +54,9 @@ describe('handleStartMission requirements', () => {
     hpCurrent: 10,
     atk: 10,
     mp: 10,
+    defense: 5,
+    crit: 5,
+    agility: 10,
     currentTask: HeroTask.IDLE,
     classId: 'WARRIOR'
   };

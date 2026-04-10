@@ -8,8 +8,8 @@ import { HeroTask } from '../../types';
 const mockState = {
   ...initialGameState,
   heroes: [
-    { id: 'h1', name: 'Alpha', currentTask: HeroTask.IDLE, hpMax: 10, hpCurrent: 10, atk: 5, mp: 0 },
-    { id: 'h2', name: 'Beta', currentTask: HeroTask.MISSION, hpMax: 10, hpCurrent: 10, atk: 5, mp: 0 },
+    { id: 'h1', name: 'Alpha', currentTask: HeroTask.IDLE, hpMax: 10, hpCurrent: 10, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 },
+    { id: 'h2', name: 'Beta', currentTask: HeroTask.MISSION, hpMax: 10, hpCurrent: 10, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10 },
   ],
 };
 

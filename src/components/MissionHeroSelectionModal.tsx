@@ -49,7 +49,7 @@ type Props = {
   selectableHeroes: Hero[];
   minHeroes: number;
   templateId: string;
-  onConfirm: (templateId: string, heroIds: string[], heroPositions: Record<string, number>) => void;
+  onConfirm: (templateId: string, heroIds: string[], heroPositions: Record<string, number>, looping?: boolean) => void;
 };
 
 export const MissionHeroSelectionModal: React.FC<Props> = ({
@@ -63,11 +63,13 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
   // grid of 50 slots, each can hold a hero id or null
   const [slots, setSlots] = useState<(string | null)[]>(() => Array(TOTAL_GRID_SLOTS).fill(null));
   const [previewEnemies, setPreviewEnemies] = useState<BattleEnemy[]>([]);
+  const [looping, setLooping] = useState(false);
 
   // reset slots and generate preview enemies when modal opens
   useEffect(() => {
     if (visible) {
       setSlots(Array(TOTAL_GRID_SLOTS).fill(null));
+      setLooping(false);
       const template = MISSIONS.find(t => t.id === templateId);
       if (template) {
         setPreviewEnemies(BattleEngine.createEnemies(template));
@@ -141,7 +143,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
       if (id) heroPositions[id] = idx;
     });
 
-    onConfirm(templateId, heroIds, heroPositions);
+    onConfirm(templateId, heroIds, heroPositions, looping);
   };
 
   // drag/drop logic delegated to hook for testability/clarity
@@ -382,6 +384,19 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
               </View>
             )}
 
+            <TouchableOpacity
+              style={styles.loopToggle}
+              onPress={() => setLooping((v) => !v)}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: looping }}
+              accessibilityLabel="Alternar modo loop da missão"
+            >
+              <View style={[styles.loopCheckbox, looping && styles.loopCheckboxActive]}>
+                {looping ? <Text style={styles.loopCheckmark}>✓</Text> : null}
+              </View>
+              <Text style={styles.loopLabel}>Em Loop (auto-repetir missão)</Text>
+            </TouchableOpacity>
+
             <View style={styles.actions}>
               <Text style={styles.helperText}>
                 Selecionados: {placedCount} {minHeroes > 0 ? `(min ${minHeroes})` : ''}
@@ -391,10 +406,10 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                   <Button title="Fechar" onPress={onClose} accessibilityLabel="Fechar modal de seleção" />
                 </View>
                 <Button
-                  title="Iniciar missão"
+                  title={looping ? "Iniciar em loop" : "Iniciar missão"}
                   onPress={handleConfirm}
                   disabled={placedCount < minHeroes || invalidPlaced.length > 0}
-                  accessibilityLabel="Iniciar missão com heróis selecionados"
+                  accessibilityLabel={looping ? "Iniciar missão em loop" : "Iniciar missão com heróis selecionados"}
                 />
               </View>
             </View>
@@ -523,6 +538,38 @@ const styles = StyleSheet.create({
   synergyPreviewDesc: {
     color: 'rgba(248, 250, 252, 0.75)',
     fontSize: 9,
+  },
+  loopToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 2,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+  },
+  loopCheckbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: theme.colors.textSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  loopCheckboxActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  loopCheckmark: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  loopLabel: {
+    color: theme.colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
 

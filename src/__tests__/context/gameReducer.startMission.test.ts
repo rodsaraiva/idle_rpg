@@ -9,6 +9,9 @@ function createHero(id = 'h1', task = HeroTask.IDLE): Hero {
     hpCurrent: 10,
     atk: 5,
     mp: 3,
+    defense: 5,
+    crit: 5,
+    agility: 10,
     currentTask: task,
   };
 }

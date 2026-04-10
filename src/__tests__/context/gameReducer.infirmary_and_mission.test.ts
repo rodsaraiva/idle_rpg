@@ -10,6 +10,9 @@ function makeHero(id = 'h1', hpMax = 10, hpCurrent = 5, classId?: string): Hero 
     hpCurrent,
     atk: 5,
     mp: 0,
+    defense: 5,
+    crit: 5,
+    agility: 10,
     currentTask: HeroTask.IDLE,
     classId: classId as any,
   };

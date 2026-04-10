@@ -139,7 +139,7 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
   if (savedState.activeMissions && savedState.activeMissions.length > 0) {
     savedState.activeMissions.forEach((m: any) => {
       const remaining = typeof m.remainingMs === 'number' ? m.remainingMs - ticks * tickInterval : undefined;
-      
+
       if (typeof remaining === 'number' && remaining <= 0) {
         const template = MISSIONS.find((t) => t.id === m.templateId);
         if (template) {
@@ -148,15 +148,40 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
             healerBuffMultiplier: m.healerBuffMultiplier,
             rogueRngBonus: m.rogueRngBonus,
           });
-          additionalGold += reward;
-          
-          const n = m.heroIds.length || 1;
-          const per = Math.floor(reward / n);
-          m.heroIds.forEach((hid: string) => {
-            const idx = newHeroes.findIndex((hh) => hh.id === hid);
-            if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
-            perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
-          });
+
+          if (m.looping) {
+            // For looping missions: calculate how many full cycles completed offline
+            const timeForFirstCompletion = Math.abs(remaining); // time past first completion
+            const cyclesAfterFirst = template.durationMs > 0 ? Math.floor(timeForFirstCompletion / template.durationMs) : 0;
+            const totalCycles = 1 + cyclesAfterFirst;
+            const totalReward = reward * totalCycles;
+            additionalGold += totalReward;
+
+            const n = m.heroIds.length || 1;
+            const per = Math.floor(totalReward / n);
+            m.heroIds.forEach((hid: string) => {
+              perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
+            });
+
+            // Keep mission active and looping with remaining time into the next cycle
+            const leftoverMs = template.durationMs > 0
+              ? template.durationMs - (timeForFirstCompletion % template.durationMs)
+              : 0;
+            newActiveMissions.push({
+              ...m,
+              remainingMs: leftoverMs > 0 ? leftoverMs : template.durationMs,
+            });
+          } else {
+            additionalGold += reward;
+
+            const n = m.heroIds.length || 1;
+            const per = Math.floor(reward / n);
+            m.heroIds.forEach((hid: string) => {
+              const idx = newHeroes.findIndex((hh) => hh.id === hid);
+              if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
+              perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
+            });
+          }
         }
       } else {
         newActiveMissions.push(typeof remaining === 'number' ? { ...m, remainingMs: remaining } : { ...m });

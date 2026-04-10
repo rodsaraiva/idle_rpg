@@ -3,8 +3,8 @@ import { HeroTask } from '../../types';
 import { HP_REGEN_INTERVAL_MS, ENFERMARIA_TIME_SCALE, ENFERMARIA_MULTIPLIER_BASE, ENFERMARIA_HEALER_MP_K } from '../../constants/game';
 
 test('send to enfermaria and regen doubled', () => {
-  const hero = { id: 'h1', name: 'H', hpMax: 10, hpCurrent: 5, atk: 5, mp: 0, currentTask: HeroTask.IDLE };
-  const healer = { id: 'he1', name: 'Heal', hpMax: 10, hpCurrent: 10, atk: 1, mp: 4, currentTask: HeroTask.IDLE, classId: 'HEALER' as any };
+  const hero = { id: 'h1', name: 'H', hpMax: 10, hpCurrent: 5, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10, currentTask: HeroTask.IDLE };
+  const healer = { id: 'he1', name: 'Heal', hpMax: 10, hpCurrent: 10, atk: 1, mp: 4, defense: 5, crit: 5, agility: 10, currentTask: HeroTask.IDLE, classId: 'HEALER' as any };
   const state = { ...initialGameState, heroes: [hero, healer], tickIntervalMs: 1000 };
 
   // start infirmary for hero

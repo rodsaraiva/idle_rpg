@@ -49,8 +49,8 @@ export const MISSIONS: MissionTemplate[] = [
     statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
     // tuned to saturate already at ~30min for single hero
     scale: 1.3,
-    ref: 75,
-    exponent: 2.2,
+    ref: 40,
+    exponent: 1.5,
     synergyK: 0.055,
     enemies: [{ hp: 5, atk: 1, mp: 1, defense: 1, crit: 2, agility: 5, count: 2 }],
     difficulty: 1,
@@ -65,8 +65,8 @@ export const MISSIONS: MissionTemplate[] = [
     statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
     // tuned to saturate around 2h for two-hero teams
     scale: 1.15,
-    ref: 200,
-    exponent: 1.9,
+    ref: 120,
+    exponent: 1.5,
     synergyK: 0.04,
     enemies: [
       { hp: 6, atk: 2, mp: 1, defense: 2, crit: 5, agility: 8, count: 2 },
@@ -84,8 +84,8 @@ export const MISSIONS: MissionTemplate[] = [
     statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
     // tuned to avoid saturation in 2h for three-hero teams
     scale: 1.08,
-    ref: 350,
-    exponent: 1.6,
+    ref: 200,
+    exponent: 1.4,
     synergyK: 0.02,
     enemies: [
       { hp: 6, atk: 2, mp: 1, defense: 2, crit: 5, agility: 10, count: 3 },
@@ -102,8 +102,8 @@ export const MISSIONS: MissionTemplate[] = [
     rewardMax: 80,
     statWeights: { hp: 0.25, atk: 0.3, mp: 0.15 },
     scale: 1.1,
-    ref: 300,
-    exponent: 1.8,
+    ref: 180,
+    exponent: 1.4,
     synergyK: 0.04,
     enemies: [
       { hp: 12, atk: 4, mp: 2, defense: 6, crit: 8, agility: 12, count: 3 },
@@ -121,8 +121,8 @@ export const MISSIONS: MissionTemplate[] = [
     rewardMax: 150,
     statWeights: { hp: 0.2, atk: 0.25, mp: 0.2 },
     scale: 1.05,
-    ref: 500,
-    exponent: 1.5,
+    ref: 300,
+    exponent: 1.3,
     synergyK: 0.03,
     enemies: [
       { hp: 15, atk: 5, mp: 3, defense: 8, crit: 10, agility: 10, count: 3 },
@@ -143,8 +143,8 @@ export const MISSIONS: MissionTemplate[] = [
     rewardMax: 300,
     statWeights: { hp: 0.3, atk: 0.3, mp: 0.2 },
     scale: 1.0,
-    ref: 800,
-    exponent: 1.3,
+    ref: 500,
+    exponent: 1.2,
     synergyK: 0.02,
     enemies: [
       { hp: 10, atk: 4, mp: 1, defense: 5, crit: 5, agility: 15, count: 4 },

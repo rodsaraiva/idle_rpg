@@ -1,4 +1,4 @@
-import { GameState, HeroTask, Hero, ActiveMission, MissionOutcome, MissionResult } from '../types';
+import { GameState, HeroTask, Hero, ActiveMission, MissionOutcome, MissionResult, ClassId } from '../types';
 import {
   BASE_TRAIN_TIME_MS,
   HP_REGEN_INTERVAL_MS,
@@ -7,12 +7,21 @@ import {
   ENFERMARIA_TIME_SCALE,
   ENFERMARIA_MAX_SCALE,
   MISSION_FINISH_DELAY_MS,
+  MISSION_START_DELAY_MS,
+  MISSION_ACTION_INTERVAL_MS,
   TICK_INTERVAL_MS,
   TRAIN_INFLATION_FACTOR,
+  HEALER_BUFF_PER_HERO,
+  HEALER_BUFF_CAP,
+  ROGUE_RNG_BONUS_PER_HERO,
+  ROGUE_RNG_BONUS_CAP,
 } from '../constants/game';
 import { configProvider } from '../services/configProvider';
 import { MISSIONS } from '../constants/missions';
 import { computeBattleOutcome } from '../utils/battleSim';
+import { BattleEngine } from '../utils/battleEngine';
+import { getActiveSynergies } from '../constants/synergies';
+import { v4 as uuidv4 } from 'uuid';
 
 /** Processa o treinamento de todos os heróis */
 function processTraining(heroes: Hero[], tickMs: number, inflation: number): Hero[] {
@@ -205,24 +214,115 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
   const remainingMissions = active.filter((m) => !completed.find((c) => c.mission.id === m.id));
   const perHeroGold = { ...(state.perHeroGold ?? {}) };
   let goldGained = 0;
-  
+
   completed.forEach((c) => {
-    goldGained += c.reward;
     const n = c.mission.heroIds.length || 1;
     const per = Math.floor(c.reward / n);
-    
+
+    // Apply casualties to hero HP regardless of looping
     c.mission.heroIds.forEach((hid: string) => {
       const idx = currentHeroes.findIndex((hh) => hh.id === hid);
       if (idx >= 0) {
-        currentHeroes[idx] = { ...currentHeroes[idx], currentTask: HeroTask.IDLE };
         const caus = c.outcome.casualties.find((x: any) => x.heroId === hid);
         if (caus) {
-          currentHeroes[idx].hpCurrent = caus.hpAfter;
-          // Agora a incapacitação é baseada apenas no HP (HP < 3)
+          currentHeroes[idx] = { ...currentHeroes[idx], hpCurrent: caus.hpAfter };
         }
       }
       perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
     });
+
+    // Check if looping mission should restart
+    if (c.mission.looping && c.outcome.success) {
+      goldGained += c.reward;
+      const tpl = MISSIONS.find(t => t.id === c.mission.templateId);
+      if (tpl) {
+        // Get the surviving heroes for the next cycle
+        const heroesForNext = currentHeroes.filter(h => c.mission.heroIds.includes(h.id) && h.hpCurrent > 0);
+        if (heroesForNext.length >= tpl.minHeroes) {
+          // Apply equipment stat bonuses for battle computation
+          const heroesWithEquipment = heroesForNext.map(h => {
+            const equipped = h.equippedItems || [];
+            if (equipped.length === 0) return h;
+            const copy = { ...h };
+            for (const eqId of equipped) {
+              const item = (state.inventory || []).find(e => e.id === eqId);
+              if (!item) continue;
+              const bonus = item.statBonus;
+              if (bonus.hp) copy.hpMax += bonus.hp;
+              if (bonus.atk) copy.atk += bonus.atk;
+              if (bonus.mp) copy.mp += bonus.mp;
+              if (bonus.defense) copy.defense = (copy.defense ?? 0) + bonus.defense;
+              if (bonus.crit) copy.crit = (copy.crit ?? 0) + bonus.crit;
+              if (bonus.agility) copy.agility = (copy.agility ?? 0) + bonus.agility;
+            }
+            if (copy.hpMax > h.hpMax) {
+              copy.hpCurrent = Math.min(copy.hpMax, copy.hpCurrent + (copy.hpMax - h.hpMax));
+            }
+            return copy;
+          });
+
+          const countHealers = heroesForNext.filter(h => h.classId === 'HEALER').length;
+          const countRogues = heroesForNext.filter(h => h.classId === 'ROGUE').length;
+          const healerBuffMultiplier = 1 + Math.min(HEALER_BUFF_CAP, countHealers * HEALER_BUFF_PER_HERO);
+          const rogueRngBonus = Math.min(ROGUE_RNG_BONUS_CAP, countRogues * ROGUE_RNG_BONUS_PER_HERO);
+
+          const teamClassIds = heroesForNext.map(h => h.classId).filter(Boolean) as ClassId[];
+          const activeSynergyNames = getActiveSynergies(teamClassIds).map(s => s.name);
+
+          try {
+            const newOutcome = computeBattleOutcome(tpl, heroesWithEquipment, {
+              healerBuffMultiplier,
+              rogueRngBonus,
+              heroPositions: c.mission.heroPositions,
+            });
+            const newScheduled = (newOutcome.actions || []).map((a, i) => ({
+              atMsFromStart: MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS,
+              action: a,
+              applied: false,
+            }));
+            remainingMissions.push({
+              id: uuidv4(),
+              templateId: c.mission.templateId,
+              heroIds: c.mission.heroIds,
+              heroPositions: c.mission.heroPositions,
+              startedAt: now,
+              looping: true,
+              healerBuffMultiplier,
+              rogueRngBonus,
+              activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,
+              scheduledActions: newScheduled,
+              enemiesState: BattleEngine.createEnemies(tpl),
+              precomputedOutcome: newOutcome,
+            });
+          } catch {
+            // If battle computation fails, stop looping and release heroes
+            c.mission.heroIds.forEach((hid: string) => {
+              const idx = currentHeroes.findIndex((hh) => hh.id === hid);
+              if (idx >= 0) {
+                currentHeroes[idx] = { ...currentHeroes[idx], currentTask: HeroTask.IDLE };
+              }
+            });
+          }
+        } else {
+          // Not enough surviving heroes to continue — release them
+          c.mission.heroIds.forEach((hid: string) => {
+            const idx = currentHeroes.findIndex((hh) => hh.id === hid);
+            if (idx >= 0) {
+              currentHeroes[idx] = { ...currentHeroes[idx], currentTask: HeroTask.IDLE };
+            }
+          });
+        }
+      }
+    } else {
+      // Normal completion: release heroes to IDLE
+      goldGained += c.reward;
+      c.mission.heroIds.forEach((hid: string) => {
+        const idx = currentHeroes.findIndex((hh) => hh.id === hid);
+        if (idx >= 0) {
+          currentHeroes[idx] = { ...currentHeroes[idx], currentTask: HeroTask.IDLE };
+        }
+      });
+    }
   });
 
   const newResults: MissionResult[] = completed.map(c => ({

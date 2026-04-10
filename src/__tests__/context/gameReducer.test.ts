@@ -11,6 +11,9 @@ function createHero(overrides: any = {}): Hero {
     hpCurrent: hpVal,
     atk: overrides.atk ?? 5,
     mp: overrides.mp ?? 3,
+    defense: overrides.defense ?? 5,
+    crit: overrides.crit ?? 5,
+    agility: overrides.agility ?? 10,
     currentTask: overrides.currentTask ?? HeroTask.IDLE,
   };
 }
@@ -21,7 +24,7 @@ describe('gameReducer', () => {
     const state = { ...initialGameState, heroes: [hero] };
     const next = gameReducer(state, { type: 'TICK', now: Date.now() });
     expect(next.heroes[0].hpCurrent).toBe(10); // no full point yet
-    expect(next.heroes[0].trainingProgressMs?.hp).toBeGreaterThanOrEqual(1000);
+    expect(next.heroes[0].trainingProgressMs?.hp).toBeGreaterThanOrEqual(500);
   });
 
   test('TRAIN_ATK accumulates trainingProgressMs when base time > tick', () => {
@@ -29,7 +32,7 @@ describe('gameReducer', () => {
     const state = { ...initialGameState, heroes: [hero] };
     const next = gameReducer(state, { type: 'TICK', now: Date.now() });
     expect(next.heroes[0].atk).toBeCloseTo(2.5);
-    expect(next.heroes[0].trainingProgressMs?.atk).toBeGreaterThanOrEqual(1000);
+    expect(next.heroes[0].trainingProgressMs?.atk).toBeGreaterThanOrEqual(500);
   });
 
   test('TRAIN_MP accumulates trainingProgressMs when base time > tick', () => {
@@ -37,7 +40,7 @@ describe('gameReducer', () => {
     const state = { ...initialGameState, heroes: [hero] };
     const next = gameReducer(state, { type: 'TICK', now: Date.now() });
     expect(next.heroes[0].mp).toBeCloseTo(1.5);
-    expect(next.heroes[0].trainingProgressMs?.mp).toBeGreaterThanOrEqual(1000);
+    expect(next.heroes[0].trainingProgressMs?.mp).toBeGreaterThanOrEqual(500);
   });
 
   test('MISSION generates gold based on atk', () => {

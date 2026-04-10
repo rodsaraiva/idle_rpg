@@ -3,7 +3,7 @@ import { HeroTask } from '../../types';
 import { HP_REGEN_INTERVAL_MS } from '../../constants/game';
 
 function makeHero() {
-  return { id: 'h1', name: 'H', hpMax: 10, hpCurrent: 0, atk: 0, mp: 0, currentTask: HeroTask.IDLE };
+  return { id: 'h1', name: 'H', hpMax: 10, hpCurrent: 0, atk: 0, mp: 0, defense: 5, crit: 5, agility: 10, currentTask: HeroTask.IDLE };
 }
 
 test('multiple regen intervals applied in one large tick', () => {
