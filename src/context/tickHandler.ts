@@ -24,6 +24,7 @@ import { getActiveSynergies } from '../constants/synergies';
 import { v4 as uuidv4 } from 'uuid';
 import { checkAchievements } from './achievementHandler';
 import { refreshDailyQuests, updateDailyProgress } from './dailyQuestHandler';
+import { refreshWeeklyState, updateWeeklyProgress } from './weeklyHandler';
 
 /** Processa o treinamento de todos os heróis, returns updated heroes and total points trained */
 function processTraining(heroes: Hero[], tickMs: number, inflation: number): { heroes: Hero[]; totalPointsTrained: number } {
@@ -355,8 +356,9 @@ export function handleTick(state: GameState, now: number): GameState {
   const tickMs = state.tickIntervalMs ?? TICK_INTERVAL_MS;
   const inflation = state.trainInflationFactor ?? TRAIN_INFLATION_FACTOR;
 
-  // 0. Refresh daily quests if seed changed (new day)
+  // 0. Refresh daily quests if seed changed (new day) + weekly state
   let currentState = refreshDailyQuests(state);
+  currentState = refreshWeeklyState(currentState);
 
   // 1. Process Training
   const { heroes: heroesAfterTraining, totalPointsTrained } = processTraining(currentState.heroes, tickMs, inflation);
@@ -404,6 +406,17 @@ export function handleTick(state: GameState, now: number): GameState {
   }
   if (goldGained > 0) {
     stateAfterTick = updateDailyProgress(stateAfterTick, 'goldEarned', goldGained);
+  }
+
+  // 5. Update weekly quest progress trackers
+  if (missionsCompletedCount > 0) {
+    stateAfterTick = updateWeeklyProgress(stateAfterTick, 'missionsCompleted', missionsCompletedCount);
+  }
+  if (totalPointsTrained > 0) {
+    stateAfterTick = updateWeeklyProgress(stateAfterTick, 'pointsTrained', totalPointsTrained);
+  }
+  if (goldGained > 0) {
+    stateAfterTick = updateWeeklyProgress(stateAfterTick, 'goldEarned', goldGained);
   }
 
   // Check and award achievements
