@@ -1,9 +1,11 @@
 import { MissionTemplate } from '../constants/missions';
 import { Hero, MissionOutcome, MissionAction } from '../types';
+import { getDropsForEnemy } from '../constants/materials';
 import { calcMissionReward } from './missionMath';
 import { BattleEngine, BattleEnemy, BattleState } from './battleEngine';
 import { GameMath } from './gameMath';
 import { processDoTBuffs } from './skillEffects';
+import { processEnemyRegenBuffs } from './enemySkillEffects';
 
 import {
   MAX_BATTLE_ROUNDS,
@@ -51,6 +53,7 @@ export function computeBattleOutcome(
     state.rounds += 1;
     BattleEngine.cleanExpiredBuffs(state);
     processDoTBuffs(state);
+    processEnemyRegenBuffs(state);
     state.log.push(`-- Round ${state.rounds} --`);
 
     // --- Initiative-based turn order ---
@@ -76,7 +79,24 @@ export function computeBattleOutcome(
     }
   }
 
+  const materialDrops: Record<string, number> = {};
+  const difficulty = template.difficulty ?? 1;
+  for (const enemy of state.enemies.filter(e => e.hp <= 0)) {
+    const drops = getDropsForEnemy(enemy, difficulty, rng);
+    for (const drop of drops) {
+      materialDrops[drop.materialId] = (materialDrops[drop.materialId] ?? 0) + drop.quantity;
+    }
+  }
+
   const success = aliveEnemies().length === 0 && aliveHeroes().length > 0;
+
+  // On defeat, keep only 25%
+  if (!success) {
+    for (const key of Object.keys(materialDrops)) {
+      materialDrops[key] = Math.floor(materialDrops[key] * 0.25);
+      if (materialDrops[key] <= 0) delete materialDrops[key];
+    }
+  }
 
   const reward = success
     ? calcMissionReward(template, heroesIn, {
@@ -108,5 +128,6 @@ export function computeBattleOutcome(
     rounds: state.rounds,
     log: state.log,
     actions: state.actions,
+    materialDrops,
   };
 }

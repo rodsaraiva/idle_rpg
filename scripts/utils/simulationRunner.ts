@@ -3,6 +3,7 @@ import { MISSIONS, MissionTemplate } from '../../src/constants/missions';
 import { MAX_BATTLE_ROUNDS, HERO_ROWS, GRID_COLUMNS } from '../../src/constants/game';
 import { Hero } from '../../src/types/index';
 import { processDoTBuffs } from '../../src/utils/skillEffects';
+import { processEnemyRegenBuffs } from '../../src/utils/enemySkillEffects';
 
 export interface SimulationParams {
   heroes: Hero[];
@@ -70,6 +71,7 @@ export function runMissionSimulation(params: SimulationParams): SimulationResult
 
       BattleEngine.cleanExpiredBuffs(state);
       processDoTBuffs(state);
+      processEnemyRegenBuffs(state);
 
       // Cálculo de mitigação do Tanque para este turno
       const countTanks = activeHeroes.filter(h => h.classId === 'TANK' && h.hpCurrent > 0).length;

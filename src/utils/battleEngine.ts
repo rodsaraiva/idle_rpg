@@ -13,6 +13,8 @@ import { createSynergyHandlers } from './synergyEffects';
 import { ClassId } from '../types';
 import { executePreAttackSkills, onHeroDamagedSkills, onHeroDeathSkills, onRogueHitSkills, processDoTBuffs, getShieldReduction, getDefMulProduct } from './skillEffects';
 import { applyPersonalityOnHit, applyProtectorShield } from './personalityEffects';
+import { applyEnemyPassiveSkills, executeEnemyPreAttackSkills, onEnemyHitSkills, onEnemyDamagedSkills, processEnemyRegenBuffs } from './enemySkillEffects';
+import { assignEnemySkills } from '../constants/enemySkills';
 
 export type SynergyId =
   | 'LINHA_DE_FRENTE'
@@ -134,6 +136,10 @@ export const BattleEngine = {
             range: edef.range ?? (attackType === 'RANGED' ? 3 : 1),
             movement: edef.movement ?? 2,
           });
+          const difficulty = template.difficulty ?? 1;
+          const isBoss = (edef.hp ?? 0) >= 100;
+          const assigned = assignEnemySkills(difficulty, isBoss, Math.random);
+          if (assigned.length > 0) enemies[enemies.length - 1].skills = assigned;
         }
       });
     } else {
@@ -154,6 +160,10 @@ export const BattleEngine = {
           range: i % 2 === 0 ? 1 : 3,
           movement: 2,
         });
+        const difficulty = template.difficulty ?? 1;
+        const isBoss = false;
+        const assigned = assignEnemySkills(difficulty, isBoss, Math.random);
+        if (assigned.length > 0) enemies[enemies.length - 1].skills = assigned;
       }
     }
     return enemies;
@@ -585,16 +595,22 @@ export const BattleEngine = {
       if (result) {
         state.actions.push(result.action);
         state.log.push(result.action.text);
-        finalTarget.hp = Math.max(0, finalTarget.hp - result.dmg);
+        let actualHeroDmg = result.dmg;
+        const enemyShield = getShieldReduction(state, finalTarget.id);
+        if (enemyShield > 0) {
+          actualHeroDmg = Math.max(1, Math.floor(actualHeroDmg * (1 - enemyShield)));
+        }
+        finalTarget.hp = Math.max(0, finalTarget.hp - actualHeroDmg);
+        onEnemyDamagedSkills(finalTarget, state);
 
-        if (result.dmg > 0) {
+        if (actualHeroDmg > 0) {
           const didMove = updatedPos !== currentPos;
           state.lastAttacker[finalTarget.id] = hero.id;
-          state.handlers.onAttackResolved(state, hero as any, finalTarget as any, result.dmg, finalDist);
+          state.handlers.onAttackResolved(state, hero as any, finalTarget as any, actualHeroDmg, finalDist);
           if (hero.classId === 'ROGUE') {
             onRogueHitSkills(hero, finalTarget, state, rng);
           }
-          const extraAttack = applyPersonalityOnHit(hero, finalTarget, state, result.dmg, rng, didMove);
+          const extraAttack = applyPersonalityOnHit(hero, finalTarget, state, actualHeroDmg, rng, didMove);
           // Opportunist extra attack on kill
           if (extraAttack && finalTarget.hp <= 0) {
             const nextAlive = state.enemies.find(e => e.alive && e.id !== finalTarget.id);
@@ -640,7 +656,8 @@ export const BattleEngine = {
    */
   processEnemyTurn(enemy: BattleEnemy, state: BattleState, rng: () => number, tankMitigation: number = 0, enemyHitChance: number = 0.8) {
     if (enemy.hp <= 0) return;
-    
+    applyEnemyPassiveSkills(enemy, state);
+
     const aliveHeroes = state.heroes.filter(h => h.hpCurrent > 0);
     if (aliveHeroes.length === 0) return;
 
@@ -699,6 +716,8 @@ export const BattleEngine = {
     const finalDist = GameMath.getHexDistance(updatedPos, state.heroPositions[finalTarget.id]);
     const finalRange = enemy.range ?? 1;
 
+    if (executeEnemyPreAttackSkills(enemy, finalTarget, state, rng())) return;
+
     if (finalDist <= finalRange) {
       const result = this.calculateAttack(enemy, finalTarget, enemyHitChance, 'enemy', state.rounds, rng, finalDist, state);
 
@@ -727,6 +746,7 @@ export const BattleEngine = {
         onHeroDamagedSkills(finalTarget, state);
         if (finalDmg > 0) {
           state.handlers.onAttackResolved(state, enemy as any, finalTarget as any, finalDmg, finalDist);
+          onEnemyHitSkills(enemy, finalTarget, state, rng());
           state.lastAttacker[finalTarget.id] = enemy.id;
           state.threats[enemy.id] = finalTarget.id;
         }
