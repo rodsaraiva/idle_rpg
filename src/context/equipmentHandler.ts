@@ -2,9 +2,13 @@ import { GameState, Equipment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { EQUIPMENT_TIERS, EQUIPMENT_TEMPLATES, MAX_EQUIPPED_ITEMS } from '../constants/equipment';
 import { updateDailyProgress } from './dailyQuestHandler';
+import { FORGE_RECIPES, hasEnoughMaterials, deductMaterials, EquipmentType } from '../constants/materials';
 
-function generateEquipment(tier: number): Equipment {
-  const template = EQUIPMENT_TEMPLATES[Math.floor(Math.random() * EQUIPMENT_TEMPLATES.length)];
+function generateEquipment(tier: number, equipmentType?: 'weapon' | 'armor' | 'accessory'): Equipment {
+  const templates = equipmentType
+    ? EQUIPMENT_TEMPLATES.filter(t => t.type === equipmentType)
+    : EQUIPMENT_TEMPLATES;
+  const template = templates[Math.floor(Math.random() * templates.length)];
   const name = template.names[Math.floor(Math.random() * template.names.length)];
   const tierDef = EQUIPMENT_TIERS.find(t => t.tier === tier)!;
   const statBonus: Record<string, number> = {};
@@ -16,14 +20,20 @@ function generateEquipment(tier: number): Equipment {
   return { id: uuidv4(), name: `${name} ${tierDef.label}`, type: template.type, statBonus, tier };
 }
 
-export function handleForgeEquipment(state: GameState, tier: number, now: number): GameState {
+export function handleForgeEquipment(state: GameState, tier: number, equipmentType: EquipmentType, now: number): GameState {
   const tierDef = EQUIPMENT_TIERS.find(t => t.tier === tier);
-  if (!tierDef || state.gold < tierDef.cost) return state;
-  const equipment = generateEquipment(tier);
+  if (!tierDef) return state;
+  const recipe = FORGE_RECIPES[tier]?.[equipmentType];
+  if (!recipe) return state;
+  if (state.gold < recipe.gold) return state;
+  if (!hasEnoughMaterials(state.materials ?? {}, recipe)) return state;
+  const equipment = generateEquipment(tier, equipmentType);
   const finishAt = now + tierDef.forgeTimeMs;
+  const materials = deductMaterials(state.materials ?? {}, recipe);
   const newState = {
     ...state,
-    gold: state.gold - tierDef.cost,
+    gold: state.gold - recipe.gold,
+    materials,
     forgingQueue: [...(state.forgingQueue || []), { equipmentId: equipment.id, finishAt }],
     inventory: [...(state.inventory || []), equipment],
   };

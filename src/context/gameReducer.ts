@@ -79,7 +79,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return handleReleaseFromInfirmary(state, action.heroIds);
 
     case 'FORGE_EQUIPMENT':
-      return handleForgeEquipment(state, action.tier, action.now);
+      return handleForgeEquipment(state, action.tier, action.equipmentType, action.now);
 
     case 'COLLECT_EQUIPMENT':
       return handleCollectEquipment(state, action.equipmentId);

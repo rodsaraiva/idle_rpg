@@ -1,9 +1,11 @@
 import { gameReducer, initialGameState } from '../../context/gameReducer';
 import { HeroTask } from '../../types';
 
+const richMaterials = { iron: 50, crystal: 50, essence: 50, starstone: 10 };
+
 describe('Equipment system', () => {
   test('FORGE_EQUIPMENT deducts gold and adds to inventory and queue', () => {
-    const state = { ...initialGameState, gold: 500 };
+    const state = { ...initialGameState, gold: 500, materials: richMaterials };
     const next = gameReducer(state, { type: 'FORGE_EQUIPMENT', tier: 1, equipmentType: 'weapon', now: Date.now() });
     expect(next.gold).toBeLessThan(500);
     expect((next.inventory || []).length).toBe(1);
@@ -11,14 +13,14 @@ describe('Equipment system', () => {
   });
 
   test('FORGE_EQUIPMENT fails with insufficient gold', () => {
-    const state = { ...initialGameState, gold: 0 };
+    const state = { ...initialGameState, gold: 0, materials: richMaterials };
     const next = gameReducer(state, { type: 'FORGE_EQUIPMENT', tier: 1, equipmentType: 'weapon', now: Date.now() });
     expect(next.gold).toBe(0);
     expect((next.inventory || []).length).toBe(0);
   });
 
   test('COLLECT_EQUIPMENT removes from forging queue', () => {
-    const state = { ...initialGameState, gold: 500 };
+    const state = { ...initialGameState, gold: 500, materials: richMaterials };
     const s1 = gameReducer(state, { type: 'FORGE_EQUIPMENT', tier: 1, equipmentType: 'weapon', now: Date.now() });
     const eqId = s1.inventory![0].id;
     const s2 = gameReducer(s1, { type: 'COLLECT_EQUIPMENT', equipmentId: eqId });
@@ -28,7 +30,7 @@ describe('Equipment system', () => {
 
   test('EQUIP_ITEM assigns item to hero', () => {
     const hero = { id: 'h1', name: 'H', hpMax: 10, hpCurrent: 10, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10, currentTask: HeroTask.IDLE };
-    const state = { ...initialGameState, heroes: [hero], gold: 500 };
+    const state = { ...initialGameState, heroes: [hero], gold: 500, materials: richMaterials };
     const s1 = gameReducer(state as any, { type: 'FORGE_EQUIPMENT', tier: 1, equipmentType: 'weapon', now: Date.now() });
     const eqId = s1.inventory![0].id;
     const s2 = gameReducer(s1 as any, { type: 'EQUIP_ITEM', heroId: 'h1', equipmentId: eqId });
