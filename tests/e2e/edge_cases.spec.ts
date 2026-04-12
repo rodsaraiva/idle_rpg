@@ -51,7 +51,7 @@ test.describe('Edge Cases', () => {
     const stored = await page.evaluate((k) => localStorage.getItem(k), STORAGE_KEY);
     expect(stored).not.toBeNull();
     const parsed = JSON.parse(stored as string);
-    expect(parsed._version).toBe(5);
+    expect(parsed._version).toBe(7);
   });
 
   test('corrupted save does not crash app', async ({ page }) => {
