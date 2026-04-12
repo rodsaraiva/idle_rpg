@@ -54,6 +54,9 @@ export interface BattleEnemy {
     position?: number;
     range: number;
     movement: number;
+  skills?: import('../constants/enemySkills').EnemySkillDef[];
+  skillCooldowns?: Record<string, number>;
+  skillOnceUsed?: Record<string, boolean>;
   }
 
 export interface SynergyHandlers {
