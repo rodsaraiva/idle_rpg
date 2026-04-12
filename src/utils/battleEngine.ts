@@ -11,6 +11,7 @@ import { GameMath } from './gameMath';
 import { getActiveSynergies } from '../constants/synergies';
 import { createSynergyHandlers } from './synergyEffects';
 import { ClassId } from '../types';
+import { executePreAttackSkills, onHeroDamagedSkills, onHeroDeathSkills, onRogueHitSkills, processDoTBuffs, getShieldReduction, getDefMulProduct } from './skillEffects';
 
 export type SynergyId =
   | 'LINHA_DE_FRENTE'
@@ -25,10 +26,14 @@ export type BuffType =
   | 'critFlat'      // soma flat ao crit (ex: +20)
   | 'rangeFlat'     // soma flat ao alcance
   | 'defDebuffMul'  // multiplicador <1 aplicado à defesa do alvo
-  | 'taunt';        // soma flat ao score quando este ator é alvo de seleção
+  | 'taunt'         // soma flat ao score quando este ator é alvo de seleção
+  | 'dot'           // dano por turno (value = dano por round)
+  | 'shield'        // absorve dano (value = % de redução no próximo hit)
+  | 'defMul'        // multiplicador de DEF do alvo (value > 1 = buff, < 1 = debuff)
+  | 'revive';       // marca herói para reviver (value = % HP ao reviver)
 
 export interface Buff {
-  source: SynergyId;
+  source: string;  // SynergyId | SkillId | PersonalitySource
   type: BuffType;
   value: number;
   expiresAfterRound: number; // -1 = persistente até source desativar
@@ -84,6 +89,8 @@ export interface BattleState {
   buffs: Record<string, Buff[]>;
   flags: Record<string, boolean | number>;
   handlers: SynergyHandlers;
+  skillCooldowns: Record<string, number>;   // "heroId_skillId" -> round em que fica disponível
+  skillOnceUsed: Record<string, boolean>;   // "heroId_skillId" -> true se já usada
 }
 
 export const BattleEngine = {
@@ -180,6 +187,8 @@ export const BattleEngine = {
       buffs: {},
       flags: {},
       handlers,
+      skillCooldowns: {},
+      skillOnceUsed: {},
     };
 
     handlers.onBattleStart(state);
@@ -378,12 +387,13 @@ export const BattleEngine = {
       }
     }
 
-    // Read target debuffs
+    // Read target debuffs (defDebuffMul from synergies + defMul from skills)
     let defMul = 1;
     if (state) {
       const targetBuffs = state.buffs[target.id] ?? [];
       for (const b of targetBuffs) {
         if (b.type === 'defDebuffMul') defMul *= b.value;
+        else if (b.type === 'defMul') defMul *= b.value;
       }
     }
 
@@ -491,6 +501,14 @@ export const BattleEngine = {
     // 1. Verificar habilidades de classe (Healer)
     if (this.executeClassAbility(hero, state)) return;
 
+    // 1b. Verificar skills desbloqueadas (pre-attack)
+    const preTarget = aliveEnemies.length > 0
+      ? this.selectTarget(hero, state.heroPositions[hero.id] ?? 45, aliveEnemies, rng, {
+          lastAttackerId: state.lastAttacker[hero.id],
+        })
+      : undefined;
+    if (executePreAttackSkills(hero, preTarget, state, rng)) return;
+
     // Utilitários locais
     const getOccupied = () => new Set([...Object.values(state.heroPositions), ...Object.values(state.enemyPositions)]);
     const getAlliesInDanger = () => state.heroes.filter(h => h.hpCurrent / h.hpMax < 0.3).map(h => h.id);
@@ -566,6 +584,9 @@ export const BattleEngine = {
         if (result.dmg > 0) {
           state.lastAttacker[finalTarget.id] = hero.id;
           state.handlers.onAttackResolved(state, hero as any, finalTarget as any, result.dmg, finalDist);
+          if (hero.classId === 'ROGUE') {
+            onRogueHitSkills(hero, finalTarget, state, rng);
+          }
         }
 
         if (finalTarget.hp <= 0) {
@@ -663,11 +684,20 @@ export const BattleEngine = {
           result.action.text = `${enemy.id} causou ${finalDmg} de dano em ${finalTarget.name} (Reduzido por Tank)`;
         }
 
+        // Apply shield reduction from skills
+        const shieldReduction = getShieldReduction(state, finalTarget.id);
+        if (shieldReduction > 0) {
+          finalDmg = Math.max(1, Math.floor(finalDmg * (1 - shieldReduction)));
+          result.action.amount = finalDmg;
+          result.action.text += ` (Escudo: -${Math.round(shieldReduction * 100)}%)`;
+        }
+
         state.actions.push(result.action);
         state.log.push(result.action.text);
         finalTarget.hpCurrent = Math.max(0, finalTarget.hpCurrent - finalDmg);
 
         state.handlers.onHeroDamaged(state, finalTarget, finalTarget.hpCurrent);
+        onHeroDamagedSkills(finalTarget, state);
         if (finalDmg > 0) {
           state.handlers.onAttackResolved(state, enemy as any, finalTarget as any, finalDmg, finalDist);
           state.lastAttacker[finalTarget.id] = enemy.id;
@@ -675,6 +705,7 @@ export const BattleEngine = {
         }
 
         if (finalTarget.hpCurrent <= 0) {
+          onHeroDeathSkills(finalTarget, state);
           delete state.heroPositions[finalTarget.id];
           const incapTxt = `${finalTarget.name} está incapacitado!`;
           state.log.push(incapTxt);

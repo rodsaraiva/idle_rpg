@@ -63,6 +63,8 @@ describe('BattleEngine - advanced coverage', () => {
     buffs: {},
     flags: {},
     handlers: _NOOP_HANDLERS,
+    skillCooldowns: {},
+    skillOnceUsed: {},
     ...overrides,
   });
 

@@ -3,6 +3,7 @@ import { Hero, MissionOutcome, MissionAction } from '../types';
 import { calcMissionReward } from './missionMath';
 import { BattleEngine, BattleEnemy, BattleState } from './battleEngine';
 import { GameMath } from './gameMath';
+import { processDoTBuffs } from './skillEffects';
 
 import {
   MAX_BATTLE_ROUNDS,
@@ -49,6 +50,7 @@ export function computeBattleOutcome(
   while (state.rounds < MAX_BATTLE_ROUNDS && aliveEnemies().length > 0 && aliveHeroes().length > 0) {
     state.rounds += 1;
     BattleEngine.cleanExpiredBuffs(state);
+    processDoTBuffs(state);
     state.log.push(`-- Round ${state.rounds} --`);
 
     // --- Initiative-based turn order ---
