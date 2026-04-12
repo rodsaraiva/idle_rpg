@@ -1,6 +1,7 @@
-import { BattleEngine, BattleState, BattleEnemy } from '../../utils/battleEngine';
+import { BattleEngine, BattleState, BattleEnemy, SynergyHandlers } from '../../utils/battleEngine';
 import { Hero, HeroTask } from '../../types';
 import { GameMath } from '../../utils/gameMath';
+import { _NOOP_HANDLERS } from '../../utils/synergyEffects';
 
 /**
  * Advanced coverage tests for battleEngine.ts.
@@ -58,6 +59,10 @@ describe('BattleEngine - advanced coverage', () => {
     log: [],
     actions: [],
     rounds: 1,
+    activeSynergies: [],
+    buffs: {},
+    flags: {},
+    handlers: _NOOP_HANDLERS,
     ...overrides,
   });
 

@@ -23,7 +23,7 @@ export interface SimulationResult {
  */
 export function runMissionSimulation(params: SimulationParams): SimulationResult {
   const { heroes, missionId, iterations } = params;
-  
+
   const mission = MISSIONS.find(m => m.id === missionId);
   if (!mission) throw new Error(`Missão ${missionId} não encontrada.`);
 
@@ -38,7 +38,7 @@ export function runMissionSimulation(params: SimulationParams): SimulationResult
   const groupInitialHp = heroes.reduce((sum, h) => sum + h.hpMax, 0);
 
   // Posicionamento base dos heróis (linha de baixo)
-  const baseHeroPositions = HERO_ROWS.flatMap(r => 
+  const baseHeroPositions = HERO_ROWS.flatMap(r =>
     Array.from({ length: GRID_COLUMNS }, (_, c) => r * GRID_COLUMNS + c)
   );
 
@@ -46,44 +46,28 @@ export function runMissionSimulation(params: SimulationParams): SimulationResult
     // 1. Clona os heróis para não sujar o estado entre iterações
     // e garante que comecem de vida cheia
     const activeHeroes = heroes.map(h => ({ ...h, hpCurrent: h.hpMax }));
-    
-    // 2. Cria os inimigos
-    const enemies = BattleEngine.createEnemies(mission as MissionTemplate);
 
-    // 3. Inicializa estado
-    const state: BattleState = {
-      heroes: activeHeroes,
-      enemies,
-      heroPositions: {},
-      enemyPositions: {},
-      lastAttacker: {},
-      threats: {},
-      log: [],
-      actions: [],
-      rounds: 1,
-    };
+    // 2. Inicializa estado via BattleEngine.initializeBattle
+    const state = BattleEngine.initializeBattle(activeHeroes, mission as MissionTemplate);
 
-    // Posiciona heróis (distribuídos nas últimas posições)
+    // Override hero positions to the simulator's preferred bottom-row layout
     activeHeroes.forEach((h, idx) => {
       state.heroPositions[h.id] = baseHeroPositions[baseHeroPositions.length - 1 - idx] ?? 45;
-    });
-
-    // Posiciona inimigos
-    enemies.forEach(e => {
-      if (e.position !== undefined) state.enemyPositions[e.id] = e.position;
     });
 
     let battleOver = false;
     let groupWon = false;
     let isTimeout = false;
 
-    // 4. Loop da Batalha
+    // 3. Loop da Batalha
     while (!battleOver) {
       if (state.rounds > MAX_BATTLE_ROUNDS) {
         isTimeout = true;
         battleOver = true;
         break;
       }
+
+      BattleEngine.cleanExpiredBuffs(state);
 
       // Cálculo de mitigação do Tanque para este turno
       const countTanks = activeHeroes.filter(h => h.classId === 'TANK' && h.hpCurrent > 0).length;
@@ -135,7 +119,7 @@ export function runMissionSimulation(params: SimulationParams): SimulationResult
       state.rounds++;
     }
 
-    // 5. Coleta de Métricas da Iteração
+    // 4. Coleta de Métricas da Iteração
     if (groupWon) {
       wins++;
       totalRoundsWon += state.rounds;
@@ -152,7 +136,7 @@ export function runMissionSimulation(params: SimulationParams): SimulationResult
     incapacitatedCount += incapInThisBattle;
   }
 
-  // 6. Formata e retorna os resultados
+  // 5. Formata e retorna os resultados
   const totalHeroesSimulated = iterations * heroes.length;
 
   return {

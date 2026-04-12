@@ -3,14 +3,12 @@ import { Hero, MissionOutcome, MissionAction } from '../types';
 import { calcMissionReward } from './missionMath';
 import { BattleEngine, BattleEnemy, BattleState } from './battleEngine';
 import { GameMath } from './gameMath';
-import { getSynergyMultipliers } from '../constants/synergies';
-import { ClassId } from '../types';
 
-import { 
-  MAX_BATTLE_ROUNDS, 
-  ENEMY_HIT_CHANCE, 
-  TANK_MITIGATION_PER_HERO, 
-  TANK_MITIGATION_CAP, 
+import {
+  MAX_BATTLE_ROUNDS,
+  ENEMY_HIT_CHANCE,
+  TANK_MITIGATION_PER_HERO,
+  TANK_MITIGATION_CAP,
   INCAPACITATED_DURATION_MS,
   BASE_HIT_CHANCE,
   HIT_CHANCE_PER_ATK,
@@ -37,34 +35,9 @@ export function computeBattleOutcome(
   const rng = opts.rng ?? Math.random;
   const heroes = heroesIn.map((h) => ({ ...h }));
 
-  // Apply class synergy bonuses
-  const classIds = heroes.map(h => h.classId).filter(Boolean) as ClassId[];
-  const synergy = getSynergyMultipliers(classIds);
-  for (const hero of heroes) {
-    hero.atk = Math.floor(hero.atk * synergy.atk);
-    hero.defense = Math.floor((hero.defense ?? 5) * synergy.defense);
-    if (hero.classId === 'HEALER') {
-      hero.mp = Math.floor(hero.mp * synergy.heal);
-    }
-  }
-
-  const enemies = BattleEngine.createEnemies(template);
-
-  const heroPositions = { ...(opts.heroPositions || {}) };
-  const enemyPositions: Record<string, number> = {};
-  enemies.forEach(e => { if (e.position !== undefined) enemyPositions[e.id] = e.position; });
-
-  const state: BattleState = {
-    heroes,
-    enemies,
-    heroPositions,
-    enemyPositions,
-    lastAttacker: {},
-    threats: {},
-    log: [],
-    actions: [],
-    rounds: 0,
-  };
+  const state = BattleEngine.initializeBattle(heroes, template, {
+    heroPositions: opts.heroPositions,
+  });
 
   const aliveEnemies = () => state.enemies.filter((e) => e.hp > 0);
   const aliveHeroes = () => state.heroes.filter((h) => h.hpCurrent > 0);
@@ -75,6 +48,7 @@ export function computeBattleOutcome(
 
   while (state.rounds < MAX_BATTLE_ROUNDS && aliveEnemies().length > 0 && aliveHeroes().length > 0) {
     state.rounds += 1;
+    BattleEngine.cleanExpiredBuffs(state);
     state.log.push(`-- Round ${state.rounds} --`);
 
     // --- Initiative-based turn order ---
@@ -101,7 +75,7 @@ export function computeBattleOutcome(
   }
 
   const success = aliveEnemies().length === 0 && aliveHeroes().length > 0;
-  
+
   const reward = success
     ? calcMissionReward(template, heroesIn, {
         healerBuffMultiplier: opts.healerBuffMultiplier,

@@ -8,6 +8,31 @@ import {
   HIT_CHANCE_DISTANCE_PENALTY
 } from '../constants/game';
 import { GameMath } from './gameMath';
+import { getActiveSynergies } from '../constants/synergies';
+import { createSynergyHandlers } from './synergyEffects';
+import { ClassId } from '../types';
+
+export type SynergyId =
+  | 'LINHA_DE_FRENTE'
+  | 'MURALHA_E_FLECHA'
+  | 'BASTIAO'
+  | 'CAOS_ARCANO'
+  | 'EMBOSCADA'
+  | 'ARTILHARIA';
+
+export type BuffType =
+  | 'atkMul'        // multiplicador de ATK do atacante
+  | 'critFlat'      // soma flat ao crit (ex: +20)
+  | 'rangeFlat'     // soma flat ao alcance
+  | 'defDebuffMul'  // multiplicador <1 aplicado à defesa do alvo
+  | 'taunt';        // soma flat ao score quando este ator é alvo de seleção
+
+export interface Buff {
+  source: SynergyId;
+  type: BuffType;
+  value: number;
+  expiresAfterRound: number; // -1 = persistente até source desativar
+}
 
 export interface BattleEnemy {
   id: string;
@@ -25,6 +50,26 @@ export interface BattleEnemy {
     movement: number;
   }
 
+export interface SynergyHandlers {
+  onBattleStart: (state: BattleState) => void;
+  onHealApplied: (state: BattleState, healer: Hero, target: Hero, amount: number) => void;
+  onHeroDamaged: (state: BattleState, hero: Hero, hpAfter: number) => void;
+  onAttackResolved: (
+    state: BattleState,
+    attacker: Hero | BattleEnemy,
+    target: Hero | BattleEnemy,
+    dmg: number,
+    distance: number
+  ) => void;
+  shouldIgnoreDefense: (state: BattleState, attacker: Hero | BattleEnemy) => boolean;
+  modifyTargetScore: (
+    state: BattleState,
+    enemy: BattleEnemy,
+    candidate: Hero,
+    baseScore: number
+  ) => number;
+}
+
 export interface BattleState {
   heroes: Hero[];
   enemies: BattleEnemy[];
@@ -35,6 +80,10 @@ export interface BattleState {
   log: string[];
   actions: MissionAction[];
   rounds: number;
+  activeSynergies: SynergyId[];
+  buffs: Record<string, Buff[]>;
+  flags: Record<string, boolean | number>;
+  handlers: SynergyHandlers;
 }
 
 export const BattleEngine = {
@@ -100,6 +149,57 @@ export const BattleEngine = {
   },
 
   /**
+   * Constructs a fresh BattleState with synergy handlers wired up and
+   * positions initialized.
+   */
+  initializeBattle(
+    heroes: Hero[],
+    template: MissionTemplate,
+    opts: { heroPositions?: Record<string, number> } = {}
+  ): BattleState {
+    const enemies = this.createEnemies(template);
+    const enemyPositions: Record<string, number> = {};
+    enemies.forEach(e => { if (e.position !== undefined) enemyPositions[e.id] = e.position; });
+
+    const classIds = heroes.map(h => h.classId).filter(Boolean) as ClassId[];
+    const activeSynergyDefs = getActiveSynergies(classIds);
+    const activeSynergies = activeSynergyDefs.map(s => s.id);
+    const handlers = createSynergyHandlers(activeSynergies);
+
+    const state: BattleState = {
+      heroes,
+      enemies,
+      heroPositions: { ...(opts.heroPositions || {}) },
+      enemyPositions,
+      lastAttacker: {},
+      threats: {},
+      log: [],
+      actions: [],
+      rounds: 0,
+      activeSynergies,
+      buffs: {},
+      flags: {},
+      handlers,
+    };
+
+    handlers.onBattleStart(state);
+    return state;
+  },
+
+  /**
+   * Removes buffs whose expiresAfterRound is < current round.
+   * Persistent buffs (expiresAfterRound === -1) are kept.
+   */
+  cleanExpiredBuffs(state: BattleState): void {
+    for (const actorId of Object.keys(state.buffs)) {
+      state.buffs[actorId] = state.buffs[actorId].filter(
+        b => b.expiresAfterRound === -1 || b.expiresAfterRound >= state.rounds
+      );
+      if (state.buffs[actorId].length === 0) delete state.buffs[actorId];
+    }
+  },
+
+  /**
    * Encontra a melhor posição para se mover em direção ao alvo.
    */
   findMovePath(
@@ -152,6 +252,7 @@ export const BattleEngine = {
       lastAttackerId?: string;
       alliesInDanger?: string[];
       threats?: Record<string, string>; // enemyId -> targetAllyId
+      modifyScore?: (candidate: T, baseScore: number) => number;
     } = {}
   ): T | undefined {
     if (!candidates || candidates.length === 0) return undefined;
@@ -212,6 +313,10 @@ export const BattleEngine = {
           break;
       }
 
+      if (context.modifyScore) {
+        score = context.modifyScore(target, score);
+      }
+
       return { target, score };
     });
 
@@ -237,13 +342,13 @@ export const BattleEngine = {
     actorType: MissionActorType,
     round: number,
     rng: () => number,
-    distance: number = 1
+    distance: number = 1,
+    state?: BattleState
   ): { action: MissionAction; dmg: number } | null {
     const evasion = (target.agility ?? 0) / ((target.agility ?? 0) + 50);
     let distancePenalty = Math.max(0, distance - 1) * HIT_CHANCE_DISTANCE_PENALTY;
-    // Personalidade "Prudente" (CAUTIOUS) reduz o impacto de atacar de longe.
     if (attacker.personality === 'CAUTIOUS') {
-      distancePenalty *= 0.6; // distancePenalty_CAUTIOUS = distancePenalty * 0.6
+      distancePenalty *= 0.6;
     }
     const effectiveHitChance = Math.max(0.05, baseHitChance - evasion - distancePenalty);
 
@@ -262,9 +367,33 @@ export const BattleEngine = {
       };
     }
 
-    const critChance = GameMath.calcCritChance(attacker.classId, attacker.crit);
+    // Read attacker buffs
+    let atkMul = 1;
+    let critFlat = 0;
+    if (state) {
+      const attackerBuffs = state.buffs[attacker.id] ?? [];
+      for (const b of attackerBuffs) {
+        if (b.type === 'atkMul') atkMul *= b.value;
+        else if (b.type === 'critFlat') critFlat += b.value;
+      }
+    }
+
+    // Read target debuffs
+    let defMul = 1;
+    if (state) {
+      const targetBuffs = state.buffs[target.id] ?? [];
+      for (const b of targetBuffs) {
+        if (b.type === 'defDebuffMul') defMul *= b.value;
+      }
+    }
+
+    const ignoreDef = state ? state.handlers.shouldIgnoreDefense(state, attacker as any) : false;
+    const effectiveDef = ignoreDef ? 0 : Math.floor((target.defense ?? 0) * defMul);
+
+    const critChance = GameMath.calcCritChance(attacker.classId, (attacker.crit ?? 0) + critFlat);
     const isCrit = rng() < critChance;
-    const dmg = GameMath.calcDamage(attacker.atk, target.defense, isCrit);
+    const effectiveAtk = Math.floor(attacker.atk * atkMul);
+    const dmg = GameMath.calcDamage(effectiveAtk, effectiveDef, isCrit);
 
     return {
       action: {
@@ -297,7 +426,7 @@ export const BattleEngine = {
         const prevHp = mostInjured.hpCurrent;
         mostInjured.hpCurrent = Math.min(mostInjured.hpMax, mostInjured.hpCurrent + healAmount);
         const actualHeal = mostInjured.hpCurrent - prevHp;
-        
+
         const healTxt = `${hero.name} curou ${mostInjured.name} em ${actualHeal} HP`;
         state.log.push(healTxt);
         state.actions.push({
@@ -310,6 +439,40 @@ export const BattleEngine = {
           amount: actualHeal,
           text: healTxt,
         });
+
+        // Bastião AoE: if armed, also heal allies within 2 hex of mostInjured
+        if (state.flags['bastion_armed']) {
+          const centerPos = state.heroPositions[mostInjured.id];
+          if (centerPos !== undefined) {
+            for (const ally of state.heroes) {
+              if (ally.id === mostInjured.id || ally.hpCurrent <= 0) continue;
+              const allyPos = state.heroPositions[ally.id];
+              if (allyPos === undefined) continue;
+              if (GameMath.getHexDistance(centerPos, allyPos) <= 2) {
+                const prev = ally.hpCurrent;
+                ally.hpCurrent = Math.min(ally.hpMax, ally.hpCurrent + healAmount);
+                const heal = ally.hpCurrent - prev;
+                if (heal > 0) {
+                  const t = `${hero.name} curou ${ally.name} em ${heal} HP (Bastião)`;
+                  state.log.push(t);
+                  state.actions.push({
+                    round: state.rounds,
+                    actorType: 'hero',
+                    actorId: hero.id,
+                    actorName: hero.name,
+                    actionType: 'heal',
+                    targetId: ally.id,
+                    amount: heal,
+                    text: t,
+                  });
+                }
+              }
+            }
+          }
+          delete state.flags['bastion_armed'];
+        }
+
+        state.handlers.onHealApplied(state, hero, mostInjured, actualHeal);
         return true; // Consome o turno do Healer
       }
     }
@@ -343,7 +506,12 @@ export const BattleEngine = {
     if (initialTarget) {
       const targetPos = state.enemyPositions[initialTarget.id];
       const dist = GameMath.getHexDistance(currentPos, targetPos);
-      const range = hero.range ?? 1;
+      const initialBuffs = state.buffs[hero.id] ?? [];
+      let initialRangeBonus = 0;
+      for (const b of initialBuffs) {
+        if (b.type === 'rangeFlat') initialRangeBonus += b.value;
+      }
+      const range = (hero.range ?? 1) + initialRangeBonus;
 
       if (dist > range) {
         const move = hero.movement ?? 2;
@@ -378,19 +546,26 @@ export const BattleEngine = {
     if (!finalTarget) return;
 
     const finalDist = GameMath.getHexDistance(updatedPos, state.enemyPositions[finalTarget.id]);
-    const finalRange = hero.range ?? 1;
+    // Apply rangeFlat buffs to hero range
+    const buffs = state.buffs[hero.id] ?? [];
+    let rangeBonus = 0;
+    for (const b of buffs) {
+      if (b.type === 'rangeFlat') rangeBonus += b.value;
+    }
+    const effectiveRange = (hero.range ?? 1) + rangeBonus;
 
-    if (finalDist <= finalRange) {
-      const hitChance = GameMath.calcHitChance(hero.atk, 0, 1); // Pegamos a chance baseada em ATK sem esquiva/distância aqui
-      const result = this.calculateAttack(hero, finalTarget, hitChance, 'hero', state.rounds, rng, finalDist);
-      
+    if (finalDist <= effectiveRange) {
+      const hitChance = GameMath.calcHitChance(hero.atk, 0, 1);
+      const result = this.calculateAttack(hero, finalTarget, hitChance, 'hero', state.rounds, rng, finalDist, state);
+
       if (result) {
         state.actions.push(result.action);
         state.log.push(result.action.text);
         finalTarget.hp = Math.max(0, finalTarget.hp - result.dmg);
-        
+
         if (result.dmg > 0) {
           state.lastAttacker[finalTarget.id] = hero.id;
+          state.handlers.onAttackResolved(state, hero as any, finalTarget as any, result.dmg, finalDist);
         }
 
         if (finalTarget.hp <= 0) {
@@ -425,13 +600,17 @@ export const BattleEngine = {
     const getOccupied = () => new Set([...Object.values(state.heroPositions), ...Object.values(state.enemyPositions)]);
     const getEnemiesInDanger = () => state.enemies.filter(e => e.hp / e.maxHp < 0.3).map(e => e.id);
 
+    const modifyScore = (candidate: Hero, baseScore: number) =>
+      state.handlers.modifyTargetScore(state, enemy, candidate, baseScore);
+
     // 1. Movimentação
     const currentPos = state.enemyPositions[enemy.id] ?? 0;
     const initialTarget = this.selectTarget(enemy, currentPos, aliveHeroes, rng, {
       lastAttackerId: state.lastAttacker[enemy.id],
-      alliesInDanger: getEnemiesInDanger()
+      alliesInDanger: getEnemiesInDanger(),
+      modifyScore,
     });
-    
+
     if (initialTarget) {
       const targetPos = state.heroPositions[initialTarget.id] ?? 45;
       const dist = GameMath.getHexDistance(currentPos, targetPos);
@@ -440,7 +619,7 @@ export const BattleEngine = {
       if (dist > range) {
         const move = enemy.movement ?? 2;
         const nextPos = this.findMovePath(currentPos, targetPos, move, getOccupied());
-        
+
         if (nextPos !== currentPos) {
           const moveTxt = `${enemy.id} moveu-se para a posição ${nextPos}`;
           state.log.push(moveTxt);
@@ -463,17 +642,18 @@ export const BattleEngine = {
     const updatedPos = state.enemyPositions[enemy.id] ?? currentPos;
     const finalTarget = this.selectTarget(enemy, updatedPos, aliveHeroes, rng, {
       lastAttackerId: state.lastAttacker[enemy.id],
-      alliesInDanger: getEnemiesInDanger()
+      alliesInDanger: getEnemiesInDanger(),
+      modifyScore,
     });
-    
+
     if (!finalTarget) return;
 
     const finalDist = GameMath.getHexDistance(updatedPos, state.heroPositions[finalTarget.id]);
     const finalRange = enemy.range ?? 1;
 
     if (finalDist <= finalRange) {
-      const result = this.calculateAttack(enemy, finalTarget, enemyHitChance, 'enemy', state.rounds, rng, finalDist);
-      
+      const result = this.calculateAttack(enemy, finalTarget, enemyHitChance, 'enemy', state.rounds, rng, finalDist, state);
+
       if (result) {
         let finalDmg = result.dmg;
         // Aplicação de mitigação dos Tanks (se aplicável ao alvo)
@@ -487,7 +667,9 @@ export const BattleEngine = {
         state.log.push(result.action.text);
         finalTarget.hpCurrent = Math.max(0, finalTarget.hpCurrent - finalDmg);
 
-        if (result.dmg > 0) {
+        state.handlers.onHeroDamaged(state, finalTarget, finalTarget.hpCurrent);
+        if (finalDmg > 0) {
+          state.handlers.onAttackResolved(state, enemy as any, finalTarget as any, finalDmg, finalDist);
           state.lastAttacker[finalTarget.id] = enemy.id;
           state.threats[enemy.id] = finalTarget.id;
         }
