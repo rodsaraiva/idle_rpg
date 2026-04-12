@@ -44,6 +44,8 @@ export interface Hero {
   trainingProgressMs?: TrainingProgress;
   trainingCount?: TrainingCount;
   hpRegenProgressMs?: number;
+  stars?: number;                     // 0 = normal, 1+ = fusionado
+  fusionBonus?: { hp: number; atk: number; mp: number };
 }
  
 export interface TrainingProgress {
@@ -88,6 +90,17 @@ export interface GameState {
     progress: Record<string, number>; // tracker -> current value
     allClaimed: boolean;
   };
+  // pantheon / fusion system
+  pantheonFusions?: number;
+  pantheonBonuses?: { goldPercent: number; atkPercent: number; hpPercent: number };
+  // weekly cycle
+  weeklyState?: {
+    seed: number;
+    quests: { id: string; claimed: boolean }[];
+    progress: Record<string, number>;
+    allClaimed: boolean;
+    bossDefeated: boolean;
+  };
 }
 
 /** Ação disparada para alterar o estado do jogo */
@@ -109,6 +122,8 @@ export type GameAction =
   | { type: 'EQUIP_ITEM'; heroId: string; equipmentId: string }
   | { type: 'UNEQUIP_ITEM'; heroId: string; equipmentId: string }
   | { type: 'CLAIM_DAILY_QUEST'; questId: string }
+  | { type: 'FUSE_HEROES'; heroIds: [string, string, string] }
+  | { type: 'CLAIM_WEEKLY_QUEST'; questId: string }
   | { type: 'LOAD_STATE'; state: GameState };
 
 export type MissionActorType = 'hero' | 'enemy';

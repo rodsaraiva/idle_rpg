@@ -24,6 +24,7 @@ import {
   handleUnequipItem
 } from './equipmentHandler';
 import { claimDailyQuest } from './dailyQuestHandler';
+import { handleFuseHeroes } from './pantheonHandler';
 import { TICK_INTERVAL_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 
 /** Estado inicial quando não há save */
@@ -90,6 +91,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'CLAIM_DAILY_QUEST':
       return claimDailyQuest(state, action.questId);
+
+    case 'FUSE_HEROES':
+      return handleFuseHeroes(state, action.heroIds);
 
     case 'LOAD_STATE':
       return { ...action.state };

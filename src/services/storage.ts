@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameState } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
-const CURRENT_VERSION = 5; // Incremented for migrations
+const CURRENT_VERSION = 7; // Incremented for migrations
 
 interface SaveData extends GameState {
   _version: number;
@@ -64,6 +64,20 @@ const migrations: Record<number, (data: any) => any> = {
         equippedItems: h.equippedItems ?? [],
       }));
     }
+    return data;
+  },
+  6: (data) => {
+    // Version 6: Pantheon fusion fields
+    if (data && Array.isArray(data.heroes)) {
+      for (const hero of data.heroes) {
+        if (hero.stars === undefined) hero.stars = 0;
+      }
+    }
+    if (data.pantheonFusions === undefined) data.pantheonFusions = 0;
+    return data;
+  },
+  7: (data) => {
+    // Version 7: Weekly state (initialized at runtime by refreshWeeklyState)
     return data;
   },
 };
