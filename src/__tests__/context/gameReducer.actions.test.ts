@@ -107,7 +107,7 @@ describe('gameReducer — additional action cases', () => {
   test('FORGE_EQUIPMENT dispatches through reducer without crashing', () => {
     // Not enough gold should no-op but still exercise the dispatch case
     const state = { ...initialGameState, gold: 0 };
-    const next = gameReducer(state, { type: 'FORGE_EQUIPMENT', tier: 1, now: 1_700_000_000_000 });
+    const next = gameReducer(state, { type: 'FORGE_EQUIPMENT', tier: 1, equipmentType: 'weapon', now: 1_700_000_000_000 });
     expect(next).toBeDefined();
     expect(next.gold).toBe(0);
   });

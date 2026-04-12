@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameState } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
-const CURRENT_VERSION = 7; // Incremented for migrations
+const CURRENT_VERSION = 8; // Incremented for migrations
 
 interface SaveData extends GameState {
   _version: number;
@@ -78,6 +78,11 @@ const migrations: Record<number, (data: any) => any> = {
   },
   7: (data) => {
     // Version 7: Weekly state (initialized at runtime by refreshWeeklyState)
+    return data;
+  },
+  8: (data) => {
+    // Version 8: Materials inventory
+    if (data.materials === undefined) data.materials = {};
     return data;
   },
 };

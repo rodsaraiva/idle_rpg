@@ -101,6 +101,7 @@ export interface GameState {
     allClaimed: boolean;
     bossDefeated: boolean;
   };
+  materials?: Record<string, number>;
 }
 
 /** Ação disparada para alterar o estado do jogo */
@@ -117,7 +118,7 @@ export type GameAction =
   | { type: 'START_MISSION'; templateId: string; heroIds: string[]; heroPositions?: Record<string, number>; now: number; looping?: boolean }
   | { type: 'COMPLETE_MISSION'; missionId: string; reward: number }
   | { type: 'DISMISS_MISSION_RESULT'; missionId: string }
-  | { type: 'FORGE_EQUIPMENT'; tier: number; now: number }
+  | { type: 'FORGE_EQUIPMENT'; tier: number; equipmentType: 'weapon' | 'armor' | 'accessory'; now: number }
   | { type: 'COLLECT_EQUIPMENT'; equipmentId: string }
   | { type: 'EQUIP_ITEM'; heroId: string; equipmentId: string }
   | { type: 'UNEQUIP_ITEM'; heroId: string; equipmentId: string }
@@ -186,6 +187,7 @@ export interface MissionOutcome {
   success: boolean;
   casualties: { heroId: string; hpLost: number; hpAfter: number }[];
   enemyCasualties: number;
+  materialDrops?: Record<string, number>;
 }
 
 export interface MissionResult extends MissionOutcome {
