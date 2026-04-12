@@ -25,6 +25,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { checkAchievements } from './achievementHandler';
 import { refreshDailyQuests, updateDailyProgress } from './dailyQuestHandler';
 import { refreshWeeklyState, updateWeeklyProgress } from './weeklyHandler';
+import { getUnlockedSkills } from '../constants/skills';
+import { emitSkillUnlocked, emitRareMaterialDrop } from '../services/milestones';
 
 /** Processa o treinamento de todos os heróis, returns updated heroes and total points trained */
 function processTraining(heroes: Hero[], tickMs: number, inflation: number): { heroes: Hero[]; totalPointsTrained: number } {
@@ -371,7 +373,20 @@ export function handleTick(state: GameState, now: number): GameState {
   currentState = refreshWeeklyState(currentState);
 
   // 1. Process Training
+  const prevSkills: Record<string, string[]> = {};
+  for (const hero of currentState.heroes) {
+    prevSkills[hero.id] = getUnlockedSkills(hero).map(s => s.id);
+  }
   const { heroes: heroesAfterTraining, totalPointsTrained } = processTraining(currentState.heroes, tickMs, inflation);
+  for (const hero of heroesAfterTraining) {
+    const newSkills = getUnlockedSkills(hero);
+    const prev = prevSkills[hero.id] ?? [];
+    for (const skill of newSkills) {
+      if (!prev.includes(skill.id)) {
+        emitSkillUnlocked(hero.name, skill.icon, skill.name);
+      }
+    }
+  }
 
   // 2. Process Passive Regeneration / Infirmary
   const heroesAfterRegen = processRegeneration(heroesAfterTraining, tickMs);
@@ -413,6 +428,9 @@ export function handleTick(state: GameState, now: number): GameState {
       merged[mat] = (merged[mat] ?? 0) + qty;
     }
     stateAfterTick = { ...stateAfterTick, materials: merged };
+  }
+  if (materialDrops['starstone'] && materialDrops['starstone'] > 0) {
+    emitRareMaterialDrop('Pedra Estelar');
   }
 
   // 4. Update daily quest progress trackers

@@ -2,6 +2,7 @@ import { GameState, Equipment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { EQUIPMENT_TIERS, EQUIPMENT_TEMPLATES, MAX_EQUIPPED_ITEMS } from '../constants/equipment';
 import { updateDailyProgress } from './dailyQuestHandler';
+import { emitFirstTierForged } from '../services/milestones';
 import { FORGE_RECIPES, hasEnoughMaterials, deductMaterials, EquipmentType } from '../constants/materials';
 
 function generateEquipment(tier: number, equipmentType?: 'weapon' | 'armor' | 'accessory'): Equipment {
@@ -28,6 +29,11 @@ export function handleForgeEquipment(state: GameState, tier: number, equipmentTy
   if (state.gold < recipe.gold) return state;
   if (!hasEnoughMaterials(state.materials ?? {}, recipe)) return state;
   const equipment = generateEquipment(tier, equipmentType);
+  const existingOfTier = (state.inventory ?? []).filter((eq: any) => eq.tier === tier);
+  if (existingOfTier.length === 0) {
+    const tierDef2 = EQUIPMENT_TIERS.find(t => t.tier === tier);
+    if (tierDef2) emitFirstTierForged(tierDef2.label);
+  }
   const finishAt = now + tierDef.forgeTimeMs;
   const materials = deductMaterials(state.materials ?? {}, recipe);
   const newState = {

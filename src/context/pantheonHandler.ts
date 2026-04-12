@@ -1,5 +1,6 @@
 import { GameState, Hero, HeroTask } from '../types';
 import { CLASS_DEFS } from '../constants/classes';
+import { emitFirstFusion, emitFusionResult } from '../services/milestones';
 import { PERSONALITY_LIST } from '../constants/personalities';
 import { ClassId } from '../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -105,6 +106,11 @@ export function handleFuseHeroes(state: GameState, heroIds: [string, string, str
   if (sourceHeroes.some(h => h.currentTask !== HeroTask.IDLE)) return state;
 
   const fusedHero = createFusedHero(sourceHeroes as [Hero, Hero, Hero]);
+
+  if ((state.pantheonFusions ?? 0) === 0) {
+    emitFirstFusion();
+  }
+  emitFusionResult(fusedHero.name, fusedHero.stars ?? 1);
 
   const remainingHeroes = state.heroes.filter(h => !heroIds.includes(h.id));
 
