@@ -12,6 +12,7 @@ import { getActiveSynergies } from '../constants/synergies';
 import { createSynergyHandlers } from './synergyEffects';
 import { ClassId } from '../types';
 import { executePreAttackSkills, onHeroDamagedSkills, onHeroDeathSkills, onRogueHitSkills, processDoTBuffs, getShieldReduction, getDefMulProduct } from './skillEffects';
+import { applyPersonalityOnHit, applyProtectorShield } from './personalityEffects';
 
 export type SynergyId =
   | 'LINHA_DE_FRENTE'
@@ -494,7 +495,9 @@ export const BattleEngine = {
    */
   processHeroTurn(hero: Hero, state: BattleState, rng: () => number) {
     if (hero.hpCurrent <= 0) return;
-    
+
+    applyProtectorShield(hero, state);
+
     const aliveEnemies = state.enemies.filter(e => e.hp > 0);
     if (aliveEnemies.length === 0) return;
 
@@ -582,10 +585,31 @@ export const BattleEngine = {
         finalTarget.hp = Math.max(0, finalTarget.hp - result.dmg);
 
         if (result.dmg > 0) {
+          const didMove = updatedPos !== currentPos;
           state.lastAttacker[finalTarget.id] = hero.id;
           state.handlers.onAttackResolved(state, hero as any, finalTarget as any, result.dmg, finalDist);
           if (hero.classId === 'ROGUE') {
             onRogueHitSkills(hero, finalTarget, state, rng);
+          }
+          const extraAttack = applyPersonalityOnHit(hero, finalTarget, state, result.dmg, rng, didMove);
+          // Opportunist extra attack on kill
+          if (extraAttack && finalTarget.hp <= 0) {
+            const nextAlive = state.enemies.find(e => e.alive && e.id !== finalTarget.id);
+            if (nextAlive) {
+              const nextDist = GameMath.getHexDistance(updatedPos, state.enemyPositions[nextAlive.id]);
+              if (nextDist <= effectiveRange) {
+                const extraResult = this.calculateAttack(hero, nextAlive, 0.8, 'hero', state.rounds, rng, nextDist, state);
+                if (extraResult) {
+                  state.actions.push(extraResult.action);
+                  state.log.push(extraResult.action.text);
+                  nextAlive.hp = Math.max(0, nextAlive.hp - extraResult.dmg);
+                  if (nextAlive.hp <= 0) {
+                    nextAlive.alive = false;
+                    delete state.enemyPositions[nextAlive.id];
+                  }
+                }
+              }
+            }
           }
         }
 
