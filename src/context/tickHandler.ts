@@ -114,10 +114,11 @@ function processRegeneration(heroes: Hero[], tickMs: number): Hero[] {
 
 /** Processa o progresso das missões ativas */
 function processMissions(state: GameState, heroes: Hero[], now: number): {
-  newHeroes: Hero[], 
-  activeMissions: ActiveMission[], 
-  goldGained: number, 
-  newResults: MissionResult[] 
+  newHeroes: Hero[],
+  activeMissions: ActiveMission[],
+  goldGained: number,
+  newResults: MissionResult[],
+  materialDrops: Record<string, number>,
 } {
   const active = (state.activeMissions || []).map((m) => ({ ...m }));
   const completed: { mission: ActiveMission; reward: number; outcome: MissionOutcome }[] = [];
@@ -221,6 +222,7 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
   const remainingMissions = active.filter((m) => !completed.find((c) => c.mission.id === m.id));
   const perHeroGold = { ...(state.perHeroGold ?? {}) };
   let goldGained = 0;
+  const materialDrops: Record<string, number> = {};
 
   completed.forEach((c) => {
     const n = c.mission.heroIds.length || 1;
@@ -237,6 +239,13 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
       }
       perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
     });
+
+    // Accumulate material drops from this mission outcome
+    if (c.outcome.materialDrops) {
+      for (const [mat, qty] of Object.entries(c.outcome.materialDrops)) {
+        materialDrops[mat] = (materialDrops[mat] ?? 0) + qty;
+      }
+    }
 
     // Check if looping mission should restart
     if (c.mission.looping && c.outcome.success) {
@@ -344,11 +353,12 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
     };
   });
 
-  return { 
-    newHeroes: currentHeroes, 
-    activeMissions: remainingMissions, 
-    goldGained, 
-    newResults 
+  return {
+    newHeroes: currentHeroes,
+    activeMissions: remainingMissions,
+    goldGained,
+    newResults,
+    materialDrops,
   };
 }
 
@@ -371,7 +381,8 @@ export function handleTick(state: GameState, now: number): GameState {
     newHeroes,
     activeMissions,
     goldGained,
-    newResults
+    newResults,
+    materialDrops,
   } = processMissions(currentState, heroesAfterRegen, now);
 
   const existingResults = currentState.recentMissionResults ? [...currentState.recentMissionResults] : [];
@@ -395,6 +406,14 @@ export function handleTick(state: GameState, now: number): GameState {
     completedMissionCount,
     completedMissionIds,
   };
+
+  if (Object.keys(materialDrops).length > 0) {
+    const merged = { ...(stateAfterTick.materials ?? {}) };
+    for (const [mat, qty] of Object.entries(materialDrops)) {
+      merged[mat] = (merged[mat] ?? 0) + qty;
+    }
+    stateAfterTick = { ...stateAfterTick, materials: merged };
+  }
 
   // 4. Update daily quest progress trackers
   const missionsCompletedCount = newResults.length;
