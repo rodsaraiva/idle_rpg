@@ -65,8 +65,8 @@ export function BlacksmithScreen() {
   const forgingIds = new Set(forgingQueue.map(f => f.equipmentId));
   const completedItems = inventory.filter(e => !forgingIds.has(e.id));
 
-  const handleForge = useCallback((tier: number) => {
-    dispatch({ type: 'FORGE_EQUIPMENT', tier, now: Date.now() });
+  const handleForge = useCallback((tier: number, equipmentType: 'weapon' | 'armor' | 'accessory' = 'weapon') => {
+    dispatch({ type: 'FORGE_EQUIPMENT', tier, equipmentType, now: Date.now() });
   }, [dispatch]);
 
   const handleCollect = useCallback((equipmentId: string) => {

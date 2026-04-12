@@ -164,6 +164,7 @@ test.describe('Full E2E Flows', () => {
       heroesRecruited: 1,
       inventory: [],
       forgingQueue: [],
+      materials: { iron: 10, crystal: 10, essence: 10, starstone: 5 },
     }));
 
     // Navigate to Vila then to Ferreiro
