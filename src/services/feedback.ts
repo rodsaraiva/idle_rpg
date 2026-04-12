@@ -19,7 +19,7 @@ export interface FloatPayload {
 
 export interface ToastPayload {
   text: string;
-  type?: 'success' | 'error' | 'info';
+  type?: 'success' | 'error' | 'info' | 'milestone';
   duration?: number;
 }
 
