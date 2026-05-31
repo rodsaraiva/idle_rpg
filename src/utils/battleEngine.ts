@@ -11,7 +11,7 @@ import { GameMath } from './gameMath';
 import { getActiveSynergies } from '../constants/synergies';
 import { createSynergyHandlers } from './synergyEffects';
 import { ClassId } from '../types';
-import { executePreAttackSkills, onHeroDamagedSkills, onHeroDeathSkills, onRogueHitSkills, processDoTBuffs, getShieldReduction, getDefMulProduct } from './skillEffects';
+import { executePreAttackSkills, onHeroDamagedSkills, onHeroDeathSkills, onRogueHitSkills, processDoTBuffs, getShieldReduction } from './skillEffects';
 import { applyPersonalityOnHit, applyProtectorShield } from './personalityEffects';
 import { applyEnemyPassiveSkills, executeEnemyPreAttackSkills, onEnemyHitSkills, onEnemyDamagedSkills, processEnemyRegenBuffs } from './enemySkillEffects';
 import { assignEnemySkills } from '../constants/enemySkills';
