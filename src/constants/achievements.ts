@@ -1,9 +1,11 @@
+import { GameState } from '../types';
+
 export interface AchievementDef {
   id: string;
   name: string;
   description: string;
   icon: string;
-  condition: (state: any) => boolean;
+  condition: (state: GameState) => boolean;
   reward: { gold?: number; permanentAtkBonus?: number; permanentHpBonus?: number };
 }
 

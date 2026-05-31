@@ -111,7 +111,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     newMission.enemiesState = missionEnemies;
     newMission.precomputedOutcome = outcome;
   } catch (err) {
-    console.error('Erro ao processar batalha da missão:', err);
+    if (__DEV__) console.error('Erro ao processar batalha da missão:', err);
     newMission.scheduledActions = [];
   }
 

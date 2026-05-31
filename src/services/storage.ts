@@ -96,7 +96,7 @@ function applyMigrations(data: any): GameState {
   while (version < CURRENT_VERSION) {
     version++;
     if (migrations[version]) {
-      console.log(`Applying storage migration to version ${version}`);
+      if (__DEV__) console.log(`Applying storage migration to version ${version}`);
       data = migrations[version](data);
     }
   }
@@ -116,7 +116,7 @@ export const StorageService = {
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
     } catch (error) {
-      console.error('StorageService: Erro ao salvar estado:', error);
+      if (__DEV__) console.error('StorageService: Erro ao salvar estado:', error);
     }
   },
 
@@ -131,7 +131,7 @@ export const StorageService = {
       
       return parsed as GameState;
     } catch (error) {
-      console.error('StorageService: Erro ao carregar estado:', error);
+      if (__DEV__) console.error('StorageService: Erro ao carregar estado:', error);
       return null;
     }
   },
@@ -141,7 +141,7 @@ export const StorageService = {
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
     } catch (error) {
-      console.error('StorageService: Erro ao limpar estado:', error);
+      if (__DEV__) console.error('StorageService: Erro ao limpar estado:', error);
     }
   },
 };

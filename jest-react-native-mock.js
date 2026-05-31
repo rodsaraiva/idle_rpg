@@ -29,9 +29,20 @@ const ReactNative = {
   },
   Animated: {
     View: (props) => React.createElement('Animated.View', props, props.children),
-    Value: class { setValue() {} interpolate() { return 0; } },
+    Value: class { setValue() {} interpolate() { return 0; } addListener() {} removeAllListeners() {} },
+    ValueXY: class {
+      constructor() { this.x = { setValue() {}, addListener() {}, removeAllListeners() {} }; this.y = { setValue() {}, addListener() {}, removeAllListeners() {} }; }
+      setValue() {}
+      interpolate() { return 0; }
+      addListener() {}
+      removeAllListeners() {}
+      stopAnimation() {}
+    },
     timing: () => ({ start: (cb) => cb && cb() }),
     spring: () => ({ start: (cb) => cb && cb() }),
+  },
+  PanResponder: {
+    create: () => ({ panHandlers: {} }),
   },
   Dimensions: {
     get: () => ({ width: 375, height: 667 }),

@@ -502,9 +502,3 @@ export function getShieldReduction(state: BattleState, targetId: string): number
   state.buffs[targetId] = state.buffs[targetId].filter(b => b !== best);
   return best.value;
 }
-
-/** Get effective defense multiplier from defMul buffs. */
-export function getDefMulProduct(state: BattleState, targetId: string): number {
-  const muls = state.buffs[targetId]?.filter(b => b.type === 'defMul' && b.expiresAfterRound >= state.rounds) ?? [];
-  return muls.reduce((acc, b) => acc * b.value, 1);
-}

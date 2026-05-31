@@ -70,13 +70,14 @@ export function useMissionPlayback(mission: ActiveMission | null) {
   // Process scheduled actions based on elapsed time since mission start
   useEffect(() => {
     if (!mission || !mission.scheduledActions) return;
+    const scheduledActions = mission.scheduledActions;
 
     const interval = setInterval(() => {
       const now = Date.now();
       const elapsed = now - mission.startedAt;
 
       // Find actions that should have happened by now but haven't been "played" in our local state
-      const actionsToPlay = mission.scheduledActions
+      const actionsToPlay = scheduledActions
         .map((sa, idx) => ({ ...sa, originalIdx: idx }))
         .filter((sa) => sa.atMsFromStart <= elapsed && sa.originalIdx > lastActionIdx)
         .sort((a, b) => a.atMsFromStart - b.atMsFromStart);
