@@ -41,7 +41,15 @@ function makeState(heroes: Hero[], enemies: BattleEnemy[], round = 1): BattleSta
   return {
     heroes, enemies, heroPositions, enemyPositions,
     lastAttacker: {}, threats: {}, log: [], actions: [], rounds: round,
-    activeSynergies: [], buffs: {}, flags: {}, handlers: {} as any,
+    activeSynergies: [], buffs: {}, flags: {},
+    handlers: {
+      onBattleStart: () => {},
+      onHealApplied: () => {},
+      onHeroDamaged: () => {},
+      onAttackResolved: () => {},
+      shouldIgnoreDefense: () => false,
+      modifyTargetScore: (_s: any, _e: any, _c: any, score: number) => score,
+    },
     skillCooldowns: {}, skillOnceUsed: {},
   };
 }
