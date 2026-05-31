@@ -2,7 +2,11 @@
 
 Itens descobertos/decididos DURANTE a execução das 5 fases (não faziam parte dos 46 gaps originais ou foram deixados como nit não-bloqueante). Branch: `feat/gaps-resolution`.
 
-## #47 — Determinismo do motor de batalha (prioridade ALTA p/ confiabilidade de teste)
+## #47 — Determinismo do motor de batalha — ✅ RESOLVIDO (2026-05-31)
+
+> Resolvido via PRNG seedável (mulberry32) threadado por setup+combate+sinergias. Spec `docs/superpowers/specs/2026-05-31-battle-determinism-design.md`, plano `docs/superpowers/plans/2026-05-31-battle-determinism.md`. `battleSim` passa 10/10 (era ~40% flaky); determinismo provado (mesmo seed → resultado byte-idêntico); produção inalterada (Math.random default). Nota: `simulate --seed` ainda não é byte-idêntico porque a *geração de heróis* (`heroFactory`/gaussiana) é aleatória — fora de escopo deste fix; candidato a follow-up se quiser sims 100% reprodutíveis.
+
+### (registro original)
 
 **Sintoma:** `src/__tests__/utils/battleSim.test.ts` falha de forma não-determinística (às vezes verde, às vezes vermelho) na suíte. Estado final desta entrega: **420/421 testes verdes**, sendo a única falha esse teste flaky.
 
