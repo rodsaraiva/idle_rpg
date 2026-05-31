@@ -6,6 +6,7 @@ import { CLASS_DEFS } from '../constants/classes';
 import { PERSONALITIES } from '../constants/personalities';
 import { HPBar } from './HPBar';
 import { useGame } from '../hooks/useGame';
+import { getEffectiveStats } from '../utils/heroUtils';
 
 interface HeroDetailsModalProps {
   hero: Hero | null;
@@ -24,6 +25,16 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
   const equippedEquipment = (hero.equippedItems ?? [])
     .map((id) => inventory.find((eq) => eq.id === id))
     .filter((eq): eq is Equipment => eq != null);
+
+  const effectiveStats = getEffectiveStats(hero, state);
+
+  // Deltas para mostrar o ganho dos bônus na UI
+  const atkDelta = effectiveStats.atk - hero.atk;
+  const hpMaxDelta = effectiveStats.hpMax - hero.hpMax;
+  const mpDelta = effectiveStats.mp - hero.mp;
+  const defenseDelta = effectiveStats.defense - (hero.defense ?? 0);
+  const critDelta = effectiveStats.crit - (hero.crit ?? 0);
+  const agilityDelta = effectiveStats.agility - (hero.agility ?? 0);
 
   const typeIcons: Record<Equipment['type'], string> = {
     weapon: '\u2694\uFE0F',
@@ -71,13 +82,26 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
               <View style={styles.hpContainer}>
                 <View style={styles.hpHeader}>
                   <Text style={styles.hpLabel}>Pontos de Vida</Text>
-                  <Text style={styles.hpValue}>{Math.floor(hero.hpCurrent)} / {Math.floor(hero.hpMax)}</Text>
+                  <Text style={styles.hpValue}>
+                    {Math.floor(effectiveStats.hpCurrent)} / {Math.floor(effectiveStats.hpMax)}
+                    {hpMaxDelta > 0 ? <Text style={{ color: theme.colors.success }}> (+{hpMaxDelta})</Text> : null}
+                  </Text>
                 </View>
-                <HPBar current={hero.hpCurrent} max={hero.hpMax} />
+                <HPBar current={effectiveStats.hpCurrent} max={effectiveStats.hpMax} />
               </View>
 
-              <StatItem label="Ataque" value={Math.floor(hero.atk)} icon="⚔️" color={theme.colors.atk} />
-              <StatItem label="Mana" value={Math.floor(hero.mp)} icon="🔮" color={theme.colors.mp} />
+              <StatItem
+                label="Ataque"
+                value={atkDelta > 0 ? `${Math.floor(effectiveStats.atk)} (+${atkDelta})` : Math.floor(effectiveStats.atk)}
+                icon="⚔️"
+                color={theme.colors.atk}
+              />
+              <StatItem
+                label="Mana"
+                value={mpDelta > 0 ? `${Math.floor(effectiveStats.mp)} (+${mpDelta})` : Math.floor(effectiveStats.mp)}
+                icon="🔮"
+                color={theme.colors.mp}
+              />
             </View>
 
             {personalityDef && (
@@ -96,9 +120,21 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Atributos Secundários</Text>
-              <StatItem label="Defesa" value={Math.floor(hero.defense || 0)} icon="🛡️" />
-              <StatItem label="Crítico" value={`${Math.floor(hero.crit || 0)}%`} icon="🎯" />
-              <StatItem label="Agilidade" value={Math.floor(hero.agility || 0)} icon="🏃" />
+              <StatItem
+                label="Defesa"
+                value={defenseDelta > 0 ? `${Math.floor(effectiveStats.defense)} (+${defenseDelta})` : Math.floor(effectiveStats.defense)}
+                icon="🛡️"
+              />
+              <StatItem
+                label="Crítico"
+                value={critDelta > 0 ? `${Math.floor(effectiveStats.crit)}% (+${critDelta})` : `${Math.floor(effectiveStats.crit)}%`}
+                icon="🎯"
+              />
+              <StatItem
+                label="Agilidade"
+                value={agilityDelta > 0 ? `${Math.floor(effectiveStats.agility)} (+${agilityDelta})` : Math.floor(effectiveStats.agility)}
+                icon="🏃"
+              />
             </View>
 
             {classDef && (
