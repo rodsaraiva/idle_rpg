@@ -97,8 +97,20 @@ export function VillageScreen() {
           <VillageCard
             title="Panteão"
             icon="🏛️"
-            description="Honre seus heróis lendários (Em breve)"
+            description="Fusão de heróis e bônus permanentes"
             screen="Panteao"
+          />
+          <VillageCard
+            title="Desafio Semanal"
+            icon="📅"
+            description="Quests semanais e boss especial"
+            screen="Semanal"
+          />
+          <VillageCard
+            title="Guilda"
+            icon="⚔️"
+            description="Gerencie e recrute seus heróis"
+            screen="Guilda"
           />
         </View>
       </ScrollView>
