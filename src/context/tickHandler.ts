@@ -19,6 +19,7 @@ import {
 import { configProvider } from '../services/configProvider';
 import { MISSIONS } from '../constants/missions';
 import { computeBattleOutcome } from '../utils/battleSim';
+import { getEffectiveStats, applyGoldBonus } from '../utils/heroUtils';
 import { BattleEngine } from '../utils/battleEngine';
 import { getActiveSynergies } from '../constants/synergies';
 import { v4 as uuidv4 } from 'uuid';
@@ -251,32 +252,16 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
 
     // Check if looping mission should restart
     if (c.mission.looping && c.outcome.success) {
-      goldGained += c.reward;
+      goldGained += applyGoldBonus(c.reward, state);
       const tpl = MISSIONS.find(t => t.id === c.mission.templateId);
       if (tpl) {
         // Get the surviving heroes for the next cycle
         const heroesForNext = currentHeroes.filter(h => c.mission.heroIds.includes(h.id) && h.hpCurrent > 0);
         if (heroesForNext.length >= tpl.minHeroes) {
-          // Apply equipment stat bonuses for battle computation
+          // Apply all stat bonuses via central helper
           const heroesWithEquipment = heroesForNext.map(h => {
-            const equipped = h.equippedItems || [];
-            if (equipped.length === 0) return h;
-            const copy = { ...h };
-            for (const eqId of equipped) {
-              const item = (state.inventory || []).find(e => e.id === eqId);
-              if (!item) continue;
-              const bonus = item.statBonus;
-              if (bonus.hp) copy.hpMax += bonus.hp;
-              if (bonus.atk) copy.atk += bonus.atk;
-              if (bonus.mp) copy.mp += bonus.mp;
-              if (bonus.defense) copy.defense = (copy.defense ?? 0) + bonus.defense;
-              if (bonus.crit) copy.crit = (copy.crit ?? 0) + bonus.crit;
-              if (bonus.agility) copy.agility = (copy.agility ?? 0) + bonus.agility;
-            }
-            if (copy.hpMax > h.hpMax) {
-              copy.hpCurrent = Math.min(copy.hpMax, copy.hpCurrent + (copy.hpMax - h.hpMax));
-            }
-            return copy;
+            const eff = getEffectiveStats(h, state);
+            return { ...h, hpMax: eff.hpMax, hpCurrent: eff.hpCurrent, atk: eff.atk, mp: eff.mp, defense: eff.defense, crit: eff.crit, agility: eff.agility };
           });
 
           const countHealers = heroesForNext.filter(h => h.classId === 'HEALER').length;
@@ -333,7 +318,7 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
       }
     } else {
       // Normal completion: release heroes to IDLE
-      goldGained += c.reward;
+      goldGained += applyGoldBonus(c.reward, state);
       c.mission.heroIds.forEach((hid: string) => {
         const idx = currentHeroes.findIndex((hh) => hh.id === hid);
         if (idx >= 0) {
