@@ -22,6 +22,14 @@ function generateEquipment(tier: number, equipmentType?: 'weapon' | 'armor' | 'a
   return { id: uuidv4(), name: `${name} ${tierDef.label}`, type: template.type, statBonus, tier };
 }
 
+/**
+ * Cria um Equipment aleatório do tier indicado (para recompensas de boss).
+ * Não consome materiais nem modifica filas de forja — geração direta.
+ */
+export function createGuaranteedEquipment(tier: number): Equipment {
+  return generateEquipment(tier);
+}
+
 export function handleForgeEquipment(state: GameState, tier: number, equipmentType: EquipmentType, now: number): GameState {
   const tierDef = EQUIPMENT_TIERS.find(t => t.tier === tier);
   if (!tierDef) return state;
