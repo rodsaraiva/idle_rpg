@@ -2,6 +2,7 @@ import { GameState, Equipment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { EQUIPMENT_TIERS, EQUIPMENT_TEMPLATES, MAX_EQUIPPED_ITEMS } from '../constants/equipment';
 import { updateDailyProgress } from './dailyQuestHandler';
+import { updateWeeklyProgress } from './weeklyHandler';
 import { emitFirstTierForged } from '../services/milestones';
 import { FORGE_RECIPES, hasEnoughMaterials, deductMaterials, EquipmentType } from '../constants/materials';
 
@@ -43,7 +44,8 @@ export function handleForgeEquipment(state: GameState, tier: number, equipmentTy
     forgingQueue: [...(state.forgingQueue || []), { equipmentId: equipment.id, finishAt }],
     inventory: [...(state.inventory || []), equipment],
   };
-  return updateDailyProgress(newState, 'itemsForged', 1);
+  const afterDaily = updateDailyProgress(newState, 'itemsForged', 1);
+  return updateWeeklyProgress(afterDaily, 'itemsForged', 1);
 }
 
 export function handleCollectEquipment(state: GameState, equipmentId: string): GameState {
