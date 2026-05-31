@@ -336,6 +336,9 @@ function tryCuraMaior(hero: Hero, state: BattleState): boolean {
     amount: actual, text: `✦ ${hero.name} — Cura Maior: ${actual} HP em ${injured.name}`,
   });
   state.log.push(`✦ ${hero.name} — Cura Maior: ${actual} HP em ${injured.name}`);
+  if (actual > 0) {
+    state.handlers.onHealApplied(state, hero, injured, actual);
+  }
   return true;
 }
 
@@ -351,9 +354,14 @@ function tryPurificacao(hero: Hero, state: BattleState): boolean {
   );
 
   const healAmount = Math.floor(allyWithDebuff.hpMax * 0.2);
+  const prevHp = allyWithDebuff.hpCurrent;
   allyWithDebuff.hpCurrent = Math.min(allyWithDebuff.hpMax, allyWithDebuff.hpCurrent + healAmount);
+  const actualHeal = allyWithDebuff.hpCurrent - prevHp;
 
-  logSkill(state, hero, 'Purificação', `limpou debuffs de ${allyWithDebuff.name} e curou ${healAmount} HP`);
+  logSkill(state, hero, 'Purificação', `limpou debuffs de ${allyWithDebuff.name} e curou ${actualHeal} HP`);
+  if (actualHeal > 0) {
+    state.handlers.onHealApplied(state, hero, allyWithDebuff, actualHeal);
+  }
   return true;
 }
 
