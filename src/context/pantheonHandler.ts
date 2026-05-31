@@ -4,6 +4,7 @@ import { emitFirstFusion, emitFusionResult } from '../services/milestones';
 import { PERSONALITY_LIST } from '../constants/personalities';
 import { ClassId } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { updateWeeklyProgress } from './weeklyHandler';
 
 /**
  * Calculate pantheon bonuses based on heroes with stars.
@@ -122,5 +123,5 @@ export function handleFuseHeroes(state: GameState, heroIds: [string, string, str
 
   newState.pantheonBonuses = calculatePantheonBonuses(newState.heroes);
 
-  return newState;
+  return updateWeeklyProgress(newState, 'fusionsCompleted', 1);
 }
