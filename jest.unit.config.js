@@ -2,6 +2,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   globals: {
+    __DEV__: true,
     'ts-jest': {
       tsconfig: {
         jsx: 'react',
