@@ -10,6 +10,8 @@ import { BlacksmithScreen } from '../screens/BlacksmithScreen';
 import { PantheonScreen } from '../screens/PantheonScreen';
 import { AchievementsScreen } from '../screens/AchievementsScreen';
 import { DailyQuestsScreen } from '../screens/DailyQuestsScreen';
+import { WeeklyScreen } from '../screens/WeeklyScreen';
+import { GuildScreen } from '../screens/GuildScreen';
 import { theme } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -103,6 +105,22 @@ export function AppNavigator() {
         <Tab.Screen
           name="MissoesDiarias"
           component={DailyQuestsScreen}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Semanal"
+          component={WeeklyScreen}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Guilda"
+          component={GuildScreen}
           options={{
             tabBarButton: () => null,
             tabBarItemStyle: { display: 'none' },
