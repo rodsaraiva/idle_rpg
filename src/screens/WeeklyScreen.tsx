@@ -1,14 +1,19 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useContext } from 'react';
 import { useWeekly, WeeklyQuestState } from '../hooks/useWeekly';
-import { WeeklyBossTemplate } from '../constants/weeklyBosses';
+import { WeeklyBossTemplate, getWeeklyBoss } from '../constants/weeklyBosses';
 import { theme } from '../theme';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { WEEKLY_BONUS_REWARD } from '../constants/weeklyQuests';
+import { GameContext } from '../context/GameContext';
+import { HeroTask } from '../types';
+import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 
 export function WeeklyScreen() {
   const insets = useSafeAreaInsets();
+  const { state, dispatch } = useContext(GameContext);
   const {
     weeklyState,
     questStates,
@@ -20,6 +25,24 @@ export function WeeklyScreen() {
     minutesLeft,
     handleClaim,
   } = useWeekly();
+
+  const availableHeroes = state.heroes.filter(h => h.currentTask === HeroTask.IDLE);
+
+  function handleFightBoss() {
+    if (bossDefeated) return;
+    const seed = weeklyState?.seed ?? 0;
+    const bossDef = getWeeklyBoss(seed);
+    const heroIds = availableHeroes
+      .slice(0, Math.min(availableHeroes.length, 5))
+      .map(h => h.id);
+    if (heroIds.length < bossDef.minHeroes) {
+      emit(FEEDBACK_EVENTS.TOAST, {
+        text: `Necessários ${bossDef.minHeroes} heróis disponíveis. Disponíveis: ${heroIds.length}.`,
+      });
+      return;
+    }
+    dispatch({ type: 'START_WEEKLY_BOSS', heroIds, now: Date.now() });
+  }
 
   const allCompleted = questStates.every(q => q.completed);
   const allQuestsClaimed = questStates.every(q => q.claimed);
@@ -53,7 +76,7 @@ export function WeeklyScreen() {
           <>
             {/* Boss card */}
             {boss && (
-              <BossCard boss={boss} bossDefeated={bossDefeated} />
+              <BossCard boss={boss} bossDefeated={bossDefeated} onFight={handleFightBoss} />
             )}
 
             {/* Quest cards */}
@@ -113,7 +136,7 @@ export function WeeklyScreen() {
   );
 }
 
-function BossCard({ boss, bossDefeated }: { boss: WeeklyBossTemplate; bossDefeated: boolean }) {
+function BossCard({ boss, bossDefeated, onFight }: { boss: WeeklyBossTemplate; bossDefeated: boolean; onFight: () => void }) {
   return (
     <View style={[styles.bossCard, bossDefeated && styles.bossCardDefeated]}>
       <View style={styles.bossHeader}>
@@ -136,11 +159,13 @@ function BossCard({ boss, bossDefeated }: { boss: WeeklyBossTemplate; bossDefeat
         </View>
       ) : (
         <TouchableOpacity
-          style={styles.bossButtonDisabled}
-          disabled
-          activeOpacity={1}
+          style={styles.bossButton}
+          onPress={onFight}
+          disabled={false}
+          activeOpacity={0.7}
+          accessibilityLabel="Enfrentar Boss"
         >
-          <Text style={styles.bossButtonText}>Enfrentar Boss — Em breve</Text>
+          <Text style={styles.bossButtonText}>Enfrentar Boss</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -249,6 +274,12 @@ const styles = StyleSheet.create({
   bossRewardBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   bossRewardText: { color: theme.colors.gold, fontSize: 16, fontWeight: '800' },
   bossRewardGoldIcon: { fontSize: 16 },
+  bossButton: {
+    backgroundColor: theme.colors.danger,
+    paddingVertical: 10,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+  },
   bossButtonDisabled: {
     backgroundColor: theme.colors.surfaceLight,
     paddingVertical: 10,
@@ -256,7 +287,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bossButtonText: {
-    color: theme.colors.textMuted,
+    color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 14,
   },

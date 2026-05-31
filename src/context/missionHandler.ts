@@ -1,5 +1,7 @@
 import { GameState, HeroTask, Hero, ActiveMission } from '../types';
 import { MISSIONS, MissionTemplate } from '../constants/missions';
+import { getWeeklyBoss, WeeklyBossTemplate } from '../constants/weeklyBosses';
+import { getWeeklySeed } from '../constants/weeklyQuests';
 import { v4 as uuidv4 } from 'uuid';
 import { computeBattleOutcome } from '../utils/battleSim';
 import { BattleEngine } from '../utils/battleEngine';
@@ -133,6 +135,125 @@ export function handleDismissMissionResult(state: GameState, missionId: string):
   return {
     ...state,
     recentMissionResults: (state.recentMissionResults || []).filter((r) => r.missionId !== missionId),
+  };
+}
+
+/**
+ * Converte um WeeklyBossTemplate para MissionTemplate (formato esperado por
+ * computeBattleOutcome e BattleEngine.createEnemies).
+ */
+function bossTemplateToMissionTemplate(boss: WeeklyBossTemplate): MissionTemplate {
+  return {
+    id: boss.id,
+    name: boss.bossName,
+    minHeroes: boss.minHeroes,
+    durationMs: boss.durationMs,
+    rewardMin: boss.rewardMin,
+    rewardMax: boss.rewardMax,
+    statWeights: boss.statWeights,
+    difficulty: boss.difficulty,
+    enemies: boss.enemies,
+  };
+}
+
+export function handleStartWeeklyBoss(
+  state: GameState,
+  heroIds: string[],
+  heroPositions?: Record<string, number>,
+  now?: number
+): GameState {
+  // Gate: boss já derrotado esta semana
+  if (state.weeklyState?.bossDefeated) return state;
+
+  const seed = state.weeklyState?.seed ?? getWeeklySeed();
+  const boss = getWeeklyBoss(seed);
+
+  if ((heroIds?.length ?? 0) < boss.minHeroes) return state;
+
+  const heroesMap = new Map(state.heroes.map((h) => [h.id, h]));
+  const timestamp = now ?? Date.now();
+  const heroesForMission: Hero[] = [];
+
+  for (const hid of heroIds) {
+    const h = heroesMap.get(hid);
+    if (!h || !isHeroAvailableForMission(h)) return state;
+    heroesForMission.push(h);
+  }
+
+  const missionId = uuidv4();
+  const countHealers = heroesForMission.filter((h) => h.classId === 'HEALER').length;
+  const countRogues = heroesForMission.filter((h) => h.classId === 'ROGUE').length;
+  const healerBuffMultiplier = 1 + Math.min(HEALER_BUFF_CAP, countHealers * HEALER_BUFF_PER_HERO);
+  const rogueRngBonus = Math.min(ROGUE_RNG_BONUS_CAP, countRogues * ROGUE_RNG_BONUS_PER_HERO);
+
+  const teamClassIds = heroesForMission.map(h => h.classId).filter(Boolean) as ClassId[];
+  const activeSynergyNames = getActiveSynergies(teamClassIds).map(s => s.name);
+
+  const tpl = bossTemplateToMissionTemplate(boss);
+
+  // Apply equipment stat bonuses to hero copies for battle
+  const heroesWithEquipment = heroesForMission.map(h => {
+    const equipped = h.equippedItems || [];
+    if (equipped.length === 0) return h;
+    const copy = { ...h };
+    for (const eqId of equipped) {
+      const item = (state.inventory || []).find(e => e.id === eqId);
+      if (!item) continue;
+      const bonus = item.statBonus;
+      if (bonus.hp) copy.hpMax += bonus.hp;
+      if (bonus.atk) copy.atk += bonus.atk;
+      if (bonus.mp) copy.mp += bonus.mp;
+      if (bonus.defense) copy.defense = (copy.defense ?? 0) + bonus.defense;
+      if (bonus.crit) copy.crit = (copy.crit ?? 0) + bonus.crit;
+      if (bonus.agility) copy.agility = (copy.agility ?? 0) + bonus.agility;
+    }
+    if (copy.hpMax > h.hpMax) {
+      copy.hpCurrent = Math.min(copy.hpMax, copy.hpCurrent + (copy.hpMax - h.hpMax));
+    }
+    return copy;
+  });
+
+  const newMission: ActiveMission = {
+    id: missionId,
+    templateId: boss.id,
+    heroIds,
+    heroPositions,
+    startedAt: timestamp,
+    healerBuffMultiplier,
+    rogueRngBonus,
+    activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,
+    looping: false,
+    isWeeklyBoss: true,
+  };
+
+  try {
+    const outcome = computeBattleOutcome(tpl, heroesWithEquipment, {
+      healerBuffMultiplier,
+      rogueRngBonus,
+      heroPositions,
+    });
+    const missionEnemies = BattleEngine.createEnemies(tpl);
+    const scheduled = (outcome.actions || []).map((a, i) => ({
+      atMsFromStart: MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS,
+      action: a,
+      applied: false,
+    }));
+    newMission.scheduledActions = scheduled;
+    newMission.enemiesState = missionEnemies;
+    newMission.precomputedOutcome = outcome;
+  } catch (err) {
+    console.error('Erro ao processar batalha do boss semanal:', err);
+    newMission.scheduledActions = [];
+  }
+
+  const newHeroesState = state.heroes.map((h) =>
+    heroIds.includes(h.id) ? { ...h, currentTask: HeroTask.MISSION } : h
+  );
+
+  return {
+    ...state,
+    heroes: newHeroesState,
+    activeMissions: [...(state.activeMissions || []), newMission],
   };
 }
 

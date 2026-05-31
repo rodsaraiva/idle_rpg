@@ -24,10 +24,27 @@ import { BattleEngine } from '../utils/battleEngine';
 import { getActiveSynergies } from '../constants/synergies';
 import { v4 as uuidv4 } from 'uuid';
 import { checkAchievements } from './achievementHandler';
+import { createGuaranteedEquipment } from './equipmentHandler';
 import { refreshDailyQuests, updateDailyProgress } from './dailyQuestHandler';
-import { refreshWeeklyState, updateWeeklyProgress } from './weeklyHandler';
+import { refreshWeeklyState, updateWeeklyProgress, markWeeklyBossDefeated } from './weeklyHandler';
+import { getWeeklyBoss, WeeklyBossTemplate, WEEKLY_BOSS_POOL } from '../constants/weeklyBosses';
+import { MissionTemplate } from '../constants/missions';
 import { getUnlockedSkills } from '../constants/skills';
 import { emitSkillUnlocked, emitRareMaterialDrop } from '../services/milestones';
+
+function bossToMissionTemplate(boss: WeeklyBossTemplate): MissionTemplate {
+  return {
+    id: boss.id,
+    name: boss.bossName,
+    minHeroes: boss.minHeroes,
+    durationMs: boss.durationMs,
+    rewardMin: boss.rewardMin,
+    rewardMax: boss.rewardMax,
+    statWeights: boss.statWeights,
+    difficulty: boss.difficulty,
+    enemies: boss.enemies,
+  };
+}
 
 /** Processa o treinamento de todos os heróis, returns updated heroes and total points trained */
 function processTraining(heroes: Hero[], tickMs: number, inflation: number): { heroes: Hero[]; totalPointsTrained: number } {
@@ -122,6 +139,8 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
   goldGained: number,
   newResults: MissionResult[],
   materialDrops: Record<string, number>,
+  weeklyBossDefeated: boolean,
+  weeklyBossTemplateId: string | undefined,
 } {
   const active = (state.activeMissions || []).map((m) => ({ ...m }));
   const completed: { mission: ActiveMission; reward: number; outcome: MissionOutcome }[] = [];
@@ -129,7 +148,11 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
 
   for (let mi = 0; mi < active.length; mi++) {
     const m = active[mi];
-    const tpl = MISSIONS.find((t) => t.id === m.templateId);
+    let tpl: MissionTemplate | undefined = MISSIONS.find((t) => t.id === m.templateId);
+    if (!tpl && m.isWeeklyBoss) {
+      const bossFromPool = WEEKLY_BOSS_POOL.find(b => b.id === m.templateId);
+      if (bossFromPool) tpl = bossToMissionTemplate(bossFromPool);
+    }
     if (!tpl) continue;
 
     const startedAt = m.startedAt ?? 0;
@@ -226,6 +249,8 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
   const perHeroGold = { ...(state.perHeroGold ?? {}) };
   let goldGained = 0;
   const materialDrops: Record<string, number> = {};
+  let weeklyBossCompletedThisTick = false;
+  let weeklyBossTemplateId: string | undefined;
 
   completed.forEach((c) => {
     const n = c.mission.heroIds.length || 1;
@@ -317,6 +342,12 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
         }
       }
     } else {
+      // Boss semanal vitorioso: sinalizar para aplicar bossDefeated fora do loop
+      if (c.mission.isWeeklyBoss && c.outcome.success) {
+        weeklyBossCompletedThisTick = true;
+        weeklyBossTemplateId = c.mission.templateId;
+      }
+
       // Normal completion: release heroes to IDLE
       goldGained += applyGoldBonus(c.reward, state);
       c.mission.heroIds.forEach((hid: string) => {
@@ -329,7 +360,11 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
   });
 
   const newResults: MissionResult[] = completed.map(c => {
-    const tpl = MISSIONS.find(m => m.id === c.mission.templateId);
+    let tpl: MissionTemplate | undefined = MISSIONS.find(m => m.id === c.mission.templateId);
+    if (!tpl && c.mission.isWeeklyBoss) {
+      const bossFromPool = WEEKLY_BOSS_POOL.find(b => b.id === c.mission.templateId);
+      if (bossFromPool) tpl = bossToMissionTemplate(bossFromPool);
+    }
     const totalEnemies = tpl?.enemies?.reduce((sum, e) => sum + (e.count ?? 1), 0) ?? 0;
     return {
       ...c.outcome,
@@ -346,6 +381,8 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
     goldGained,
     newResults,
     materialDrops,
+    weeklyBossDefeated: weeklyBossCompletedThisTick,
+    weeklyBossTemplateId,
   };
 }
 
@@ -383,6 +420,8 @@ export function handleTick(state: GameState, now: number): GameState {
     goldGained,
     newResults,
     materialDrops,
+    weeklyBossDefeated,
+    weeklyBossTemplateId,
   } = processMissions(currentState, heroesAfterRegen, now);
 
   const existingResults = currentState.recentMissionResults ? [...currentState.recentMissionResults] : [];
@@ -416,6 +455,20 @@ export function handleTick(state: GameState, now: number): GameState {
   }
   if (materialDrops['starstone'] && materialDrops['starstone'] > 0) {
     emitRareMaterialDrop('Pedra Estelar');
+  }
+
+  // Boss semanal derrotado neste tick: marcar, incrementar tracker e conceder equipamento garantido
+  if (weeklyBossDefeated && weeklyBossTemplateId) {
+    stateAfterTick = markWeeklyBossDefeated(stateAfterTick);
+    stateAfterTick = updateWeeklyProgress(stateAfterTick, 'weeklyBossKills', 1);
+    const defeatedBoss = WEEKLY_BOSS_POOL.find(b => b.id === weeklyBossTemplateId);
+    if (defeatedBoss?.guaranteedRewardTier != null) {
+      const rewardItem = createGuaranteedEquipment(defeatedBoss.guaranteedRewardTier);
+      stateAfterTick = {
+        ...stateAfterTick,
+        inventory: [...(stateAfterTick.inventory ?? []), rewardItem],
+      };
+    }
   }
 
   // 4. Update daily quest progress trackers

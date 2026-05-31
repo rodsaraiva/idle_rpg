@@ -3,7 +3,8 @@ import { handleTick } from './tickHandler';
 import {
   handleStartMission,
   handleCompleteMission,
-  handleDismissMissionResult
+  handleDismissMissionResult,
+  handleStartWeeklyBoss,
 } from './missionHandler';
 import {
   handleRecruitHero,
@@ -98,6 +99,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'CLAIM_WEEKLY_QUEST':
       return claimWeeklyQuest(state, action.questId);
+
+    case 'START_WEEKLY_BOSS':
+      return handleStartWeeklyBoss(state, action.heroIds, action.heroPositions, action.now);
 
     case 'LOAD_STATE':
       return { ...action.state };

@@ -125,6 +125,7 @@ export type GameAction =
   | { type: 'CLAIM_DAILY_QUEST'; questId: string }
   | { type: 'FUSE_HEROES'; heroIds: [string, string, string] }
   | { type: 'CLAIM_WEEKLY_QUEST'; questId: string }
+  | { type: 'START_WEEKLY_BOSS'; heroIds: string[]; heroPositions?: Record<string, number>; now: number }
   | { type: 'LOAD_STATE'; state: GameState };
 
 export type MissionActorType = 'hero' | 'enemy';
@@ -177,6 +178,8 @@ export interface ActiveMission {
   precomputedOutcome?: MissionOutcome;
   // whether this mission auto-repeats on completion
   looping?: boolean;
+  // whether this is the weekly boss encounter (no migration needed — transient runtime state)
+  isWeeklyBoss?: boolean;
 }
 
 export interface MissionOutcome {
