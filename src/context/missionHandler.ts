@@ -12,7 +12,7 @@ import {
   MISSION_START_DELAY_MS,
   MISSION_ACTION_INTERVAL_MS,
 } from '../constants/game';
-import { isHeroAvailableForMission } from '../utils/heroUtils';
+import { isHeroAvailableForMission, getEffectiveStats, applyGoldBonus } from '../utils/heroUtils';
 import { getActiveSynergies } from '../constants/synergies';
 import { ClassId } from '../types';
 
@@ -85,27 +85,10 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     looping: looping ?? false,
   };
 
-  // Apply equipment stat bonuses to hero copies for battle
+  // Apply all stat bonuses (equipment + permanentBonuses + pantheonBonuses) via central helper
   const heroesWithEquipment = heroesForMission.map(h => {
-    const equipped = h.equippedItems || [];
-    if (equipped.length === 0) return h;
-    const copy = { ...h };
-    for (const eqId of equipped) {
-      const item = (state.inventory || []).find(e => e.id === eqId);
-      if (!item) continue;
-      const bonus = item.statBonus;
-      if (bonus.hp) copy.hpMax += bonus.hp;
-      if (bonus.atk) copy.atk += bonus.atk;
-      if (bonus.mp) copy.mp += bonus.mp;
-      if (bonus.defense) copy.defense = (copy.defense ?? 0) + bonus.defense;
-      if (bonus.crit) copy.crit = (copy.crit ?? 0) + bonus.crit;
-      if (bonus.agility) copy.agility = (copy.agility ?? 0) + bonus.agility;
-    }
-    // Also boost current HP proportionally
-    if (copy.hpMax > h.hpMax) {
-      copy.hpCurrent = Math.min(copy.hpMax, copy.hpCurrent + (copy.hpMax - h.hpMax));
-    }
-    return copy;
+    const eff = getEffectiveStats(h, state);
+    return { ...h, hpMax: eff.hpMax, hpCurrent: eff.hpCurrent, atk: eff.atk, mp: eff.mp, defense: eff.defense, crit: eff.crit, agility: eff.agility };
   });
 
   try {
@@ -166,6 +149,6 @@ export function handleCompleteMission(state: GameState, missionId: string, rewar
     ...state,
     heroes: newHeroesState,
     activeMissions: newMissions,
-    gold: state.gold + reward,
+    gold: state.gold + applyGoldBonus(reward, state),
   };
 }
