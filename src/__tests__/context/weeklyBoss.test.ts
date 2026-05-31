@@ -263,8 +263,11 @@ describe('gate uma-vez-por-semana via handleStartWeeklyBoss', () => {
 // ── F4-5: recompensa de equipamento garantida ─────────────────────────────────
 
 describe('tick — recompensa de equipamento do boss', () => {
-  function makeFinishedBossMission(state: GameState, success: boolean): GameState {
-    const boss = getWeeklyBoss(state.weeklyState!.seed);
+  function makeFinishedBossMission(
+    state: GameState,
+    success: boolean,
+    boss: typeof WEEKLY_BOSS_POOL[number] = getWeeklyBoss(state.weeklyState!.seed)
+  ): GameState {
     const heroIds = state.heroes.slice(0, boss.minHeroes).map(h => h.id);
     const pastTime = Date.now() - 10_000;
 
@@ -298,32 +301,26 @@ describe('tick — recompensa de equipamento do boss', () => {
     };
   }
 
-  test('vitória com guaranteedRewardTier: item adicionado ao inventário', () => {
-    // Usar boss wb_dragon (seed=2) que tem guaranteedRewardTier=3
-    // para testar recompensa garantida de forma determinística
-    const bossWithReward = WEEKLY_BOSS_POOL.find(b => b.guaranteedRewardTier != null);
-    if (!bossWithReward) return; // Proteção: se pool mudar
+  test('vitória com guaranteedRewardTier: item do tier garantido entra no inventário', () => {
+    const dragon = WEEKLY_BOSS_POOL.find(b => b.id === 'wb_dragon')!;
+    expect(dragon.guaranteedRewardTier).toBe(3);
 
-    // Não testar qual boss específico, apenas que algum boss com
-    // guaranteedRewardTier concede item. Usar estado com seed da semana atual
-    // e verificar que, se o boss da semana tem guaranteedRewardTier, o inventário cresce.
-    let state = makeState(5);
-    const weekBoss = getWeeklyBoss(state.weeklyState!.seed);
+    const state = makeState(5);
+    const inventoryBefore = (state.inventory ?? []).length;
+    const next = handleTick(makeFinishedBossMission(state, true, dragon), Date.now());
 
-    if (!weekBoss.guaranteedRewardTier) {
-      // Boss da semana sem garantia: apenas verifica que inventário não cresce inesperadamente
-      state = makeFinishedBossMission(state, true);
-      const now = Date.now();
-      const next = handleTick(state, now);
-      expect(next.inventory?.length ?? 0).toBe(state.inventory?.length ?? 0);
-    } else {
-      // Boss da semana com garantia: verifica que inventário cresce em 1
-      const inventoryBefore = (state.inventory ?? []).length;
-      state = makeFinishedBossMission(state, true);
-      const now = Date.now();
-      const next = handleTick(state, now);
-      expect((next.inventory ?? []).length).toBe(inventoryBefore + 1);
-      expect((next.inventory ?? []).at(-1)?.tier).toBe(weekBoss.guaranteedRewardTier);
-    }
+    expect((next.inventory ?? []).length).toBe(inventoryBefore + 1);
+    expect((next.inventory ?? []).at(-1)?.tier).toBe(3);
+  });
+
+  test('boss sem guaranteedRewardTier não concede item', () => {
+    const lich = WEEKLY_BOSS_POOL.find(b => b.id === 'wb_lich')!;
+    expect(lich.guaranteedRewardTier).toBeUndefined();
+
+    const state = makeState(5);
+    const inventoryBefore = (state.inventory ?? []).length;
+    const next = handleTick(makeFinishedBossMission(state, true, lich), Date.now());
+
+    expect((next.inventory ?? []).length).toBe(inventoryBefore);
   });
 });

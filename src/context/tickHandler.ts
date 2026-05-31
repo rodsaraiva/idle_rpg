@@ -360,7 +360,11 @@ function processMissions(state: GameState, heroes: Hero[], now: number): {
   });
 
   const newResults: MissionResult[] = completed.map(c => {
-    const tpl = MISSIONS.find(m => m.id === c.mission.templateId);
+    let tpl: MissionTemplate | undefined = MISSIONS.find(m => m.id === c.mission.templateId);
+    if (!tpl && c.mission.isWeeklyBoss) {
+      const bossFromPool = WEEKLY_BOSS_POOL.find(b => b.id === c.mission.templateId);
+      if (bossFromPool) tpl = bossToMissionTemplate(bossFromPool);
+    }
     const totalEnemies = tpl?.enemies?.reduce((sum, e) => sum + (e.count ?? 1), 0) ?? 0;
     return {
       ...c.outcome,
