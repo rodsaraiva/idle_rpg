@@ -2,6 +2,7 @@ import { Hero, MissionAction } from '../types';
 import { BattleState, BattleEnemy, Buff } from './battleEngine';
 import { getUnlockedSkills, SkillDef } from '../constants/skills';
 import { GameMath } from './gameMath';
+import { onEnemyDamagedSkills } from './enemySkillEffects';
 
 /** Check if a skill is off cooldown and available */
 function isSkillReady(state: BattleState, heroId: string, skill: SkillDef): boolean {
@@ -62,6 +63,27 @@ function markDefeat(state: BattleState, hero: Hero, target: BattleEnemy): void {
     actorName: hero.name, actionType: 'defeat', targetId: target.id,
     text: `${target.id} foi derrotado!`,
   });
+}
+
+/**
+ * Aplica um hit de AoE: reduz escudo, subtrai dano, dispara reação do inimigo.
+ * Espelha o padrão do ataque normal (battleEngine.ts:598-604).
+ * Recebe onDamaged como parâmetro para evitar dependência circular com enemySkillEffects.ts.
+ */
+function applyAoEHit(
+  state: BattleState,
+  hero: Hero,
+  enemy: BattleEnemy,
+  rawDmg: number,
+  onDamaged: (enemy: BattleEnemy, state: BattleState) => void,
+): void {
+  const shield = getShieldReduction(state, enemy.id);
+  const actualDmg = shield > 0
+    ? Math.max(1, Math.floor(rawDmg * (1 - shield)))
+    : rawDmg;
+  enemy.hp = Math.max(0, enemy.hp - actualDmg);
+  onDamaged(enemy, state);
+  if (enemy.hp <= 0) markDefeat(state, hero, enemy);
 }
 
 // ─── Skill implementations ───
@@ -194,7 +216,11 @@ function tryTiroCerteiro(hero: Hero, target: BattleEnemy, state: BattleState, rn
   return true;
 }
 
-function tryChuvaFlechas(hero: Hero, state: BattleState): boolean {
+function tryChuvaFlechas(
+  hero: Hero,
+  state: BattleState,
+  onDamaged: (enemy: BattleEnemy, state: BattleState) => void,
+): boolean {
   const skill = { id: 'ARCHER_CHUVA_DE_FLECHAS', cooldownRounds: 5 } as SkillDef;
   if (!isSkillReady(state, hero.id, skill)) return false;
 
@@ -208,12 +234,8 @@ function tryChuvaFlechas(hero: Hero, state: BattleState): boolean {
     const ePos = state.enemyPositions[enemy.id] ?? 0;
     if (GameMath.getHexDistance(centerPos, ePos) <= 2) {
       const dmg = Math.max(1, Math.floor(hero.atk * 0.5));
-      enemy.hp = Math.max(0, enemy.hp - dmg);
+      applyAoEHit(state, hero, enemy, dmg, onDamaged);
       hitCount++;
-      if (enemy.hp <= 0) {
-        enemy.alive = false;
-        delete state.enemyPositions[enemy.id];
-      }
     }
   }
   markSkillUsed(state, hero.id, skill);
@@ -232,12 +254,17 @@ function tryTiroPerfurante(hero: Hero, target: BattleEnemy, state: BattleState):
   return true;
 }
 
-function tryBolaDeFogo(hero: Hero, target: BattleEnemy, state: BattleState): boolean {
+function tryBolaDeFogo(
+  hero: Hero,
+  target: BattleEnemy,
+  state: BattleState,
+  onDamaged: (enemy: BattleEnemy, state: BattleState) => void,
+): boolean {
   const skill = { id: 'MAGE_BOLA_DE_FOGO', cooldownRounds: 3 } as SkillDef;
   if (!isSkillReady(state, hero.id, skill)) return false;
 
   const mainDmg = Math.max(1, Math.floor(hero.atk * 0.8));
-  target.hp = Math.max(0, target.hp - mainDmg);
+  applyAoEHit(state, hero, target, mainDmg, onDamaged);
 
   const targetPos = state.enemyPositions[target.id] ?? 0;
   let splashCount = 0;
@@ -245,16 +272,11 @@ function tryBolaDeFogo(hero: Hero, target: BattleEnemy, state: BattleState): boo
     const ePos = state.enemyPositions[enemy.id] ?? 0;
     if (GameMath.getHexDistance(targetPos, ePos) <= 1) {
       const splashDmg = Math.max(1, Math.floor(hero.atk * 0.4));
-      enemy.hp = Math.max(0, enemy.hp - splashDmg);
+      applyAoEHit(state, hero, enemy, splashDmg, onDamaged);
       splashCount++;
-      if (enemy.hp <= 0) {
-        enemy.alive = false;
-        delete state.enemyPositions[enemy.id];
-      }
     }
   }
 
-  if (target.hp <= 0) markDefeat(state, hero, target);
   markSkillUsed(state, hero.id, skill);
   logSkill(state, hero, 'Bola de Fogo', `${mainDmg} no alvo + ${splashCount} adjacentes`);
   return true;
@@ -269,7 +291,11 @@ function tryEscudoArcano(hero: Hero, state: BattleState): void {
   logSkill(state, hero, 'Escudo Arcano', '-50% dano no próximo hit');
 }
 
-function tryMeteoro(hero: Hero, state: BattleState): boolean {
+function tryMeteoro(
+  hero: Hero,
+  state: BattleState,
+  onDamaged: (enemy: BattleEnemy, state: BattleState) => void,
+): boolean {
   const aliveEnemies = state.enemies.filter(e => e.alive);
   if (aliveEnemies.length < 3) return false;
 
@@ -284,12 +310,8 @@ function tryMeteoro(hero: Hero, state: BattleState): boolean {
     const ePos = state.enemyPositions[enemy.id] ?? 0;
     if (GameMath.getHexDistance(centerPos, ePos) <= 3) {
       const dmg = Math.max(1, Math.floor(hero.atk * 1.0));
-      enemy.hp = Math.max(0, enemy.hp - dmg);
+      applyAoEHit(state, hero, enemy, dmg, onDamaged);
       hitCount++;
-      if (enemy.hp <= 0) {
-        enemy.alive = false;
-        delete state.enemyPositions[enemy.id];
-      }
     }
   }
   markSkillUsed(state, hero.id, skill);
@@ -314,6 +336,9 @@ function tryCuraMaior(hero: Hero, state: BattleState): boolean {
     amount: actual, text: `✦ ${hero.name} — Cura Maior: ${actual} HP em ${injured.name}`,
   });
   state.log.push(`✦ ${hero.name} — Cura Maior: ${actual} HP em ${injured.name}`);
+  if (actual > 0) {
+    state.handlers.onHealApplied(state, hero, injured, actual);
+  }
   return true;
 }
 
@@ -329,9 +354,14 @@ function tryPurificacao(hero: Hero, state: BattleState): boolean {
   );
 
   const healAmount = Math.floor(allyWithDebuff.hpMax * 0.2);
+  const prevHp = allyWithDebuff.hpCurrent;
   allyWithDebuff.hpCurrent = Math.min(allyWithDebuff.hpMax, allyWithDebuff.hpCurrent + healAmount);
+  const actualHeal = allyWithDebuff.hpCurrent - prevHp;
 
-  logSkill(state, hero, 'Purificação', `limpou debuffs de ${allyWithDebuff.name} e curou ${healAmount} HP`);
+  logSkill(state, hero, 'Purificação', `limpou debuffs de ${allyWithDebuff.name} e curou ${actualHeal} HP`);
+  if (actualHeal > 0) {
+    state.handlers.onHealApplied(state, hero, allyWithDebuff, actualHeal);
+  }
   return true;
 }
 
@@ -398,14 +428,14 @@ export function executePreAttackSkills(
   // Archer skills
   if (hero.classId === 'ARCHER') {
     if (skillIds.has('ARCHER_TIRO_CERTEIRO') && tryTiroCerteiro(hero, target, state, rng)) return true;
-    if (skillIds.has('ARCHER_CHUVA_DE_FLECHAS') && tryChuvaFlechas(hero, state)) return true;
+    if (skillIds.has('ARCHER_CHUVA_DE_FLECHAS') && tryChuvaFlechas(hero, state, onEnemyDamagedSkills)) return true;
     if (skillIds.has('ARCHER_TIRO_PERFURANTE') && tryTiroPerfurante(hero, target, state)) return true;
   }
 
   // Mage skills
   if (hero.classId === 'MAGE') {
-    if (skillIds.has('MAGE_METEORO') && tryMeteoro(hero, state)) return true;
-    if (skillIds.has('MAGE_BOLA_DE_FOGO') && tryBolaDeFogo(hero, target, state)) return true;
+    if (skillIds.has('MAGE_METEORO') && tryMeteoro(hero, state, onEnemyDamagedSkills)) return true;
+    if (skillIds.has('MAGE_BOLA_DE_FOGO') && tryBolaDeFogo(hero, target, state, onEnemyDamagedSkills)) return true;
   }
 
   return false;

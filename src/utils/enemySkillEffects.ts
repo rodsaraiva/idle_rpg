@@ -2,6 +2,7 @@ import { Hero } from '../types';
 import { BattleState, BattleEnemy, Buff } from './battleEngine';
 import { EnemySkillDef } from '../constants/enemySkills';
 import { GameMath } from './gameMath';
+import { getShieldReduction, onHeroDamagedSkills } from './skillEffects';
 
 // ─── Internal helpers ───
 
@@ -134,8 +135,14 @@ function tryAoeAttack(enemy: BattleEnemy, state: BattleState): boolean {
   const dmg = Math.max(1, Math.floor(enemy.atk * 0.5));
 
   for (const target of targets) {
-    target.hpCurrent = Math.max(0, target.hpCurrent - dmg);
-    logEnemySkill(state, enemy, 'Ataque em Área', `${dmg} de dano em ${target.id}`);
+    const shield = getShieldReduction(state, target.id);
+    const actualDmg = shield > 0
+      ? Math.max(1, Math.floor(dmg * (1 - shield)))
+      : dmg;
+    target.hpCurrent = Math.max(0, target.hpCurrent - actualDmg);
+    logEnemySkill(state, enemy, 'Ataque em Área', `${actualDmg} de dano em ${target.id}${shield > 0 ? ` (Escudo: -${Math.round(shield * 100)}%)` : ''}`);
+    state.handlers.onHeroDamaged(state, target, target.hpCurrent);
+    onHeroDamagedSkills(target, state);
     if (target.hpCurrent <= 0) {
       delete state.heroPositions[target.id];
     }
