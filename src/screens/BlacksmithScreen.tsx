@@ -15,6 +15,7 @@ import { useGame } from '../hooks/useGame';
 import { EQUIPMENT_TIERS, MAX_EQUIPPED_ITEMS } from '../constants/equipment';
 import { CLASS_DEFS } from '../constants/classes';
 import { Equipment } from '../types';
+import { MATERIALS, FORGE_RECIPES, MaterialId, ForgeRecipe, EquipmentType } from '../constants/materials';
 
 const STAT_LABELS: Record<string, string> = {
   hp: 'HP',
@@ -30,6 +31,21 @@ const TYPE_ICONS: Record<string, string> = {
   armor: '\uD83D\uDEE1\uFE0F',
   accessory: '\uD83D\uDC8D',
 };
+
+function getMissingMaterials(
+  playerMaterials: Partial<Record<MaterialId, number>>,
+  recipe: ForgeRecipe
+): Array<{ name: string; icon: string; have: number; need: number }> {
+  return MATERIALS
+    .filter(m => (recipe.materials[m.id] ?? 0) > 0)
+    .map(m => ({
+      name: m.name,
+      icon: m.icon,
+      have: playerMaterials[m.id] ?? 0,
+      need: recipe.materials[m.id] ?? 0,
+    }))
+    .filter(r => r.have < r.need);
+}
 
 function formatStatBonus(statBonus: Equipment['statBonus']): string {
   return Object.entries(statBonus)
@@ -47,6 +63,8 @@ export function BlacksmithScreen() {
   const { state, dispatch } = useGame();
   const [now, setNow] = useState(Date.now());
   const [equipModalItem, setEquipModalItem] = useState<Equipment | null>(null);
+  const [selectedTier, setSelectedTier] = useState<number>(1);
+  const [selectedEquipmentType, setSelectedEquipmentType] = useState<EquipmentType>('weapon');
 
   // Update timer every second for forging progress
   useEffect(() => {
@@ -88,7 +106,10 @@ export function BlacksmithScreen() {
       <TouchableOpacity
         key={tierDef.tier}
         style={[styles.tierCard, { borderColor: tierDef.color }]}
-        onPress={() => handleForge(tierDef.tier)}
+        onPress={() => {
+            setSelectedTier(tierDef.tier);
+            handleForge(tierDef.tier, selectedEquipmentType);
+          }}
         disabled={!canAfford}
         activeOpacity={0.7}
       >
@@ -191,6 +212,20 @@ export function BlacksmithScreen() {
 
         {/* Forge Tiers */}
         <Text style={styles.sectionTitle}>Forjar Equipamento</Text>
+
+        {/* Seletor de tipo de equipamento */}
+        <View style={styles.typeRow}>
+          {(['weapon', 'armor', 'accessory'] as const).map(t => (
+            <TouchableOpacity
+              key={t}
+              style={[styles.typeBtn, selectedEquipmentType === t && styles.typeBtnActive]}
+              onPress={() => setSelectedEquipmentType(t)}
+            >
+              <Text style={styles.typeBtnText}>{TYPE_ICONS[t]} {t}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         <View style={styles.tiersRow}>
           {EQUIPMENT_TIERS.map(renderForgeTier)}
         </View>
@@ -222,6 +257,36 @@ export function BlacksmithScreen() {
         ) : (
           completedItems.map(renderInventoryItem)
         )}
+
+        {/* Materiais */}
+        <Text style={styles.sectionTitle}>Materiais</Text>
+        {(() => {
+          const playerMaterials = (state.materials ?? {}) as Partial<Record<MaterialId, number>>;
+          const recipe = FORGE_RECIPES[selectedTier]?.[selectedEquipmentType];
+          return (
+            <View style={styles.materialsGrid}>
+              {MATERIALS.map(m => {
+                const owned = playerMaterials[m.id] ?? 0;
+                const needed = recipe?.materials[m.id] ?? 0;
+                const isMissing = needed > 0 && owned < needed;
+                return (
+                  <View
+                    key={m.id}
+                    style={[styles.materialCard, isMissing && styles.materialCardMissing]}
+                  >
+                    <Text style={styles.materialIcon}>{m.icon}</Text>
+                    <Text style={[styles.materialName, isMissing && styles.materialNameMissing]}>
+                      {m.name}
+                    </Text>
+                    <Text style={[styles.materialCount, isMissing && styles.materialCountMissing]}>
+                      {owned}{needed > 0 ? `/${needed}` : ''}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          );
+        })()}
       </ScrollView>
 
       {/* Hero selection modal for equipping */}
@@ -545,5 +610,68 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     fontWeight: '600',
     fontSize: 14,
+  },
+  // Equipment type selector
+  typeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  typeBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: theme.borderRadius.sm,
+    backgroundColor: theme.colors.surfaceLight,
+    alignItems: 'center',
+  },
+  typeBtnActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  typeBtnText: {
+    color: theme.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  // Materials grid
+  materialsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  materialCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.md,
+    padding: 10,
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceLight,
+  },
+  materialCardMissing: {
+    borderColor: '#ef4444',
+    backgroundColor: 'rgba(239,68,68,0.08)',
+  },
+  materialIcon: {
+    fontSize: 22,
+  },
+  materialName: {
+    fontSize: 11,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+  },
+  materialNameMissing: {
+    color: '#ef4444',
+    fontWeight: '700',
+  },
+  materialCount: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
+  },
+  materialCountMissing: {
+    color: '#ef4444',
   },
 });
