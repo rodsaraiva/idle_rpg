@@ -32,21 +32,6 @@ const TYPE_ICONS: Record<string, string> = {
   accessory: '\uD83D\uDC8D',
 };
 
-function getMissingMaterials(
-  playerMaterials: Partial<Record<MaterialId, number>>,
-  recipe: ForgeRecipe
-): Array<{ name: string; icon: string; have: number; need: number }> {
-  return MATERIALS
-    .filter(m => (recipe.materials[m.id] ?? 0) > 0)
-    .map(m => ({
-      name: m.name,
-      icon: m.icon,
-      have: playerMaterials[m.id] ?? 0,
-      need: recipe.materials[m.id] ?? 0,
-    }))
-    .filter(r => r.have < r.need);
-}
-
 function formatStatBonus(statBonus: Equipment['statBonus']): string {
   return Object.entries(statBonus)
     .filter(([, v]) => v && v > 0)
@@ -651,7 +636,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.surfaceLight,
   },
   materialCardMissing: {
-    borderColor: '#ef4444',
+    borderColor: theme.colors.danger,
     backgroundColor: 'rgba(239,68,68,0.08)',
   },
   materialIcon: {
@@ -663,7 +648,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   materialNameMissing: {
-    color: '#ef4444',
+    color: theme.colors.danger,
     fontWeight: '700',
   },
   materialCount: {
@@ -672,6 +657,6 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
   materialCountMissing: {
-    color: '#ef4444',
+    color: theme.colors.danger,
   },
 });
