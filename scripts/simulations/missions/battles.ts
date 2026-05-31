@@ -70,6 +70,8 @@ function runScenarios() {
   const startTime = Date.now();
   const args = process.argv.slice(2);
   const targetMission = args.find(a => a.startsWith('--mission='))?.split('=')[1];
+  const seedArg = args.find(a => a.startsWith('--seed='))?.split('=')[1];
+  const seed = seedArg != null ? parseInt(seedArg, 10) : undefined;
 
   console.log(`======================================================`);
   console.log(`  FRAMEWORK DE SIMULAÇÃO DE BALANCEAMENTO (v2)`);
@@ -77,6 +79,9 @@ function runScenarios() {
   console.log(`  Data: ${new Date().toLocaleString()}`);
   if (targetMission) {
     console.log(`  Foco: Apenas Missão ${targetMission}`);
+  }
+  if (seed != null) {
+    console.log(`  Seed: ${seed} (modo reprodutível)`);
   }
   console.log(`======================================================\n`);
 
@@ -119,7 +124,8 @@ function runScenarios() {
             soloResults[key] = runMissionSimulation({
               heroes: [hero],
               missionId: mission.id,
-              iterations: ITERATIONS
+              iterations: ITERATIONS,
+              seed,
             });
           }
         }
@@ -153,7 +159,8 @@ function runScenarios() {
             duoResults[name] = runMissionSimulation({
               heroes,
               missionId: mission.id,
-              iterations: ITERATIONS
+              iterations: ITERATIONS,
+              seed,
             });
           }
         }
@@ -178,7 +185,8 @@ function runScenarios() {
           trioResults[name] = runMissionSimulation({
             heroes,
             missionId: mission.id,
-            iterations: ITERATIONS
+            iterations: ITERATIONS,
+            seed,
           });
         }
         log(`[Trios]`);

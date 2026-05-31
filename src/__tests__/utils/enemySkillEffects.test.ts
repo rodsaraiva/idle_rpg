@@ -51,6 +51,7 @@ function makeState(heroes: Hero[], enemies: BattleEnemy[], round = 1): BattleSta
       modifyTargetScore: (_s: any, _e: any, _c: any, score: number) => score,
     },
     skillCooldowns: {}, skillOnceUsed: {},
+    rng: Math.random,
   };
 }
 

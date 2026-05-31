@@ -52,5 +52,16 @@ describe('battleSim computeBattleOutcome', () => {
     expect(outcome.success).toBe(false);
     expect(outcome.casualties.find((c) => c.heroId === 'h2')?.hpAfter ?? 0).toBeLessThanOrEqual(hero.hpCurrent);
   });
+
+  test('mesmo seed produz resultado byte-idêntico (determinismo ponta-a-ponta)', () => {
+    const template = MISSIONS.find((m) => m.id === 'mission_1')!;
+    const hero = {
+      id: 'h1', name: 'Det', hpMax: 20, hpCurrent: 20, atk: 8, mp: 0,
+      defense: 3, crit: 5, agility: 5, currentTask: 'IDLE' as any, classId: 'WARRIOR' as any,
+    };
+    const a = computeBattleOutcome(template, [hero], { seed: 42 });
+    const b = computeBattleOutcome(template, [hero], { seed: 42 });
+    expect(a).toEqual(b);
+  });
 });
 
