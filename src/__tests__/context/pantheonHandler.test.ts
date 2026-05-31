@@ -1,5 +1,6 @@
 import { calculatePantheonBonuses, createFusedHero, handleFuseHeroes } from '../../context/pantheonHandler';
 import { Hero, HeroTask, GameState } from '../../types';
+import { refreshWeeklyState } from '../../context/weeklyHandler';
 
 function makeHero(overrides: Partial<Hero>): Hero {
   return {
@@ -130,6 +131,21 @@ describe('pantheonHandler', () => {
       };
       const newState = handleFuseHeroes(state, ['a', 'b', 'c']);
       expect(newState.pantheonBonuses?.goldPercent).toBe(3);
+    });
+
+    test('handleFuseHeroes incrementa fusionsCompleted no weeklyState', () => {
+      const baseStateWithWeekly = refreshWeeklyState({
+        gold: 100,
+        heroes: [
+          makeHero({ id: 'a' }),
+          makeHero({ id: 'b' }),
+          makeHero({ id: 'c' }),
+        ],
+        heroesRecruited: 3,
+        lastSavedAt: Date.now(),
+      });
+      const newState = handleFuseHeroes(baseStateWithWeekly, ['a', 'b', 'c'] as [string, string, string]);
+      expect(newState.weeklyState?.progress['fusionsCompleted']).toBe(1);
     });
   });
 });

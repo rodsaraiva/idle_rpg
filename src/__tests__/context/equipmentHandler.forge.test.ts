@@ -1,5 +1,6 @@
 import { handleForgeEquipment } from '../../context/equipmentHandler';
 import { GameState, HeroTask } from '../../types';
+import { refreshWeeklyState } from '../../context/weeklyHandler';
 
 const baseState: GameState = {
   gold: 100,
@@ -35,5 +36,22 @@ describe('handleForgeEquipment with materials', () => {
     const state = handleForgeEquipment(baseState, 3, 'weapon', Date.now());
     expect(state.materials!.starstone).toBe(3); // 5 - 2
     expect(state.inventory!).toHaveLength(1);
+  });
+});
+
+describe('tracker semanal itemsForged', () => {
+  test('FORGE_EQUIPMENT incrementa weeklyState.progress.itemsForged', () => {
+    // Inicializar com weeklyState ativo
+    const stateWithWeekly = refreshWeeklyState({ ...baseState });
+    const result = handleForgeEquipment(stateWithWeekly, 1, 'weapon', Date.now());
+    expect(result.weeklyState?.progress['itemsForged']).toBe(1);
+  });
+
+  test('forjar 3 itens acumula itemsForged = 3', () => {
+    let s = refreshWeeklyState({ ...baseState });
+    s = handleForgeEquipment(s, 1, 'weapon', Date.now());
+    s = handleForgeEquipment(s, 1, 'weapon', Date.now());
+    s = handleForgeEquipment(s, 1, 'weapon', Date.now());
+    expect(s.weeklyState?.progress['itemsForged']).toBe(3);
   });
 });
