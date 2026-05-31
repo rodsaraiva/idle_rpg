@@ -1,17 +1,15 @@
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ScrollView, 
-  ImageBackground, 
-  StatusBar 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  StatusBar
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
-import { IMAGE_ASSETS } from '../constants/assets';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 
 export function VillageScreen() {
@@ -52,17 +50,6 @@ export function VillageScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Banner de Destaque da Vila */}
-        {/* <View style={styles.bannerContainer}>
-          <ImageBackground 
-            source={IMAGE_ASSETS.VILLAGE_MAP} 
-            style={styles.bannerImage}
-            imageStyle={styles.bannerImageStyle}
-          >
-            <View style={styles.bannerOverlay} />
-          </ImageBackground>
-        </View> */}
-
         <View style={styles.grid}>
           <VillageCard 
             title="Treinamento" 
@@ -135,23 +122,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: theme.spacing.md,
     paddingBottom: theme.spacing.xl,
-  },
-  bannerContainer: {
-    height: 120,
-    borderRadius: theme.borderRadius.lg,
-    overflow: 'hidden',
-    marginBottom: theme.spacing.lg,
-    backgroundColor: theme.colors.surface,
-  },
-  bannerImage: {
-    flex: 1,
-  },
-  bannerImageStyle: {
-    opacity: 0.4,
-  },
-  bannerOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 13, 35, 0.2)',
   },
   grid: {
     gap: 12,
