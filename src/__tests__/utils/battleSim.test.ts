@@ -1,9 +1,5 @@
 import { computeBattleOutcome } from '../../utils/battleSim';
 import { MISSIONS } from '../../constants/missions';
-import { makeRng } from '../../utils/math';
-
-// Força importação de makeRng para garantir que está disponível no escopo
-void makeRng;
 
 describe('battleSim computeBattleOutcome', () => {
   test('strong hero defeats single orc (deterministic hits)', () => {
