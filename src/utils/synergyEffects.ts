@@ -116,7 +116,7 @@ const SYNERGY_IMPLS: Record<SynergyId, Partial<SynergyHandlers>> = {
       const cid = (attacker as any).classId;
       if (cid !== 'ARCHER' && cid !== 'MAGE') return;
       if (distance < 2 || dmg <= 0) return;
-      if (Math.random() >= 0.5) return;
+      if (state.rng() >= 0.5) return;
 
       const targetPos = state.enemyPositions[target.id];
       if (targetPos === undefined) return;
@@ -129,7 +129,7 @@ const SYNERGY_IMPLS: Record<SynergyId, Partial<SynergyHandlers>> = {
       );
       if (candidates.length === 0) return;
 
-      const pick = candidates[Math.floor(Math.random() * candidates.length)];
+      const pick = candidates[Math.floor(state.rng() * candidates.length)];
       const splashDmg = Math.max(1, Math.floor(dmg * 0.5));
       pick.hp = Math.max(0, pick.hp - splashDmg);
       const txt = `Bombardeio: ${(attacker as any).name ?? (attacker as any).id} causou ${splashDmg} de dano em respingo em ${pick.id}`;

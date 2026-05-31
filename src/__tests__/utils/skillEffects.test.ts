@@ -36,6 +36,7 @@ function makeState(heroes: Hero[], enemies: BattleEnemy[], round: number = 1): B
     activeSynergies: [], buffs: {}, flags: {},
     handlers: {} as any,
     skillCooldowns: {}, skillOnceUsed: {},
+    rng: Math.random,
   };
 }
 

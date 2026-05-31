@@ -18,6 +18,7 @@ import {
   GRID_COLUMNS,
   GRID_ROWS
 } from '../constants/game';
+import { makeRng } from './math';
 
 interface BattleOpts {
   healerBuffMultiplier?: number;
@@ -27,6 +28,7 @@ interface BattleOpts {
   synergyK?: number;
   scale?: number;
   rng?: () => number;
+  seed?: number;
   heroPositions?: Record<string, number>;
 }
 
@@ -35,11 +37,13 @@ export function computeBattleOutcome(
   heroesIn: Hero[],
   opts: BattleOpts = {}
 ): MissionOutcome {
-  const rng = opts.rng ?? Math.random;
+  // Precedência: rng explícito > seed > Math.random (produção inalterada)
+  const rng = opts.rng ?? (opts.seed != null ? makeRng(opts.seed) : Math.random);
   const heroes = heroesIn.map((h) => ({ ...h }));
 
   const state = BattleEngine.initializeBattle(heroes, template, {
     heroPositions: opts.heroPositions,
+    rng,
   });
 
   const aliveEnemies = () => state.enemies.filter((e) => e.hp > 0);

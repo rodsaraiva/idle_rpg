@@ -97,20 +97,23 @@ export interface BattleState {
   handlers: SynergyHandlers;
   skillCooldowns: Record<string, number>;   // "heroId_skillId" -> round em que fica disponível
   skillOnceUsed: Record<string, boolean>;   // "heroId_skillId" -> true se já usada
+  rng: () => number;                        // PRNG stream único para todo o pipeline de batalha
 }
 
 export const BattleEngine = {
   /**
    * Cria os inimigos para a batalha baseado no template da missão.
+   * @param rng PRNG a usar para aleatoriedade — default Math.random para retrocompatibilidade
+   *            (call sites de produção como missionHandler não passam rng).
    */
-  createEnemies(template: MissionTemplate): BattleEnemy[] {
+  createEnemies(template: MissionTemplate, rng: () => number = Math.random): BattleEnemy[] {
     const enemies: BattleEnemy[] = [];
-    const enemyPositions = [...ENEMY_ROWS].flatMap(r => 
+    const enemyPositions = [...ENEMY_ROWS].flatMap(r =>
       Array.from({ length: GRID_COLUMNS }, (_, c) => r * GRID_COLUMNS + c)
     );
     // Shuffle positions to place enemies randomly in the enemy zone
     for (let i = enemyPositions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(rng() * (i + 1));
       [enemyPositions[i], enemyPositions[j]] = [enemyPositions[j], enemyPositions[i]];
     }
 
@@ -120,7 +123,7 @@ export const BattleEngine = {
       template.enemies.forEach((edef, gi) => {
         const cnt = edef.count ?? 1;
         for (let i = 0; i < cnt; i++) {
-          const attackType = edef.attackType ?? (Math.random() < 0.5 ? 'MELEE' : 'RANGED');
+          const attackType = edef.attackType ?? (rng() < 0.5 ? 'MELEE' : 'RANGED');
           enemies.push({
             id: `enemy_${gi}_${i}`,
             hp: edef.hp,
@@ -138,7 +141,7 @@ export const BattleEngine = {
           });
           const difficulty = template.difficulty ?? 1;
           const isBoss = (edef.hp ?? 0) >= 100;
-          const assigned = assignEnemySkills(difficulty, isBoss, Math.random);
+          const assigned = assignEnemySkills(difficulty, isBoss, rng);
           if (assigned.length > 0) enemies[enemies.length - 1].skills = assigned;
         }
       });
@@ -162,7 +165,7 @@ export const BattleEngine = {
         });
         const difficulty = template.difficulty ?? 1;
         const isBoss = false;
-        const assigned = assignEnemySkills(difficulty, isBoss, Math.random);
+        const assigned = assignEnemySkills(difficulty, isBoss, rng);
         if (assigned.length > 0) enemies[enemies.length - 1].skills = assigned;
       }
     }
@@ -172,13 +175,15 @@ export const BattleEngine = {
   /**
    * Constructs a fresh BattleState with synergy handlers wired up and
    * positions initialized.
+   * @param opts.rng PRNG a usar — default Math.random para retrocompatibilidade.
    */
   initializeBattle(
     heroes: Hero[],
     template: MissionTemplate,
-    opts: { heroPositions?: Record<string, number> } = {}
+    opts: { heroPositions?: Record<string, number>; rng?: () => number } = {}
   ): BattleState {
-    const enemies = this.createEnemies(template);
+    const rng = opts.rng ?? Math.random;
+    const enemies = this.createEnemies(template, rng);
     const enemyPositions: Record<string, number> = {};
     enemies.forEach(e => { if (e.position !== undefined) enemyPositions[e.id] = e.position; });
 
@@ -203,6 +208,7 @@ export const BattleEngine = {
       handlers,
       skillCooldowns: {},
       skillOnceUsed: {},
+      rng,
     };
 
     handlers.onBattleStart(state);

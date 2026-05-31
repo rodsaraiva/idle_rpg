@@ -1,6 +1,20 @@
 import { GameMath } from './gameMath';
 
 /**
+ * Mulberry32 PRNG seedável — qualidade suficiente para jogos/simulações (não-cripto).
+ * Retorna valores em [0, 1).
+ */
+export function makeRng(seed: number): () => number {
+  let s = seed >>> 0;
+  return function () {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 0x100000000;
+  };
+}
+
+/**
  * Retorna um multiplicador baseado em uma distribuição Gaussiana (Box-Muller).
  * @param mean Média da distribuição (padrão 1.0)
  * @param stdDev Desvio padrão. Para ~99% dentro de ±50%, use ~0.16.

@@ -274,14 +274,9 @@ describe('createSynergyHandlers', () => {
       enemyPositions: { e1: 5, e2: 6, e3: 30 },
       log: [],
       actions: [],
+      rng: () => 0.4, // < 0.5 → dispara splash
     };
-    const origRandom = Math.random;
-    Math.random = () => 0.4;
-    try {
-      handlers.onAttackResolved(state, archer, target, 8, 3);
-    } finally {
-      Math.random = origRandom;
-    }
+    handlers.onAttackResolved(state, archer, target, 8, 3);
 
     expect(neighbor.hp).toBe(6); // 10 - floor(8*0.5) = 6
     expect(farEnemy.hp).toBe(10);
@@ -300,14 +295,9 @@ describe('createSynergyHandlers', () => {
       enemyPositions: { e1: 5, e2: 6 },
       log: [],
       actions: [],
+      rng: () => 0.6, // >= 0.5 → não dispara
     };
-    const origRandom = Math.random;
-    Math.random = () => 0.6;
-    try {
-      handlers.onAttackResolved(state, archer, target, 8, 3);
-    } finally {
-      Math.random = origRandom;
-    }
+    handlers.onAttackResolved(state, archer, target, 8, 3);
     expect(neighbor.hp).toBe(10);
   });
 
@@ -324,14 +314,9 @@ describe('createSynergyHandlers', () => {
       enemyPositions: { e1: 5, e2: 6 },
       log: [],
       actions: [],
+      rng: () => 0.0, // mesmo com rng baixo, distance < 2 bloqueia
     };
-    const origRandom = Math.random;
-    Math.random = () => 0.0;
-    try {
-      handlers.onAttackResolved(state, archer, target, 8, 1);
-    } finally {
-      Math.random = origRandom;
-    }
+    handlers.onAttackResolved(state, archer, target, 8, 1);
     expect(neighbor.hp).toBe(10);
   });
 });

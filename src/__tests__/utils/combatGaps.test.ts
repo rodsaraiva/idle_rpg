@@ -64,6 +64,7 @@ function makeState(
     activeSynergies: [], buffs: {}, flags: {},
     handlers: makeHandlers(handlersOverride),
     skillCooldowns: {}, skillOnceUsed: {},
+    rng: Math.random,
   };
 }
 
@@ -242,6 +243,7 @@ describe('D3 — Ataque-extra do Oportunista', () => {
       activeSynergies: [], buffs: {}, flags: {},
       handlers,
       skillCooldowns: {}, skillOnceUsed: {},
+      rng: Math.random,
     };
     return { hero, e1, e2, state };
   }
@@ -317,6 +319,7 @@ describe('D4 — Curas de skill disparam onHealApplied', () => {
       buffs: {}, flags: {},
       handlers,
       skillCooldowns: {}, skillOnceUsed: {},
+      rng: Math.random,
     };
     return { healer, warrior, state };
   }
@@ -356,6 +359,7 @@ describe('D4 — Curas de skill disparam onHealApplied', () => {
       flags: {},
       handlers,
       skillCooldowns: {}, skillOnceUsed: {},
+      rng: Math.random,
     };
 
     executePreAttackSkills(healer, makeEnemy(), state, alwaysHit);

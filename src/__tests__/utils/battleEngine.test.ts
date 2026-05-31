@@ -114,6 +114,7 @@ describe('BattleEngine - AI and Tactics', () => {
       } as any,
       skillCooldowns: {},
       skillOnceUsed: {},
+      rng: Math.random,
     });
 
     test('Healer should heal injured ally and consume turn', () => {

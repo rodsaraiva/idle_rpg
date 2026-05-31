@@ -65,6 +65,7 @@ describe('BattleEngine - advanced coverage', () => {
     handlers: _NOOP_HANDLERS,
     skillCooldowns: {},
     skillOnceUsed: {},
+    rng: Math.random,
     ...overrides,
   });
 

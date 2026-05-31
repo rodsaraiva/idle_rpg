@@ -4,11 +4,14 @@ import { MAX_BATTLE_ROUNDS, HERO_ROWS, GRID_COLUMNS } from '../../src/constants/
 import { Hero } from '../../src/types/index';
 import { processDoTBuffs } from '../../src/utils/skillEffects';
 import { processEnemyRegenBuffs } from '../../src/utils/enemySkillEffects';
+import { makeRng } from '../../src/utils/math';
 
 export interface SimulationParams {
   heroes: Hero[];
   missionId: string;
   iterations: number;
+  /** Quando presente, cada iteração usa makeRng(seed + iterIdx) — reprodutível. */
+  seed?: number;
 }
 
 export interface SimulationResult {
@@ -24,7 +27,7 @@ export interface SimulationResult {
  * Roda N iterações de uma missão com um grupo específico de heróis.
  */
 export function runMissionSimulation(params: SimulationParams): SimulationResult {
-  const { heroes, missionId, iterations } = params;
+  const { heroes, missionId, iterations, seed } = params;
 
   const mission = MISSIONS.find(m => m.id === missionId);
   if (!mission) throw new Error(`Missão ${missionId} não encontrada.`);
@@ -49,8 +52,11 @@ export function runMissionSimulation(params: SimulationParams): SimulationResult
     // e garante que comecem de vida cheia
     const activeHeroes = heroes.map(h => ({ ...h, hpCurrent: h.hpMax }));
 
+    // Rng por iteração: seed presente → stream derivado de (seed + i); senão Math.random
+    const iterRng = seed != null ? makeRng(seed + i) : Math.random;
+
     // 2. Inicializa estado via BattleEngine.initializeBattle
-    const state = BattleEngine.initializeBattle(activeHeroes, mission as MissionTemplate);
+    const state = BattleEngine.initializeBattle(activeHeroes, mission as MissionTemplate, { rng: iterRng });
 
     // Override hero positions to the simulator's preferred bottom-row layout
     activeHeroes.forEach((h, idx) => {
@@ -86,7 +92,7 @@ export function runMissionSimulation(params: SimulationParams): SimulationResult
         if (e.hp > 0) combatants.push({ type: 'enemy', id: e.id, agility: e.agility ?? 5 });
       }
       // Sort by agility descending with small random tiebreaker
-      combatants.sort((a, b) => (b.agility + Math.random() * 2) - (a.agility + Math.random() * 2));
+      combatants.sort((a, b) => (b.agility + state.rng() * 2) - (a.agility + state.rng() * 2));
 
       for (const c of combatants) {
         if (battleOver) break;
@@ -102,10 +108,10 @@ export function runMissionSimulation(params: SimulationParams): SimulationResult
         }
         if (c.type === 'hero') {
           const hero = activeHeroes.find(h => h.id === c.id);
-          if (hero && hero.hpCurrent > 0) BattleEngine.processHeroTurn(hero, state, Math.random);
+          if (hero && hero.hpCurrent > 0) BattleEngine.processHeroTurn(hero, state, state.rng);
         } else {
           const enemy = state.enemies.find(e => e.id === c.id);
-          if (enemy && enemy.alive && enemy.hp > 0) BattleEngine.processEnemyTurn(enemy, state, Math.random, tankMitigation);
+          if (enemy && enemy.alive && enemy.hp > 0) BattleEngine.processEnemyTurn(enemy, state, state.rng, tankMitigation);
         }
       }
       // Check end conditions after all turns
