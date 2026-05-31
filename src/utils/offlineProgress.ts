@@ -20,7 +20,6 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
 
   if (ticks <= 0) return null;
 
-  let offlineGold = 0;
   let heroesAffected = 0;
   const perHeroChanges: PerHeroChange[] = [];
   const newActiveMissions: any[] = [];
@@ -129,7 +128,7 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
   const newState: GameState = {
     ...savedState,
     heroes: newHeroes,
-    gold: (savedState.gold || 0) + offlineGold,
+    gold: (savedState.gold || 0),
     activeMissions: savedState.activeMissions ?? [],
   };
 
@@ -197,7 +196,7 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
 
   return {
     ticks,
-    goldGained: Math.floor(offlineGold + additionalGold),
+    goldGained: Math.floor(additionalGold),
     heroesAffected,
     cappedHours,
     perHeroChanges,
