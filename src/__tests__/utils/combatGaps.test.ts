@@ -214,6 +214,7 @@ describe('D3 — Ataque-extra do Oportunista', () => {
 
   function makeOppState() {
     // Herói Rogue com trainingCount suficiente para ROGUE_VENENO (atk >= 50)
+    // personality OPPORTUNIST: alvo fraco (hp<0.4) ganha score +30 extra
     const hero: Hero = {
       id: 'rogue1', name: 'Rogue', hpMax: 100, hpCurrent: 100,
       atk: 60, mp: 5, defense: 5, crit: 10, agility: 20,
@@ -225,15 +226,17 @@ describe('D3 — Ataque-extra do Oportunista', () => {
       range: 1, movement: 2,
     } as Hero;
 
-    // Dois inimigos: e1 (quase morto, HP 1) e e2 (saudável)
-    const e1 = makeEnemy({ id: 'e1', hp: 1, maxHp: 50, position: 2, defense: 0 });
-    const e2 = makeEnemy({ id: 'e2', hp: 50, maxHp: 50, position: 2, defense: 0 });
+    // e1 (quase morto, HP 1) na mesma posição que o herói (dist=0)
+    // e2 (saudável) na posição adjacente (dist=1)
+    // Assim e1 sempre tem score muito maior e é selecionado primeiro
+    const e1 = makeEnemy({ id: 'e1', hp: 1, maxHp: 50, position: 5, defense: 0 });
+    const e2 = makeEnemy({ id: 'e2', hp: 50, maxHp: 50, position: 6, defense: 0 });
 
     const handlers = createSynergyHandlers([]);
     const state: BattleState = {
       heroes: [hero], enemies: [e1, e2],
-      heroPositions: { rogue1: 40 },
-      enemyPositions: { e1: 2, e2: 2 },
+      heroPositions: { rogue1: 5 },
+      enemyPositions: { e1: 5, e2: 6 },
       lastAttacker: {}, threats: {},
       log: [], actions: [], rounds: 2, // round 2: Golpe Furtivo não dispara
       activeSynergies: [], buffs: {}, flags: {},
@@ -248,41 +251,44 @@ describe('D3 — Ataque-extra do Oportunista', () => {
     // Colocar escudo em e2
     state.buffs['e2'] = [{ source: 'MAGE_ESCUDO_ARCANO', type: 'shield', value: 0.5, expiresAfterRound: 99 }];
     const hpBefore = e2.hp;
-    // rng=0.05 → hit, sem crit; Oportunista dispara extraAttack quando mata e1
-    BattleEngine.processHeroTurn(state.heroes[0], state, () => 0.05);
-    // Se e1 foi morto E o extraAttack foi executado, e2 deve ter recebido dano reduzido
-    if (!e1.alive && e2.hp < hpBefore) {
-      const rawAtk = 60;
-      // Dano base mínimo sem escudo seria rawAtk - def = 60 - 0 = 60 (simplificado)
-      // Com escudo 50%, seria no máximo 30. Sem escudo seria mais.
-      const dmgTaken = hpBefore - e2.hp;
-      // O dano com escudo deve ser < o dano sem escudo do mesmo herói em ataque normal
-      // (não testamos valor exato pois depende de calcDamage — testamos que escudo foi consumido)
-      expect(state.buffs['e2']?.find(b => b.type === 'shield')).toBeUndefined(); // escudo consumido
-      expect(dmgTaken).toBeGreaterThan(0);
-    } else {
-      // Se e1 não morreu neste round, skip (test is valid only when e1 dies)
-      expect(true).toBe(true);
-    }
+    // rng sequence para forçar: e1 como alvo, acertar, OPPORTUNIST ativar, e2 atacado com escudo
+    // calls: 1-3 selectTarget (>0.2), 4 hit(<0.89), 5 crit, 6 veneno(>0.3 não aplica), 7 OPPORTUNIST(<0.25), 8+ extra
+    let c = 0;
+    const deterministicRng = () => {
+      c++;
+      if (c <= 3) return 0.5;  // selectTarget: fica no 1º candidato
+      if (c === 6) return 0.5; // veneno NÃO aplica (> 0.3)
+      if (c === 7) return 0.1; // OPPORTUNIST < 0.25 → ativa extra!
+      return 0.5;              // hit/crit ok
+    };
+    BattleEngine.processHeroTurn(state.heroes[0], state, deterministicRng);
+    // e1 com hp=1 deve ser morto; Oportunista dispara extra em e2
+    expect(e1.alive).toBe(false); // e1 foi morto
+    expect(e2.hp).toBeLessThan(hpBefore); // e2 recebeu dano
+    // APÓS o fix: escudo foi consumido pelo getShieldReduction no extra-attack
+    expect(state.buffs['e2']?.find(b => b.type === 'shield')).toBeUndefined(); // escudo consumido
   });
 
   test('ataque-extra de Rogue aplica veneno no segundo inimigo', () => {
     const { e1, e2, state } = makeOppState();
     const hpBefore = e2.hp;
-    // rng determinístico: 0.05 (hit), depois 0.1 (< 0.3 → veneno dispara)
-    let callCount = 0;
+    // rng sequence: e1 como alvo, acertar, veneno em e1 (call 6 < 0.3), OPPORTUNIST ativa (call 7 < 0.25)
+    // No extra-attack (e2): acertar, call de veneno em e2 (< 0.3)
+    let c = 0;
     const deterministicRng = () => {
-      callCount++;
-      return callCount <= 3 ? 0.05 : 0.1; // primeiros calls: hit; depois: veneno
+      c++;
+      if (c <= 3) return 0.5;  // selectTarget: fica no 1º candidato
+      if (c === 6) return 0.1; // veneno em e1 aplica (< 0.3)
+      if (c === 7) return 0.1; // OPPORTUNIST < 0.25 → ativa extra!
+      if (c === 10) return 0.1; // veneno em e2 aplica (< 0.3) após extra hit/crit
+      return 0.5;              // outros (hit/crit ok)
     };
     BattleEngine.processHeroTurn(state.heroes[0], state, deterministicRng);
-    // Se e1 morreu e ataque-extra foi executado, verificar veneno em e2
-    if (!e1.alive && e2.hp < hpBefore) {
-      const dotBuff = state.buffs['e2']?.find(b => b.type === 'dot' && b.source === 'ROGUE_VENENO');
-      expect(dotBuff).toBeDefined();
-    } else {
-      expect(true).toBe(true);
-    }
+    // e1 deve ter morrido e ataque-extra em e2 deve ter aplicado veneno
+    expect(e1.alive).toBe(false);
+    expect(e2.hp).toBeLessThan(hpBefore); // e2 foi atacado
+    const dotBuff = state.buffs['e2']?.find(b => b.type === 'dot' && b.source === 'ROGUE_VENENO');
+    expect(dotBuff).toBeDefined(); // veneno em e2
   });
 });
 

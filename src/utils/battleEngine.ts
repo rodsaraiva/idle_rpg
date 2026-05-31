@@ -611,7 +611,7 @@ export const BattleEngine = {
             onRogueHitSkills(hero, finalTarget, state, rng);
           }
           const extraAttack = applyPersonalityOnHit(hero, finalTarget, state, actualHeroDmg, rng, didMove);
-          // Opportunist extra attack on kill
+          // Opportunist extra attack on kill — espelha o caminho normal de ataque
           if (extraAttack && finalTarget.hp <= 0) {
             const nextAlive = state.enemies.find(e => e.alive && e.id !== finalTarget.id);
             if (nextAlive) {
@@ -621,7 +621,20 @@ export const BattleEngine = {
                 if (extraResult) {
                   state.actions.push(extraResult.action);
                   state.log.push(extraResult.action.text);
-                  nextAlive.hp = Math.max(0, nextAlive.hp - extraResult.dmg);
+                  let extraDmg = extraResult.dmg;
+                  const extraShield = getShieldReduction(state, nextAlive.id);
+                  if (extraShield > 0) {
+                    extraDmg = Math.max(1, Math.floor(extraDmg * (1 - extraShield)));
+                  }
+                  nextAlive.hp = Math.max(0, nextAlive.hp - extraDmg);
+                  onEnemyDamagedSkills(nextAlive, state);
+                  if (extraDmg > 0) {
+                    state.lastAttacker[nextAlive.id] = hero.id;
+                    state.handlers.onAttackResolved(state, hero as any, nextAlive as any, extraDmg, nextDist);
+                    if (hero.classId === 'ROGUE') {
+                      onRogueHitSkills(hero, nextAlive, state, rng);
+                    }
+                  }
                   if (nextAlive.hp <= 0) {
                     nextAlive.alive = false;
                     delete state.enemyPositions[nextAlive.id];
