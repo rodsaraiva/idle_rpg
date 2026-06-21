@@ -50,3 +50,4 @@ SPEC3 Task 20: 392ab00
 SPEC3 Task 21: 30413ff
 SPEC3 Task 22: 3429cd6
 SPEC3 Task 23: 3dd34d9
+SPEC3 Task 24: 1efe9cc
