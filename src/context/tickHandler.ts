@@ -27,24 +27,11 @@ import { checkAchievements } from './achievementHandler';
 import { createGuaranteedEquipment } from './equipmentHandler';
 import { refreshDailyQuests, updateDailyProgress } from './dailyQuestHandler';
 import { refreshWeeklyState, updateWeeklyProgress, markWeeklyBossDefeated } from './weeklyHandler';
-import { getWeeklyBoss, WeeklyBossTemplate, WEEKLY_BOSS_POOL } from '../constants/weeklyBosses';
+import { getWeeklyBoss, WeeklyBossTemplate, WEEKLY_BOSS_POOL, bossToMissionTemplate } from '../constants/weeklyBosses';
 import { MissionTemplate } from '../constants/missions';
 import { getUnlockedSkills } from '../constants/skills';
 import { emitSkillUnlocked, emitRareMaterialDrop } from '../services/milestones';
 
-function bossToMissionTemplate(boss: WeeklyBossTemplate): MissionTemplate {
-  return {
-    id: boss.id,
-    name: boss.bossName,
-    minHeroes: boss.minHeroes,
-    durationMs: boss.durationMs,
-    rewardMin: boss.rewardMin,
-    rewardMax: boss.rewardMax,
-    statWeights: boss.statWeights,
-    difficulty: boss.difficulty,
-    enemies: boss.enemies,
-  };
-}
 
 /** Processa o treinamento de todos os heróis, returns updated heroes and total points trained */
 function processTraining(heroes: Hero[], tickMs: number, inflation: number): { heroes: Hero[]; totalPointsTrained: number } {
