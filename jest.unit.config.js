@@ -45,5 +45,7 @@ module.exports = {
     '^lottie-react-native$': '<rootDir>/jest.react-native-setup.stub.js',
     '^react-native-reanimated$': '<rootDir>/jest.react-native-setup.stub.js',
     '^react-native-gesture-handler$': '<rootDir>/jest.react-native-setup.stub.js',
+    '^expo-font$': '<rootDir>/jest-mocks/expo-font-mock.js',
+    '\\.(ttf|png|jpg)$': '<rootDir>/jest-mocks/file-mock.js',
   },
 };
