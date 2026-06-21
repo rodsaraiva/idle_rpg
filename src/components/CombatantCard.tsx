@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Image, Platform, Animated, Easing } from 'react-native';
 import { theme } from '../theme';
-import { on } from '../services/feedback';
+import { on, FeedbackEvent } from '../services/feedback';
 
 interface CombatantCardProps {
   id: string;
@@ -56,8 +56,8 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
 
   // listen for global hit/death events for this combatant
   useEffect(() => {
-    function onHit(p: any) {
-      if (!p || p.id !== id) return;
+    function onHit(p: { id: string; amount: number }) {
+      if (p.id !== id) return;
       // trigger quick hit pulse + shake
       hitAnim.setValue(0);
       // show floating damage if provided
@@ -79,19 +79,19 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
         Animated.timing(hitAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
       ]).start();
     }
-    function onDeath(p: any) {
-      if (!p || p.id !== id) return;
+    function onDeath(p: { id: string }) {
+      if (p.id !== id) return;
       Animated.timing(deathAnim, { toValue: 0, duration: 360, useNativeDriver: true }).start();
     }
-    function onTarget(p: any) {
-      if (!p || p.id !== id) return;
+    function onTarget(p: { id: string; duration?: number }) {
+      if (p.id !== id) return;
       setIsTargetLocal(true);
       const t = p.duration ?? 800;
       setTimeout(() => setIsTargetLocal(false), t);
     }
-    const unsubHit = on('BATTLE_HIT', onHit);
-    const unsubDeath = on('BATTLE_DEATH', onDeath);
-    const unsubTarget = on('BATTLE_TARGET', onTarget);
+    const unsubHit = on(FeedbackEvent.BATTLE_HIT, onHit);
+    const unsubDeath = on(FeedbackEvent.BATTLE_DEATH, onDeath);
+    const unsubTarget = on(FeedbackEvent.BATTLE_TARGET, onTarget);
     return () => {
       unsubHit();
       unsubDeath();

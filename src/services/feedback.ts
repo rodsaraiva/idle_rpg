@@ -97,4 +97,4 @@ export const FEEDBACK_EVENTS = {
   BATTLE_HIT: FeedbackEvent.BATTLE_HIT,
   BATTLE_TARGET: FeedbackEvent.BATTLE_TARGET,
   BATTLE_DEATH: FeedbackEvent.BATTLE_DEATH,
-};
+} as const;

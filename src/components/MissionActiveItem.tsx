@@ -4,7 +4,7 @@ import { ActiveMission } from '../types';
 import { MISSIONS } from '../constants/missions';
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
-import { on } from '../services/feedback';
+import { on, FeedbackEvent } from '../services/feedback';
 import { CombatantCard } from './CombatantCard';
 
 interface Props {
@@ -19,8 +19,7 @@ export function MissionActiveItem({ mission, onWatch }: Props) {
   const [highlighted, setHighlighted] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsub = on('BATTLE_HIGHLIGHT', (p: any) => {
-      if (!p || !p.id) return;
+    const unsub = on(FeedbackEvent.BATTLE_HIGHLIGHT, (p) => {
       setHighlighted(p.id);
       const t = p.duration ?? 400;
       setTimeout(() => setHighlighted((cur) => (cur === p.id ? null : cur)), t);

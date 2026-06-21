@@ -14,7 +14,7 @@ interface FloatItem {
 interface ToastItem {
   id: string;
   text: string;
-  type?: 'success' | 'error' | 'info';
+  type?: 'success' | 'error' | 'info' | 'milestone';
 }
 
 export function FeedbackLayer() {
