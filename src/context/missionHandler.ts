@@ -1,10 +1,11 @@
 import { GameState, HeroTask, Hero, ActiveMission } from '../types';
 import { MISSIONS, MissionTemplate } from '../constants/missions';
-import { getWeeklyBoss, WeeklyBossTemplate } from '../constants/weeklyBosses';
+import { getWeeklyBoss } from '../constants/weeklyBosses';
 import { getWeeklySeed } from '../constants/weeklyQuests';
 import { v4 as uuidv4 } from 'uuid';
 import { computeBattleOutcome } from '../utils/battleSim';
 import { BattleEngine } from '../utils/battleEngine';
+import { bossToMissionTemplate } from './bossTemplate';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import {
   HEALER_BUFF_PER_HERO,
@@ -138,24 +139,6 @@ export function handleDismissMissionResult(state: GameState, missionId: string):
   };
 }
 
-/**
- * Converte um WeeklyBossTemplate para MissionTemplate (formato esperado por
- * computeBattleOutcome e BattleEngine.createEnemies).
- */
-function bossTemplateToMissionTemplate(boss: WeeklyBossTemplate): MissionTemplate {
-  return {
-    id: boss.id,
-    name: boss.bossName,
-    minHeroes: boss.minHeroes,
-    durationMs: boss.durationMs,
-    rewardMin: boss.rewardMin,
-    rewardMax: boss.rewardMax,
-    statWeights: boss.statWeights,
-    difficulty: boss.difficulty,
-    enemies: boss.enemies,
-  };
-}
-
 export function handleStartWeeklyBoss(
   state: GameState,
   heroIds: string[],
@@ -189,7 +172,7 @@ export function handleStartWeeklyBoss(
   const teamClassIds = heroesForMission.map(h => h.classId).filter(Boolean) as ClassId[];
   const activeSynergyNames = getActiveSynergies(teamClassIds).map(s => s.name);
 
-  const tpl = bossTemplateToMissionTemplate(boss);
+  const tpl = bossToMissionTemplate(boss);
 
   // Apply equipment stat bonuses to hero copies for battle
   const heroesWithEquipment = heroesForMission.map(h => {
