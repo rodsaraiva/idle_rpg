@@ -1,0 +1,52 @@
+Task 1: 7e814cf
+Task 2: 54c7307
+Task 3: bd3f6e9
+Task 4: 979e5cf
+Task 5: ad458c7
+Task 6: 4008b18
+Task 7: 46d978f
+Task 8: 86d3213
+Task 9: de10edf
+Task 10: 8dd6e87
+Task 11: 20a351f
+Task 12: bed4a21
+SPEC2 Task 1: bf9826f
+SPEC2 Task 2: 34af868
+SPEC2 Task 3: 0ee7b3f
+SPEC2 Task 4: 042a6e8
+SPEC2 Task 5: 57a0e1f
+SPEC2 Task 6: e34bfdf
+SPEC2 Task 7: 8004e2a
+SPEC2 Task 8: 5d0c7d5
+SPEC2 Task 9: f9f0023
+SPEC2 Task 10: f9f0023
+SPEC2 Task 11: fe1920d
+SPEC2 Task 12: af1d246
+SPEC2 Task 13: fd7bccf
+SPEC2 Task 14: 668f696
+SPEC2 Task 15: 56048bb
+SPEC2 Task 16: daac616
+SPEC2 Task 17: 7a2c5a4
+SPEC3 Task 1: 7fceadd
+SPEC3 Task 2: 73967bc
+SPEC3 Task 3: 2ae6572
+SPEC3 Task 4: 7c775d2
+SPEC3 Task 5: 89d1c06
+SPEC3 Task 6: f7ccd61
+SPEC3 Task 7: c2b28e0
+SPEC3 Task 8: 42e9e25
+SPEC3 Task 9: 62260af
+SPEC3 Task 10: 79b3b58
+SPEC3 Task 11: 52458a9
+SPEC3 Task 12: 7209e8f
+SPEC3 Task 13: 63d7bd2
+SPEC3 Task 14: 668e7c8
+SPEC3 Task 15: 93588b7
+SPEC3 Task 16: 4787469
+SPEC3 Task 17: 6700ec4
+SPEC3 Task 18: 55ca120
+SPEC3 Task 19: 0a90b38
+SPEC3 Task 20: 392ab00
+SPEC3 Task 21: 30413ff
+SPEC3 Task 22: 3429cd6
+SPEC3 Task 23: 3dd34d9
