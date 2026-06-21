@@ -1,74 +1,54 @@
-import { Audio } from 'expo-audio';
+import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 import { SOUND_ASSETS } from '../constants/assets';
 
 type SoundKey = keyof typeof SOUND_ASSETS;
 
-const loadedSounds: Partial<Record<string, Audio.Sound>> = {};
-
-async function ensureAudioMode() {
-  try {
-    await Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-      shouldDuckAndroid: true,
-    });
-  } catch (error) {
-    console.warn('SoundService: Could not set audio mode', error);
-  }
-}
+const players: Partial<Record<string, AudioPlayer>> = {};
 
 export const SoundService = {
   async preload(): Promise<void> {
-    await ensureAudioMode();
-    
-    const preloads = Object.entries(SOUND_ASSETS).map(async ([key, asset]) => {
+    try {
+      await setAudioModeAsync({ playsInSilentMode: true, shouldRouteThroughEarpiece: false });
+    } catch (error) {
+      console.warn('SoundService: Could not set audio mode', error);
+    }
+    for (const [key, asset] of Object.entries(SOUND_ASSETS)) {
       try {
-        const { sound } = await Audio.Sound.createAsync(asset);
-        loadedSounds[key] = sound;
+        players[key] = createAudioPlayer(asset);
       } catch (error) {
         console.warn(`SoundService: Failed to preload ${key}`, error);
       }
-    });
-
-    await Promise.all(preloads);
-  },
-
-  async play(key: SoundKey): Promise<void> {
-    const sound = loadedSounds[key];
-    if (!sound) return;
-
-    try {
-      await sound.setPositionAsync(0);
-      await sound.playAsync();
-    } catch (error) {
-      console.warn(`SoundService: Error playing ${key}`, error);
     }
   },
 
-  async stop(key: SoundKey): Promise<void> {
-    const sound = loadedSounds[key];
-    if (!sound) return;
-
+  play(key: SoundKey): void {
+    const player = players[key as string];
+    if (!player) return;
     try {
-      await sound.stopAsync();
+      player.seekTo(0);
+      player.play();
     } catch (error) {
-      // ignore
+      console.warn(`SoundService: Error playing ${String(key)}`, error);
     }
   },
 
-  async unload(): Promise<void> {
-    const unloads = Object.values(loadedSounds).map(async (sound) => {
+  stop(key: SoundKey): void {
+    players[key as string]?.pause();
+  },
+
+  unload(): void {
+    for (const player of Object.values(players)) {
       try {
-        await sound?.unloadAsync();
+        player?.remove();
       } catch {
         // ignore
       }
-    });
-    await Promise.all(unloads);
+    }
   },
 };
 
 // Backward compatibility exports
 export const preloadSounds = SoundService.preload;
-export const playSound = (key: any) => SoundService.play(key.toUpperCase());
-export const stopSound = (key: any) => SoundService.stop(key.toUpperCase());
+export const playSound = (key: any) => SoundService.play(String(key).toUpperCase());
+export const stopSound = (key: any) => SoundService.stop(String(key).toUpperCase());
 export const unloadSounds = SoundService.unload;
