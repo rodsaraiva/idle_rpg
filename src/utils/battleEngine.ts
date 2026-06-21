@@ -16,89 +16,15 @@ import { applyPersonalityOnHit, applyProtectorShield } from './personalityEffect
 import { applyEnemyPassiveSkills, executeEnemyPreAttackSkills, onEnemyHitSkills, onEnemyDamagedSkills, processEnemyRegenBuffs } from './enemySkillEffects';
 import { assignEnemySkills } from '../constants/enemySkills';
 
-export type SynergyId =
-  | 'LINHA_DE_FRENTE'
-  | 'MURALHA_E_FLECHA'
-  | 'BASTIAO'
-  | 'CAOS_ARCANO'
-  | 'EMBOSCADA'
-  | 'ARTILHARIA';
-
-export type BuffType =
-  | 'atkMul'        // multiplicador de ATK do atacante
-  | 'critFlat'      // soma flat ao crit (ex: +20)
-  | 'rangeFlat'     // soma flat ao alcance
-  | 'defDebuffMul'  // multiplicador <1 aplicado à defesa do alvo
-  | 'taunt'         // soma flat ao score quando este ator é alvo de seleção
-  | 'dot'           // dano por turno (value = dano por round)
-  | 'shield'        // absorve dano (value = % de redução no próximo hit)
-  | 'defMul'        // multiplicador de DEF do alvo (value > 1 = buff, < 1 = debuff)
-  | 'revive';       // marca herói para reviver (value = % HP ao reviver)
-
-export interface Buff {
-  source: string;  // SynergyId | SkillId | PersonalitySource
-  type: BuffType;
-  value: number;
-  expiresAfterRound: number; // -1 = persistente até source desativar
-}
-
-export interface BattleEnemy {
-  id: string;
-  hp: number;
-  maxHp: number;
-  atk: number;
-  mp: number;
-  defense: number;
-  crit: number;
-  agility: number;
-    alive: boolean;
-    attackType: 'MELEE' | 'RANGED';
-    position?: number;
-    range: number;
-    movement: number;
-  skills?: import('../constants/enemySkills').EnemySkillDef[];
-  skillCooldowns?: Record<string, number>;
-  skillOnceUsed?: Record<string, boolean>;
-  }
-
-export interface SynergyHandlers {
-  onBattleStart: (state: BattleState) => void;
-  onHealApplied: (state: BattleState, healer: Hero, target: Hero, amount: number) => void;
-  onHeroDamaged: (state: BattleState, hero: Hero, hpAfter: number) => void;
-  onAttackResolved: (
-    state: BattleState,
-    attacker: Hero | BattleEnemy,
-    target: Hero | BattleEnemy,
-    dmg: number,
-    distance: number
-  ) => void;
-  shouldIgnoreDefense: (state: BattleState, attacker: Hero | BattleEnemy) => boolean;
-  modifyTargetScore: (
-    state: BattleState,
-    enemy: BattleEnemy,
-    candidate: Hero,
-    baseScore: number
-  ) => number;
-}
-
-export interface BattleState {
-  heroes: Hero[];
-  enemies: BattleEnemy[];
-  heroPositions: Record<string, number>;
-  enemyPositions: Record<string, number>;
-  lastAttacker: Record<string, string>;
-  threats: Record<string, string>; // enemyId -> targetAllyId
-  log: string[];
-  actions: MissionAction[];
-  rounds: number;
-  activeSynergies: SynergyId[];
-  buffs: Record<string, Buff[]>;
-  flags: Record<string, boolean | number>;
-  handlers: SynergyHandlers;
-  skillCooldowns: Record<string, number>;   // "heroId_skillId" -> round em que fica disponível
-  skillOnceUsed: Record<string, boolean>;   // "heroId_skillId" -> true se já usada
-  rng: () => number;                        // PRNG stream único para todo o pipeline de batalha
-}
+export type {
+  SynergyId,
+  BuffType,
+  Buff,
+  BattleEnemy,
+  SynergyHandlers,
+  BattleState,
+} from './battle/types';
+import type { BattleState, BattleEnemy } from './battle/types';
 
 export const BattleEngine = {
   /**
