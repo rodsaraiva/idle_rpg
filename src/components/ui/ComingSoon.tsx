@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { theme } from '../../theme';
+import { Icon, IconName } from './Icon';
 
 interface ComingSoonProps {
   title: string;
-  icon: string;
+  icon: IconName;
   description: string;
 }
 
@@ -12,7 +13,7 @@ export function ComingSoon({ title, icon, description }: ComingSoonProps) {
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Text style={styles.icon}>{icon}</Text>
+        <Icon name={icon} size={48} color={theme.colors.goldBright} />
       </View>
       <Text style={styles.title}>{title}</Text>
       <View style={styles.badge}>
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.bgBase,
   },
   iconContainer: {
     width: 100,
@@ -40,34 +41,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: theme.colors.surfaceLight,
+    borderColor: theme.colors.borderGold,
   },
-  icon: {
-    fontSize: 48,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: theme.colors.textPrimary,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
+  title: { ...theme.type.h1, color: theme.colors.textPrimary, marginBottom: 12, textAlign: 'center' },
   badge: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: theme.borderRadius.sm,
     marginBottom: 16,
   },
-  badgeText: {
-    color: theme.colors.textPrimary,
-    fontSize: 10,
-    fontWeight: '900',
-  },
-  description: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
+  badgeText: { ...theme.type.label, color: theme.colors.bgDeep },
+  description: { ...theme.type.body, color: theme.colors.textSecondary, textAlign: 'center' },
 });

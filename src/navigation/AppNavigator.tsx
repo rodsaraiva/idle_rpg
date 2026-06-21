@@ -13,7 +13,15 @@ import { DailyQuestsScreen } from '../screens/DailyQuestsScreen';
 import { WeeklyScreen } from '../screens/WeeklyScreen';
 import { GuildScreen } from '../screens/GuildScreen';
 import { theme } from '../theme';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, IconName } from '../components/ui/Icon';
+
+export const TAB_ICONS: Record<string, IconName> = {
+  Vila: 'castle',
+  Treinamento: 'sword',
+  'Missões': 'map-marker-path',
+  Enfermaria: 'medical-bag',
+  Loja: 'store',
+};
 
 const Tab = createBottomTabNavigator();
 
@@ -23,32 +31,19 @@ export function AppNavigator() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          sceneContainerStyle: { backgroundColor: theme.colors.background },
-          tabBarStyle: { 
-            backgroundColor: theme.colors.surface, 
-            borderTopColor: theme.colors.surfaceLight,
+          sceneContainerStyle: { backgroundColor: theme.colors.bgBase },
+          tabBarStyle: {
+            backgroundColor: theme.colors.surfaceRaised,
+            borderTopColor: theme.colors.borderGold,
             height: 60,
             paddingBottom: 10,
+            ...theme.elevation.e2,
           },
-          tabBarActiveTintColor: theme.colors.primary,
+          tabBarActiveTintColor: theme.colors.gold,
           tabBarInactiveTintColor: theme.colors.textMuted,
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName: any;
-
-            if (route.name === 'Treinamento') {
-              iconName = focused ? 'fitness' : 'fitness-outline';
-            } else if (route.name === 'Missões') {
-              iconName = focused ? 'map' : 'map-outline';
-            } else if (route.name === 'Enfermaria') {
-              iconName = focused ? 'medkit' : 'medkit-outline';
-            } else if (route.name === 'Vila') {
-              iconName = focused ? 'home' : 'home-outline';
-            } else if (route.name === 'Loja') {
-              iconName = focused ? 'cart' : 'cart-outline';
-            }
-
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
+          tabBarIcon: ({ color, size }) => (
+            <Icon name={TAB_ICONS[route.name] ?? 'castle'} size={size} color={color} />
+          ),
         })}
       >
         <Tab.Screen

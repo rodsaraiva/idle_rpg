@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../theme';
+import { Icon, IconName } from './ui/Icon';
 
 interface ChestCardProps {
   label: string;
@@ -8,10 +9,10 @@ interface ChestCardProps {
   canAfford: boolean;
   onPress: () => void;
   description?: string;
-  icon?: string;
+  icon?: IconName;
 }
 
-export function ChestCard({ label, cost, canAfford, onPress, description, icon = '🎁' }: ChestCardProps) {
+export function ChestCard({ label, cost, canAfford, onPress, description, icon = 'gift' }: ChestCardProps) {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -20,7 +21,7 @@ export function ChestCard({ label, cost, canAfford, onPress, description, icon =
       disabled={!canAfford}
     >
       <View style={styles.iconContainer}>
-        <Text style={styles.icon}>{icon}</Text>
+        <Icon name={icon} size={32} color={theme.colors.goldBright} />
       </View>
       
       <View style={styles.content}>
@@ -49,10 +50,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
+    borderColor: theme.colors.borderGold,
     marginBottom: 12,
-    elevation: 3,
-    boxShadow: '0px 2px 4px rgba(0,0,0,0.1)',
   },
   disabled: {
     opacity: 0.8,
@@ -61,13 +60,10 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 12,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
-  },
-  icon: {
-    fontSize: 32,
   },
   content: {
     flex: 1,
@@ -86,6 +82,7 @@ const styles = StyleSheet.create({
   priceTag: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 4,
   },
   priceText: {
     color: theme.colors.gold,
@@ -96,14 +93,14 @@ const styles = StyleSheet.create({
     color: theme.colors.danger,
   },
   buyButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     marginLeft: 12,
   },
   buyButtonDisabled: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
   },
   buyButtonText: {
     color: theme.colors.textPrimary,

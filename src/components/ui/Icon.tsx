@@ -6,7 +6,11 @@ import { HpIcon, AtkIcon, MpIcon, DefIcon, SvgIconProps } from './icons/StatIcon
 import { ClassSeal } from './icons/ClassSeals';
 
 export type IconName =
-  | 'sword' | 'shield' | 'castle' | 'anvil' | 'potion' | 'coin' | 'scroll' | 'trophy'
+  | 'sword' | 'shield' | 'castle' | 'anvil' | 'potion' | 'coin' | 'scroll' | 'trophy' | 'sleep'
+  | 'skull' | 'heart' | 'gold-coin' | 'map-marker-path' | 'medical-bag'
+  | 'treasure-chest' | 'treasure-chest-outline' | 'gift' | 'store'
+  | 'check' | 'star' | 'close'
+  | 'crit' | 'agility' | 'accessory' | 'unharmed' | 'merge' | 'bow' | 'eye'
   | 'stat-hp' | 'stat-atk' | 'stat-mp' | 'stat-def'
   | 'class-warrior' | 'class-tank' | 'class-rogue' | 'class-archer' | 'class-mage' | 'class-healer';
 
@@ -25,6 +29,26 @@ const MCI_MAP: Record<string, React.ComponentProps<typeof MaterialCommunityIcons
   coin: 'circle-multiple',
   scroll: 'script-text',
   trophy: 'trophy',
+  sleep: 'sleep',
+  skull: 'skull',
+  heart: 'heart',
+  'gold-coin': 'circle-multiple',
+  'map-marker-path': 'map-marker-path',
+  'treasure-chest': 'treasure-chest',
+  'treasure-chest-outline': 'treasure-chest-outline',
+  gift: 'gift',
+  store: 'store',
+  'medical-bag': 'medical-bag',
+  check: 'check',
+  star: 'star',
+  close: 'close',
+  crit: 'target',
+  agility: 'run-fast',
+  accessory: 'ring',
+  unharmed: 'shield-check',
+  merge: 'plus',
+  bow: 'bow-arrow',
+  eye: 'eye',
 };
 
 const STAT_MAP: Record<string, (p: SvgIconProps) => React.JSX.Element> = {

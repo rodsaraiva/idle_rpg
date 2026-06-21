@@ -30,14 +30,14 @@ export function RecruitButton({ cost, canAfford, onPress, label }: RecruitButton
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     borderRadius: theme.borderRadius.lg,
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.lg,
     alignItems: 'center',
   },
   buttonDisabled: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     opacity: 0.6,
   },
   content: {
@@ -45,13 +45,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   label: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 18,
+    fontWeight: '700',
     color: theme.colors.textPrimary,
   },
   cost: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontSize: 12,
+    fontWeight: '500',
     color: theme.colors.gold,
   },
   costDisabled: {

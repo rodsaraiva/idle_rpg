@@ -63,7 +63,7 @@ export const MissionPlaybackModal: React.FC<Props> = ({
           ]}
         >
           <Hexagon
-            fill={combatant ? (combatant.type === 'hero' ? theme.colors.primary : theme.colors.hp) : theme.colors.surfaceLight}
+            fill={combatant ? (combatant.type === 'hero' ? theme.colors.gold : theme.colors.statHp) : theme.colors.surfaceRaised}
             stroke={theme.colors.border}
             strokeWidth={1}
           >
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   container: {
     width: '95%',
     height: '90%',
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.bgBase,
     borderRadius: 16,
     overflow: 'hidden',
   },
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 8,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: 8,
   },
   closeButtonText: {
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   },
   hpBarFill: {
     height: '100%',
-    backgroundColor: theme.colors.hp,
+    backgroundColor: theme.colors.statHp,
   },
   logSection: {
     width: '100%',

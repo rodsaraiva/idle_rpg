@@ -9,8 +9,9 @@ import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR, INCAPACITATED_HP_THRESHOLD 
 import { CLASS_DEFS } from '../constants/classes';
 import { PERSONALITIES } from '../constants/personalities';
 import { useGame } from '../hooks/useGame';
-
 import { HPBar } from './HPBar';
+import { Icon, IconName } from './ui/Icon';
+import { Card } from './ui/Card';
 
 export interface HeroCardAction {
   label: string;
@@ -31,13 +32,13 @@ interface HeroCardProps {
   onPress?: (hero: Hero) => void;
 }
 
-const TASK_LABEL_MAP: Record<HeroTask, string> = {
-  [HeroTask.IDLE]: '💤 Ocioso',
-  [HeroTask.TRAIN_HP]: '❤️ Treinando HP',
-  [HeroTask.TRAIN_ATK]: '⚔️ Treinando ATK',
-  [HeroTask.TRAIN_MP]: '🔮 Treinando MP',
-  [HeroTask.INFIRMARY]: '🩺 Enfermaria',
-  [HeroTask.MISSION]: '🪙 Em Missão',
+const TASK_LABEL_MAP: Record<HeroTask, { icon: IconName; label: string }> = {
+  [HeroTask.IDLE]: { icon: 'sleep', label: 'Ocioso' },
+  [HeroTask.TRAIN_HP]: { icon: 'stat-hp', label: 'Treinando HP' },
+  [HeroTask.TRAIN_ATK]: { icon: 'stat-atk', label: 'Treinando ATK' },
+  [HeroTask.TRAIN_MP]: { icon: 'stat-mp', label: 'Treinando MP' },
+  [HeroTask.INFIRMARY]: { icon: 'potion', label: 'Enfermaria' },
+  [HeroTask.MISSION]: { icon: 'scroll', label: 'Em Missão' },
 };
 
 export function HeroCard({
@@ -66,7 +67,7 @@ export function HeroCard({
         accessibilityState={{ selected }}
       >
         <View style={[styles.checkbox, selected ? styles.checked : null]}>
-          {selected ? <Text style={styles.checkMark}>✓</Text> : null}
+          {selected ? <Icon name="check" size={14} color={theme.colors.textPrimary} /> : null}
         </View>
         <View style={styles.compactInfo}>
           <Text style={styles.name}>{hero.name}</Text>
@@ -77,7 +78,10 @@ export function HeroCard({
           <Text style={styles.smallStats}>
             HP {Math.floor(hero.hpCurrent)}/{Math.floor(hero.hpMax)} • ATK {Math.floor(hero.atk)}
           </Text>
-          <Text style={styles.statusText}>{TASK_LABEL_MAP[hero.currentTask]}</Text>
+          <View style={styles.statusRow}>
+            <Icon name={TASK_LABEL_MAP[hero.currentTask].icon} size={12} color={theme.colors.textSecondary} />
+            <Text style={styles.statusText}>{TASK_LABEL_MAP[hero.currentTask].label}</Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -90,21 +94,21 @@ export function HeroCard({
           {
             label: 'Treinar HP',
             isActive: hero.currentTask === HeroTask.TRAIN_HP,
-            color: theme.colors.hp,
+            color: theme.colors.statHp,
             disabled: isLocked,
             onPress: () => !isLocked && onSetTask(hero.id, HeroTask.TRAIN_HP),
           },
           {
             label: 'Treinar ATK',
             isActive: hero.currentTask === HeroTask.TRAIN_ATK,
-            color: theme.colors.atk,
+            color: theme.colors.statAtk,
             disabled: isLocked,
             onPress: () => !isLocked && onSetTask(hero.id, HeroTask.TRAIN_ATK),
           },
           {
             label: 'Treinar MP',
             isActive: hero.currentTask === HeroTask.TRAIN_MP,
-            color: theme.colors.mp,
+            color: theme.colors.statMp,
             disabled: isLocked,
             onPress: () => !isLocked && onSetTask(hero.id, HeroTask.TRAIN_MP),
           },
@@ -129,6 +133,7 @@ export function HeroCard({
 
   const CardContent = (
     <View style={styles.card}>
+    <Card elevation="e1">
       <View style={styles.header}>
         <View>
           <View style={styles.nameRow}>
@@ -140,7 +145,10 @@ export function HeroCard({
           </Text>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
-          <Text style={styles.taskBadge}>{TASK_LABEL_MAP[hero.currentTask]}</Text>
+          <View style={styles.taskBadge}>
+            <Icon name={TASK_LABEL_MAP[hero.currentTask].icon} size={11} color={theme.colors.textSecondary} />
+            <Text style={styles.taskBadgeText}>{TASK_LABEL_MAP[hero.currentTask].label}</Text>
+          </View>
           {hero.hpCurrent < INCAPACITATED_HP_THRESHOLD ? (
             <Text style={styles.incapText}>Incapacitado</Text>
           ) : null}
@@ -153,12 +161,12 @@ export function HeroCard({
         </View>
 
         <View style={styles.statItem} accessibilityLabel={`ATK ${Math.floor(hero.atk)}`}>
-          <Text style={styles.statIcon}>⚔️</Text>
+          <Icon name="stat-atk" size={14} color={theme.colors.statAtk} />
           <Text style={styles.statValue}>{Math.floor(hero.atk)}</Text>
         </View>
 
         <View style={styles.statItem} accessibilityLabel={`MP ${Math.floor(hero.mp)}`}>
-          <Text style={styles.statIcon}>🔮</Text>
+          <Icon name="stat-mp" size={14} color={theme.colors.statMp} />
           <Text style={styles.statValue}>{Math.floor(hero.mp)}</Text>
         </View>
       </View>
@@ -166,15 +174,15 @@ export function HeroCard({
       {showSecondaryStats && (
         <View style={styles.secondaryStatsRow}>
           <View style={styles.statItem} accessibilityLabel={`DEF ${Math.floor(hero.defense || 0)}`}>
-            <Text style={styles.statIcon}>🛡️</Text>
+            <Icon name="stat-def" size={14} color={theme.colors.statDef} />
             <Text style={styles.statValue}>{Math.floor(hero.defense || 0)}</Text>
           </View>
           <View style={styles.statItem} accessibilityLabel={`CRIT ${Math.floor(hero.crit || 0)}%`}>
-            <Text style={styles.statIcon}>🎯</Text>
+            <Icon name="crit" size={14} color={theme.colors.statDef} />
             <Text style={styles.statValue}>{Math.floor(hero.crit || 0)}%</Text>
           </View>
           <View style={styles.statItem} accessibilityLabel={`AGI ${Math.floor(hero.agility || 0)}`}>
-            <Text style={styles.statIcon}>🏃</Text>
+            <Icon name="agility" size={14} color={theme.colors.statDef} />
             <Text style={styles.statValue}>{Math.floor(hero.agility || 0)}</Text>
           </View>
         </View>
@@ -193,21 +201,21 @@ export function HeroCard({
       {hero.currentTask === HeroTask.TRAIN_HP && hero.trainingProgressMs ? (
         <AttributeProgress
           fraction={(hero.trainingProgressMs.hp ?? 0) / getTrainTimePerPoint('hp')}
-          color={theme.colors.hp}
+          color={theme.colors.statHp}
           label="Progresso HP"
         />
       ) : null}
       {hero.currentTask === HeroTask.TRAIN_ATK && hero.trainingProgressMs ? (
         <AttributeProgress
           fraction={(hero.trainingProgressMs.atk ?? 0) / getTrainTimePerPoint('atk')}
-          color={theme.colors.atk}
+          color={theme.colors.statAtk}
           label="Progresso ATK"
         />
       ) : null}
       {hero.currentTask === HeroTask.TRAIN_MP && hero.trainingProgressMs ? (
         <AttributeProgress
           fraction={(hero.trainingProgressMs.mp ?? 0) / getTrainTimePerPoint('mp')}
-          color={theme.colors.mp}
+          color={theme.colors.statMp}
           label="Progresso MP"
         />
       ) : null}
@@ -218,12 +226,13 @@ export function HeroCard({
             key={`${a.label}-${i}`}
             label={a.label}
             isActive={!!a.isActive}
-            color={a.color ?? theme.colors.primary}
+            color={a.color ?? theme.colors.gold}
             onPress={a.onPress}
             disabled={!!a.disabled}
           />
         ))}
       </View>
+    </Card>
     </View>
   );
 
@@ -240,14 +249,7 @@ export function HeroCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
     marginBottom: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
-    // Subtle shadow for depth
-    boxShadow: '0px 2px 4px rgba(0,0,0,0.1)',
   },
   header: {
     flexDirection: 'row',
@@ -256,8 +258,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   name: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 18,
+    fontWeight: '700',
     color: theme.colors.textPrimary,
   },
   nameRow: {
@@ -269,16 +271,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   taskBadge: {
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.textSecondary,
-    backgroundColor: theme.colors.surfaceLight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: theme.colors.surfaceRaised,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: 2,
     borderRadius: theme.borderRadius.sm,
-    overflow: 'hidden',
+  },
+  taskBadgeText: {
+    fontSize: 11,
+    color: theme.colors.textSecondary,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
   },
   classLabel: {
-    fontSize: theme.fontSize.xs,
+    fontSize: 11,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
@@ -309,14 +321,10 @@ const styles = StyleSheet.create({
     minWidth: 44,
     justifyContent: 'center',
   },
-  statIcon: {
-    fontSize: 14,
-    marginRight: 6,
-  },
   statValue: {
     fontSize: 12,
     color: theme.colors.textPrimary,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: '600',
   },
   // statBadge removed (attack type no longer shown)
   equipmentRow: {
@@ -326,13 +334,13 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   equipmentPill: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: theme.borderRadius.sm,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   equipmentPillText: {
-    fontSize: theme.fontSize.xs,
+    fontSize: 11,
     color: theme.colors.textSecondary,
   },
   actions: {
@@ -347,19 +355,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   hpLabel: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontSize: 12,
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   hpValue: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 14,
+    fontWeight: '700',
   },
   incapText: {
     marginTop: 4,
     color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.xs,
+    fontSize: 11,
   },
   compactRow: {
     flexDirection: 'row',
@@ -375,18 +383,14 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
+    borderColor: theme.colors.surfaceRaised,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   checked: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  checkMark: {
-    color: theme.colors.textPrimary,
-    fontWeight: '700',
+    backgroundColor: theme.colors.gold,
+    borderColor: theme.colors.gold,
   },
   compactInfo: {
     flex: 1,

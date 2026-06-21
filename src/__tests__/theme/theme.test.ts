@@ -1,25 +1,27 @@
 import { theme } from '../../theme';
 
 describe('theme composto', () => {
-  test('mantém as chaves legadas resolvendo para string (compat — nenhuma tela quebra)', () => {
-    const legacy = [
-      'background', 'surface', 'surfaceLight', 'primary', 'primaryLight', 'primaryDark',
-      'hp', 'atk', 'mp', 'gold', 'goldDark', 'success', 'danger',
+  test('expõe os tokens do Reino nas cores', () => {
+    const tokens = [
+      'bgDeep', 'bgBase', 'surface', 'surfaceRaised',
+      'gold', 'goldBright', 'goldDark',
+      'statHp', 'statAtk', 'statMp', 'statDef',
       'textPrimary', 'textSecondary', 'textMuted', 'border',
+      'success', 'danger',
     ] as const;
-    for (const k of legacy) {
-      expect(typeof (theme.colors as Record<string, string>)[k]).toBe('string');
-      expect((theme.colors as Record<string, string>)[k]).toMatch(/^#/);
+    for (const k of tokens) {
+      expect(typeof theme.colors[k]).toBe('string');
+      expect(theme.colors[k]).toMatch(/^#/);
     }
   });
 
-  test('aliases legados apontam para os tokens do Reino', () => {
-    expect(theme.colors.background).toBe('#1E1710'); // bgBase
+  test('tokens semânticos do Reino têm valores corretos', () => {
+    expect(theme.colors.bgBase).toBe('#1E1710');
     expect(theme.colors.surface).toBe('#2A2018');
-    expect(theme.colors.primary).toBe('#C9A227'); // gold
-    expect(theme.colors.hp).toBe('#C0392B'); // statHp
-    expect(theme.colors.atk).toBe('#C8772E'); // statAtk
-    expect(theme.colors.mp).toBe('#3E6E8E'); // statMp
+    expect(theme.colors.gold).toBe('#C9A227');
+    expect(theme.colors.statHp).toBe('#C0392B');
+    expect(theme.colors.statAtk).toBe('#C8772E');
+    expect(theme.colors.statMp).toBe('#3E6E8E');
   });
 
   test('expõe os novos grupos de tokens', () => {
@@ -47,9 +49,8 @@ describe('theme composto', () => {
     expect(theme.type.body.fontSize).toBe(14);
   });
 
-  test('mantém fontSize/fontWeight legados e borderRadius medieval', () => {
-    expect(theme.fontSize.md).toBe(14);
-    expect(theme.fontWeight.bold).toBe('700');
+  test('borderRadius medieval e espaçamentos presentes', () => {
     expect(theme.borderRadius.sm).toBe(4); // medieval (era 6)
+    expect(typeof theme.spacing.md).toBe('number');
   });
 });

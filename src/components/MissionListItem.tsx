@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: theme.spacing.sm,
     borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
+    borderColor: theme.colors.surfaceRaised,
   },
   header: {
     flexDirection: 'row',
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   difficultyBadge: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,

@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { theme } from '../../theme';
+import { Shimmer } from './Shimmer';
 
 interface LoadingScreenProps {
   message?: string;
@@ -9,7 +10,8 @@ interface LoadingScreenProps {
 export function LoadingScreen({ message = 'Carregando...' }: LoadingScreenProps) {
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color={theme.colors.primary} />
+      <Shimmer width={200} height={20} radius="md" />
+      <Shimmer width={140} height={14} radius="md" />
       <Text style={styles.text}>{message}</Text>
     </View>
   );
@@ -18,13 +20,13 @@ export function LoadingScreen({ message = 'Carregando...' }: LoadingScreenProps)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.bgBase,
     justifyContent: 'center',
     alignItems: 'center',
     gap: theme.spacing.md,
   },
   text: {
+    ...theme.type.body,
     color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.md,
   },
 });
