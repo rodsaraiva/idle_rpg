@@ -131,8 +131,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   rewardText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: '600',
+    ...theme.type.caption,
+    fontWeight: theme.fontWeight.semibold,
   },
   rewardTagLocked: {
     opacity: 0.5,
