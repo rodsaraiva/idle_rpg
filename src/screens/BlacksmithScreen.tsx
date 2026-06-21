@@ -1,22 +1,27 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Modal,
+  ScrollView,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
 import { theme } from '../theme';
-import { rarity } from '../theme/tokens/rarity';
-import { ScreenHeader } from '../components/ui/ScreenHeader';
-import { GoldDisplay } from '../components/GoldDisplay';
+import { ScreenContainer } from '../components/ui/ScreenContainer';
+import { Banner } from '../components/ui/Banner';
+import { AnimatedGold } from '../components/AnimatedGold';
+import { Card } from '../components/ui/Card';
+import { OrnateFrame } from '../components/ui/OrnateFrame';
+import { EmptyState } from '../components/ui/EmptyState';
+import { Icon, IconName } from '../components/ui/Icon';
 import { useGame } from '../hooks/useGame';
 import { EQUIPMENT_TIERS, MAX_EQUIPPED_ITEMS } from '../constants/equipment';
 import { CLASS_DEFS } from '../constants/classes';
 import { Equipment } from '../types';
-import { MATERIALS, FORGE_RECIPES, MaterialId, ForgeRecipe, EquipmentType } from '../constants/materials';
+import { MATERIALS, FORGE_RECIPES, MaterialId, EquipmentType } from '../constants/materials';
+import { LOTTIE_ASSETS } from '../constants/assets';
 
 const STAT_LABELS: Record<string, string> = {
   hp: 'HP',
@@ -27,10 +32,10 @@ const STAT_LABELS: Record<string, string> = {
   agility: 'AGI',
 };
 
-const TYPE_ICONS: Record<string, string> = {
-  weapon: '\u2694\uFE0F',
-  armor: '\uD83D\uDEE1\uFE0F',
-  accessory: '\uD83D\uDC8D',
+const TYPE_ICONS: Record<string, IconName> = {
+  weapon: 'sword',
+  armor: 'shield',
+  accessory: 'coin',
 };
 
 function formatStatBonus(statBonus: Equipment['statBonus']): string {
@@ -42,7 +47,7 @@ function formatStatBonus(statBonus: Equipment['statBonus']): string {
 
 function getTierColor(tier: number): string {
   const def = EQUIPMENT_TIERS.find(t => t.tier === tier);
-  return def ? rarity[def.rarity].color : rarity.common.color;
+  return def ? theme.rarity[def.rarity].color : theme.rarity.common.color;
 }
 
 export function BlacksmithScreen() {
@@ -51,8 +56,8 @@ export function BlacksmithScreen() {
   const [equipModalItem, setEquipModalItem] = useState<Equipment | null>(null);
   const [selectedTier, setSelectedTier] = useState<number>(1);
   const [selectedEquipmentType, setSelectedEquipmentType] = useState<EquipmentType>('weapon');
+  const forgeRef = useRef<LottieView>(null);
 
-  // Update timer every second for forging progress
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
@@ -61,11 +66,9 @@ export function BlacksmithScreen() {
   const forgingQueue = state.forgingQueue || [];
   const inventory = state.inventory || [];
 
-  // Items still being forged (not yet collected)
   const activeForging = forgingQueue.filter(f => f.finishAt > now);
   const readyToCollect = forgingQueue.filter(f => f.finishAt <= now);
 
-  // Items not in forging queue (available to equip)
   const forgingIds = new Set(forgingQueue.map(f => f.equipmentId));
   const completedItems = inventory.filter(e => !forgingIds.has(e.id));
 
@@ -75,6 +78,7 @@ export function BlacksmithScreen() {
 
   const handleCollect = useCallback((equipmentId: string) => {
     dispatch({ type: 'COLLECT_EQUIPMENT', equipmentId });
+    forgeRef.current?.play();
   }, [dispatch]);
 
   const handleEquip = useCallback((heroId: string, equipmentId: string) => {
@@ -89,18 +93,12 @@ export function BlacksmithScreen() {
   const renderForgeTier = (tierDef: typeof EQUIPMENT_TIERS[number]) => {
     const canAfford = state.gold >= tierDef.cost;
     return (
-      <TouchableOpacity
-        key={tierDef.tier}
-        style={[styles.tierCard, { borderColor: rarity[tierDef.rarity].color }]}
-        onPress={() => {
-            setSelectedTier(tierDef.tier);
-            handleForge(tierDef.tier, selectedEquipmentType);
-          }}
-        disabled={!canAfford}
-        activeOpacity={0.7}
-      >
+      <Card key={tierDef.tier} rarity={tierDef.rarity} elevation="e1" onPress={canAfford ? () => {
+        setSelectedTier(tierDef.tier);
+        handleForge(tierDef.tier, selectedEquipmentType);
+      } : undefined} padding="sm">
         <View style={styles.tierHeader}>
-          <Text style={[styles.tierLabel, { color: rarity[tierDef.rarity].color }]}>
+          <Text style={[styles.tierLabel, { color: theme.rarity[tierDef.rarity].color }]}>
             {tierDef.label}
           </Text>
           <Text style={[styles.tierCost, !canAfford && styles.costDisabled]}>
@@ -110,7 +108,7 @@ export function BlacksmithScreen() {
         <Text style={styles.tierTime}>
           Tempo: {Math.round(tierDef.forgeTimeMs / 1000)}s
         </Text>
-      </TouchableOpacity>
+      </Card>
     );
   };
 
@@ -120,15 +118,18 @@ export function BlacksmithScreen() {
     const remaining = Math.max(0, item.finishAt - now);
     const secs = Math.ceil(remaining / 1000);
     return (
-      <View key={item.equipmentId} style={styles.progressCard}>
-        <View style={styles.progressInfo}>
-          <Text style={[styles.itemName, { color: getTierColor(eq.tier) }]}>
-            {TYPE_ICONS[eq.type] || ''} {eq.name}
-          </Text>
-          <Text style={styles.statText}>{formatStatBonus(eq.statBonus)}</Text>
+      <Card key={item.equipmentId} elevation="e1" padding="sm">
+        <View style={styles.progressRow}>
+          <View style={styles.progressInfo}>
+            <View style={styles.itemNameRow}>
+              <Icon name={TYPE_ICONS[eq.type] ?? 'anvil'} size={14} color={getTierColor(eq.tier)} />
+              <Text style={[styles.itemName, { color: getTierColor(eq.tier) }]}>{eq.name}</Text>
+            </View>
+            <Text style={styles.statText}>{formatStatBonus(eq.statBonus)}</Text>
+          </View>
+          <Text style={styles.progressTime}>{secs}s</Text>
         </View>
-        <Text style={styles.progressTime}>{secs}s</Text>
-      </View>
+      </Card>
     );
   };
 
@@ -136,146 +137,163 @@ export function BlacksmithScreen() {
     const eq = inventory.find(e => e.id === item.equipmentId);
     if (!eq) return null;
     return (
-      <View key={item.equipmentId} style={styles.readyCard}>
-        <View style={styles.progressInfo}>
-          <Text style={[styles.itemName, { color: getTierColor(eq.tier) }]}>
-            {TYPE_ICONS[eq.type] || ''} {eq.name}
-          </Text>
-          <Text style={styles.statText}>{formatStatBonus(eq.statBonus)}</Text>
+      <Card key={item.equipmentId} elevation="e2" padding="sm">
+        <View style={styles.progressRow}>
+          <View style={styles.progressInfo}>
+            <View style={styles.itemNameRow}>
+              <Icon name={TYPE_ICONS[eq.type] ?? 'anvil'} size={14} color={getTierColor(eq.tier)} />
+              <Text style={[styles.itemName, { color: getTierColor(eq.tier) }]}>{eq.name}</Text>
+            </View>
+            <Text style={styles.statText}>{formatStatBonus(eq.statBonus)}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.collectBtn}
+            onPress={() => handleCollect(item.equipmentId)}
+          >
+            <Text style={styles.collectBtnText}>Coletar</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.collectBtn}
-          onPress={() => handleCollect(item.equipmentId)}
-        >
-          <Text style={styles.collectBtnText}>Coletar</Text>
-        </TouchableOpacity>
-      </View>
+      </Card>
     );
   };
 
   const renderInventoryItem = (eq: Equipment) => {
     const equippedByHero = state.heroes.find(h => (h.equippedItems || []).includes(eq.id));
     return (
-      <View key={eq.id} style={styles.inventoryCard}>
-        <View style={styles.progressInfo}>
-          <Text style={[styles.itemName, { color: getTierColor(eq.tier) }]}>
-            {TYPE_ICONS[eq.type] || ''} {eq.name}
-          </Text>
-          <Text style={styles.statText}>{formatStatBonus(eq.statBonus)}</Text>
-          {equippedByHero && (
-            <Text style={styles.equippedByText}>
-              Equipado por {equippedByHero.name}
-            </Text>
+      <Card key={eq.id} elevation="e1" padding="sm">
+        <View style={styles.progressRow}>
+          <View style={styles.progressInfo}>
+            <View style={styles.itemNameRow}>
+              <Icon name={TYPE_ICONS[eq.type] ?? 'anvil'} size={14} color={getTierColor(eq.tier)} />
+              <Text style={[styles.itemName, { color: getTierColor(eq.tier) }]}>{eq.name}</Text>
+            </View>
+            <Text style={styles.statText}>{formatStatBonus(eq.statBonus)}</Text>
+            {equippedByHero && (
+              <Text style={styles.equippedByText}>
+                Equipado por {equippedByHero.name}
+              </Text>
+            )}
+          </View>
+          {equippedByHero ? (
+            <TouchableOpacity
+              style={styles.unequipBtn}
+              onPress={() => handleUnequip(equippedByHero.id, eq.id)}
+            >
+              <Text style={styles.unequipBtnText}>Desequipar</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.equipBtn}
+              onPress={() => setEquipModalItem(eq)}
+            >
+              <Text style={styles.equipBtnText}>Equipar</Text>
+            </TouchableOpacity>
           )}
         </View>
-        {equippedByHero ? (
-          <TouchableOpacity
-            style={styles.unequipBtn}
-            onPress={() => handleUnequip(equippedByHero.id, eq.id)}
-          >
-            <Text style={styles.unequipBtnText}>Desequipar</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={styles.equipBtn}
-            onPress={() => setEquipModalItem(eq)}
-          >
-            <Text style={styles.equipBtnText}>Equipar</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      </Card>
     );
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <ScreenHeader
+    <ScreenContainer
+      scroll={true}
+      banner={
+        <Banner
           title="Ferreiro Real"
           subtitle="Forje equipamentos para seus heróis"
-          right={<GoldDisplay gold={state.gold} />}
+          right={<AnimatedGold gold={state.gold} />}
         />
+      }
+    >
+      {/* Forge Tiers */}
+      <Text style={styles.sectionTitle}>Forjar Equipamento</Text>
 
-        {/* Forge Tiers */}
-        <Text style={styles.sectionTitle}>Forjar Equipamento</Text>
+      {/* Seletor de tipo de equipamento */}
+      <View style={styles.typeRow}>
+        {(['weapon', 'armor', 'accessory'] as const).map(t => (
+          <TouchableOpacity
+            key={t}
+            style={[styles.typeBtn, selectedEquipmentType === t && styles.typeBtnActive]}
+            onPress={() => setSelectedEquipmentType(t)}
+          >
+            <Icon name={TYPE_ICONS[t]} size={16} color={selectedEquipmentType === t ? theme.colors.bgDeep : theme.colors.textPrimary} />
+            <Text style={[styles.typeBtnText, selectedEquipmentType === t && styles.typeBtnTextActive]}>{t}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-        {/* Seletor de tipo de equipamento */}
-        <View style={styles.typeRow}>
-          {(['weapon', 'armor', 'accessory'] as const).map(t => (
-            <TouchableOpacity
-              key={t}
-              style={[styles.typeBtn, selectedEquipmentType === t && styles.typeBtnActive]}
-              onPress={() => setSelectedEquipmentType(t)}
-            >
-              <Text style={styles.typeBtnText}>{TYPE_ICONS[t]} {t}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      <View style={styles.tiersRow}>
+        {EQUIPMENT_TIERS.map(renderForgeTier)}
+      </View>
 
-        <View style={styles.tiersRow}>
-          {EQUIPMENT_TIERS.map(renderForgeTier)}
-        </View>
+      {/* Active Forging */}
+      {activeForging.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Forjando...</Text>
+          {activeForging.map(renderForgeProgress)}
+        </>
+      )}
 
-        {/* Active Forging */}
-        {activeForging.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Forjando...</Text>
-            {activeForging.map(renderForgeProgress)}
-          </>
-        )}
+      {/* Ready to Collect */}
+      {readyToCollect.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Pronto para Coletar</Text>
+          {readyToCollect.map(renderReadyItem)}
+        </>
+      )}
 
-        {/* Ready to Collect */}
-        {readyToCollect.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Pronto para Coletar</Text>
-            {readyToCollect.map(renderReadyItem)}
-          </>
-        )}
+      {/* Inventory */}
+      <Text style={styles.sectionTitle}>
+        Inventário ({completedItems.length})
+      </Text>
+      {completedItems.length === 0 ? (
+        <EmptyState icon="anvil" title="Forja vazia" subtitle="Nenhum equipamento ainda. Forje algo!" />
+      ) : (
+        completedItems.map(renderInventoryItem)
+      )}
 
-        {/* Inventory */}
-        <Text style={styles.sectionTitle}>
-          Inventário ({completedItems.length})
-        </Text>
-        {completedItems.length === 0 ? (
-          <Text style={styles.emptyText}>
-            Nenhum equipamento ainda. Forje algo!
-          </Text>
-        ) : (
-          completedItems.map(renderInventoryItem)
-        )}
+      {/* Materiais */}
+      <Text style={styles.sectionTitle}>Materiais</Text>
+      {(() => {
+        const playerMaterials = (state.materials ?? {}) as Partial<Record<MaterialId, number>>;
+        const recipe = FORGE_RECIPES[selectedTier]?.[selectedEquipmentType];
+        return (
+          <View style={styles.materialsGrid}>
+            {MATERIALS.map(m => {
+              const owned = playerMaterials[m.id] ?? 0;
+              const needed = recipe?.materials[m.id] ?? 0;
+              const isMissing = needed > 0 && owned < needed;
+              return (
+                <View
+                  key={m.id}
+                  style={[styles.materialCard, isMissing && styles.materialCardMissing]}
+                >
+                  <Text style={styles.materialIcon}>{m.icon}</Text>
+                  <Text style={[styles.materialName, isMissing && styles.materialNameMissing]}>
+                    {m.name}
+                  </Text>
+                  <Text style={[styles.materialCount, isMissing && styles.materialCountMissing]}>
+                    {owned}{needed > 0 ? `/${needed}` : ''}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        );
+      })()}
 
-        {/* Materiais */}
-        <Text style={styles.sectionTitle}>Materiais</Text>
-        {(() => {
-          const playerMaterials = (state.materials ?? {}) as Partial<Record<MaterialId, number>>;
-          const recipe = FORGE_RECIPES[selectedTier]?.[selectedEquipmentType];
-          return (
-            <View style={styles.materialsGrid}>
-              {MATERIALS.map(m => {
-                const owned = playerMaterials[m.id] ?? 0;
-                const needed = recipe?.materials[m.id] ?? 0;
-                const isMissing = needed > 0 && owned < needed;
-                return (
-                  <View
-                    key={m.id}
-                    style={[styles.materialCard, isMissing && styles.materialCardMissing]}
-                  >
-                    <Text style={styles.materialIcon}>{m.icon}</Text>
-                    <Text style={[styles.materialName, isMissing && styles.materialNameMissing]}>
-                      {m.name}
-                    </Text>
-                    <Text style={[styles.materialCount, isMissing && styles.materialCountMissing]}>
-                      {owned}{needed > 0 ? `/${needed}` : ''}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          );
-        })()}
-      </ScrollView>
+      {/* Lottie forge FX — overlay invisível, dispara ao coletar */}
+      <LottieView
+        ref={forgeRef}
+        source={LOTTIE_ASSETS.FORGE_COMPLETE}
+        loop={false}
+        style={styles.forgeFx}
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore — pointerEvents não é prop nativa da lib mas funciona no RN
+        pointerEvents="none"
+      />
 
-      {/* Hero selection modal for equipping */}
+      {/* Modal de seleção de herói para equipar */}
       <Modal
         visible={equipModalItem !== null}
         transparent
@@ -283,7 +301,7 @@ export function BlacksmithScreen() {
         onRequestClose={() => setEquipModalItem(null)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <OrnateFrame>
             <Text style={styles.modalTitle}>
               Equipar {equipModalItem?.name}
             </Text>
@@ -351,39 +369,23 @@ export function BlacksmithScreen() {
             >
               <Text style={styles.modalCloseBtnText}>Cancelar</Text>
             </TouchableOpacity>
-          </View>
+          </OrnateFrame>
         </View>
       </Modal>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  container: {
-    padding: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-  },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    ...theme.type.label,
     color: theme.colors.textSecondary,
     marginTop: 20,
     marginBottom: 10,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   tiersRow: {
     gap: 8,
-  },
-  tierCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.md,
-    padding: 14,
-    borderWidth: 1,
   },
   tierHeader: {
     flexDirection: 'row',
@@ -391,50 +393,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tierLabel: {
-    fontSize: 16,
+    ...theme.type.body,
     fontWeight: '700',
   },
   tierCost: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...theme.type.body,
     color: theme.colors.gold,
   },
   costDisabled: {
     color: theme.colors.textMuted,
   },
   tierTime: {
-    fontSize: 12,
+    ...theme.type.caption,
     color: theme.colors.textMuted,
     marginTop: 4,
   },
-  progressCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.md,
-    padding: 12,
+  progressRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
   },
   progressInfo: {
     flex: 1,
   },
+  itemNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   progressTime: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...theme.type.stat,
+    fontVariant: ['tabular-nums'] as import('react-native').TextStyle['fontVariant'],
     color: theme.colors.gold,
     marginLeft: 12,
-  },
-  readyCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.md,
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: theme.colors.success,
   },
   collectBtn: {
     backgroundColor: theme.colors.success,
@@ -444,98 +435,137 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   collectBtnText: {
+    ...theme.type.label,
     color: theme.colors.textPrimary,
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  inventoryCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.md,
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
   },
   itemName: {
-    fontSize: 14,
+    ...theme.type.body,
     fontWeight: '700',
   },
   statText: {
-    fontSize: 12,
+    ...theme.type.caption,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
-  equippedBadge: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: theme.colors.primary,
-    backgroundColor: 'rgba(124, 58, 237, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    overflow: 'hidden',
-    marginLeft: 12,
-  },
   equippedByText: {
-    fontSize: 11,
-    color: theme.colors.primaryLight,
+    ...theme.type.caption,
+    color: theme.colors.goldBright,
     marginTop: 2,
   },
   equipBtn: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: theme.borderRadius.sm,
     marginLeft: 12,
   },
   equipBtnText: {
-    color: theme.colors.textPrimary,
-    fontWeight: '700',
-    fontSize: 13,
+    ...theme.type.label,
+    color: theme.colors.bgDeep,
   },
   unequipBtn: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: theme.colors.border,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: theme.borderRadius.sm,
     marginLeft: 12,
   },
   unequipBtnText: {
+    ...theme.type.label,
+    color: theme.colors.danger,
+  },
+  // Equipment type selector
+  typeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  typeBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: theme.borderRadius.sm,
+    backgroundColor: theme.colors.surfaceRaised,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  typeBtnActive: {
+    backgroundColor: theme.colors.gold,
+  },
+  typeBtnText: {
+    ...theme.type.caption,
+    color: theme.colors.textPrimary,
+  },
+  typeBtnTextActive: {
+    color: theme.colors.bgDeep,
+  },
+  // Materials grid
+  materialsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  materialCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.borderRadius.md,
+    padding: 10,
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  materialCardMissing: {
+    borderColor: theme.colors.danger,
+    backgroundColor: theme.colors.surface,
+  },
+  materialIcon: {
+    fontSize: 22,
+  },
+  materialName: {
+    ...theme.type.caption,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+  },
+  materialNameMissing: {
     color: theme.colors.danger,
     fontWeight: '700',
-    fontSize: 13,
   },
-  emptyText: {
-    fontSize: 13,
-    color: theme.colors.textMuted,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    paddingVertical: 20,
+  materialCount: {
+    ...theme.type.stat,
+    fontVariant: ['tabular-nums'] as import('react-native').TextStyle['fontVariant'],
+    color: theme.colors.textPrimary,
   },
-  // Modal styles
+  materialCountMissing: {
+    color: theme.colors.danger,
+  },
+  // Lottie FX overlay
+  forgeFx: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 50,
+  },
+  // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: theme.spacing.lg,
   },
-  modalContent: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    width: '100%',
-    maxHeight: '70%',
-  },
   modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...theme.type.h2,
     color: theme.colors.textPrimary,
     textAlign: 'center',
   },
   modalSubtitle: {
-    fontSize: 12,
+    ...theme.type.caption,
     color: theme.colors.textSecondary,
     textAlign: 'center',
     marginTop: 4,
@@ -543,12 +573,13 @@ const styles = StyleSheet.create({
   },
   modalList: {
     flexGrow: 0,
+    maxHeight: 300,
   },
   modalHeroRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.md,
     padding: 12,
     marginBottom: 6,
@@ -560,12 +591,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalHeroName: {
-    fontSize: 14,
+    ...theme.type.body,
     fontWeight: '700',
     color: theme.colors.textPrimary,
   },
   modalHeroClass: {
-    fontSize: 12,
+    ...theme.type.caption,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
@@ -573,13 +604,13 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
   },
   alreadyEquippedBadge: {
-    fontSize: 11,
+    ...theme.type.caption,
     fontWeight: '700',
     color: theme.colors.gold,
     marginLeft: 8,
   },
   fullBadge: {
-    fontSize: 11,
+    ...theme.type.caption,
     fontWeight: '700',
     color: theme.colors.textMuted,
     marginLeft: 8,
@@ -593,71 +624,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   modalCloseBtnText: {
+    ...theme.type.body,
     color: theme.colors.textSecondary,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  // Equipment type selector
-  typeRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8,
-  },
-  typeBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: theme.borderRadius.sm,
-    backgroundColor: theme.colors.surfaceLight,
-    alignItems: 'center',
-  },
-  typeBtnActive: {
-    backgroundColor: theme.colors.primary,
-  },
-  typeBtnText: {
-    color: theme.colors.textPrimary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  // Materials grid
-  materialsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  materialCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.md,
-    padding: 10,
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
-  },
-  materialCardMissing: {
-    borderColor: theme.colors.danger,
-    backgroundColor: 'rgba(239,68,68,0.08)',
-  },
-  materialIcon: {
-    fontSize: 22,
-  },
-  materialName: {
-    fontSize: 11,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-  },
-  materialNameMissing: {
-    color: theme.colors.danger,
-    fontWeight: '700',
-  },
-  materialCount: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: theme.colors.textPrimary,
-  },
-  materialCountMissing: {
-    color: theme.colors.danger,
   },
 });
