@@ -135,6 +135,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     alignItems: 'center',
     borderWidth: 1,
+    ...theme.elevation.e1,
   },
   batchText: {
     ...theme.type.label,
