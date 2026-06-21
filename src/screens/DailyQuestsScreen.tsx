@@ -1,14 +1,16 @@
 import React, { useContext, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, StatusBar } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { GameContext } from '../context/GameContext';
 import { pickDailyQuests, DAILY_BONUS_REWARD, DailyQuestDef } from '../constants/dailyQuests';
 import { theme } from '../theme';
-import { ScreenHeader } from '../components/ui/ScreenHeader';
+import { Banner } from '../components/ui/Banner';
+import { ScreenContainer } from '../components/ui/ScreenContainer';
+import { Card } from '../components/ui/Card';
+import { EmptyState } from '../components/ui/EmptyState';
+import { AnimatedGold } from '../components/AnimatedGold';
 
 export function DailyQuestsScreen() {
   const { state, dispatch } = useContext(GameContext);
-  const insets = useSafeAreaInsets();
 
   const dailyQuests = state.dailyQuests;
   const questDefs = useMemo(() => {
@@ -35,7 +37,7 @@ export function DailyQuestsScreen() {
     dispatch({ type: 'CLAIM_DAILY_QUEST', questId });
   }
 
-  // Calculate time until reset
+  // Tempo até reset
   const now = new Date();
   const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   const msUntilReset = tomorrow.getTime() - now.getTime();
@@ -43,47 +45,43 @@ export function DailyQuestsScreen() {
   const minutesLeft = Math.floor((msUntilReset % (1000 * 60 * 60)) / (1000 * 60));
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
-
-      <View style={styles.headerWrapper}>
-        <ScreenHeader
-          title="Missoes Diarias"
+    <ScreenContainer
+      banner={
+        <Banner
+          title="Missões Diárias"
           subtitle={`Renovam em ${hoursLeft}h ${minutesLeft}m`}
-          showGold={false}
+          right={<AnimatedGold gold={state.gold} />}
         />
-      </View>
+      }
+    >
+      {questStates.length === 0 ? (
+        <EmptyState
+          icon="scroll"
+          title="Sem missões diárias"
+          subtitle="Volte amanhã para novos objetivos."
+        />
+      ) : (
+        <>
+          {questStates.map(({ def, current, completed, claimed }) => (
+            <QuestCard
+              key={def.id}
+              def={def}
+              current={current}
+              completed={completed}
+              claimed={claimed}
+              onClaim={() => handleClaim(def.id)}
+            />
+          ))}
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {questStates.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Carregando missoes diarias...</Text>
-          </View>
-        ) : (
-          <>
-            {questStates.map(({ def, current, completed, claimed }) => (
-              <QuestCard
-                key={def.id}
-                def={def}
-                current={current}
-                completed={completed}
-                claimed={claimed}
-                onClaim={() => handleClaim(def.id)}
-              />
-            ))}
-
-            {/* Bonus card */}
-            <View style={[styles.bonusCard, allClaimed && styles.bonusCardClaimed]}>
+          {/* Card de bônus diário */}
+          <Card elevation="e1">
+            <View style={[styles.bonusInner, allClaimed && styles.bonusCardClaimed]}>
               <View style={styles.bonusHeader}>
                 <Text style={styles.bonusIcon}>{'🏆'}</Text>
                 <View style={styles.bonusTextContainer}>
-                  <Text style={styles.bonusTitle}>Bonus Diario</Text>
+                  <Text style={styles.bonusTitle}>Bônus Diário</Text>
                   <Text style={styles.bonusSubtitle}>
-                    Complete todas as 3 missoes diarias
+                    Complete todas as 3 missões diárias
                   </Text>
                 </View>
                 <View style={styles.bonusRewardBadge}>
@@ -105,19 +103,19 @@ export function DailyQuestsScreen() {
               </View>
 
               {allClaimed ? (
-                <Text style={styles.bonusClaimedText}>Bonus coletado!</Text>
+                <Text style={styles.bonusClaimedText}>Bônus coletado!</Text>
               ) : allCompleted && allQuestsClaimed ? (
                 <Text style={styles.bonusPendingText}>Colete todas as recompensas acima</Text>
               ) : (
                 <Text style={styles.bonusPendingText}>
-                  {questStates.filter(q => q.claimed).length}/3 missoes completas
+                  {questStates.filter(q => q.claimed).length}/3 missões completas
                 </Text>
               )}
             </View>
-          </>
-        )}
-      </ScrollView>
-    </View>
+          </Card>
+        </>
+      )}
+    </ScreenContainer>
   );
 }
 
@@ -137,8 +135,8 @@ function QuestCard({
   const progress = Math.min(current / def.targetValue, 1);
 
   return (
-    <View style={[styles.questCard, claimed && styles.questCardClaimed]}>
-      <View style={styles.questRow}>
+    <Card elevation="e1">
+      <View style={[styles.questRow, claimed && styles.questRowClaimed]}>
         <View style={styles.questIconContainer}>
           <Text style={styles.questIcon}>{def.icon}</Text>
         </View>
@@ -176,58 +174,23 @@ function QuestCard({
           </View>
         )}
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  headerWrapper: {
-    paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.surfaceLight,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-    gap: 12,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingTop: 40,
-  },
-  emptyText: {
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-  },
-
-  // Quest card
-  questCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
-  },
-  questCardClaimed: {
-    opacity: 0.6,
-  },
   questRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  questRowClaimed: {
+    opacity: 0.6,
   },
   questIconContainer: {
     width: 44,
     height: 44,
     borderRadius: 10,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
@@ -241,7 +204,7 @@ const styles = StyleSheet.create({
   },
   questName: {
     color: theme.colors.textPrimary,
-    fontSize: 14,
+    ...theme.type.body,
     fontWeight: '700',
     marginBottom: 6,
   },
@@ -250,7 +213,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
 
-  // Progress bar
+  // Barra de progresso
   progressBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -259,13 +222,13 @@ const styles = StyleSheet.create({
   progressBarBg: {
     flex: 1,
     height: 8,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     borderRadius: 4,
   },
   progressBarComplete: {
@@ -279,7 +242,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
 
-  // Claim button
+  // Botão de coletar
   claimButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -291,14 +254,13 @@ const styles = StyleSheet.create({
   },
   claimButtonText: {
     color: theme.colors.bgDeep,
-    fontSize: 14,
-    fontWeight: '800',
+    ...theme.type.label,
   },
   claimButtonGold: {
     fontSize: 14,
   },
 
-  // Claimed badge
+  // Badge de coletado
   claimedBadge: {
     width: 36,
     height: 36,
@@ -313,7 +275,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
-  // Reward preview (not yet claimable)
+  // Prévia de recompensa (ainda não claimable)
   rewardPreview: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -329,14 +291,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
-  // Bonus card
-  bonusCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
+  // Card de bônus
+  bonusInner: {
     borderWidth: 2,
-    borderColor: theme.colors.gold,
-    marginTop: 4,
+    borderColor: theme.colors.borderGold,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.sm,
   },
   bonusCardClaimed: {
     borderColor: theme.colors.success,
@@ -355,12 +315,11 @@ const styles = StyleSheet.create({
   },
   bonusTitle: {
     color: theme.colors.gold,
-    fontSize: 16,
-    fontWeight: '800',
+    ...theme.type.h2,
   },
   bonusSubtitle: {
     color: theme.colors.textSecondary,
-    fontSize: 12,
+    ...theme.type.caption,
     marginTop: 2,
   },
   bonusRewardBadge: {
@@ -370,8 +329,7 @@ const styles = StyleSheet.create({
   },
   bonusRewardText: {
     color: theme.colors.gold,
-    fontSize: 16,
-    fontWeight: '800',
+    ...theme.type.h2,
   },
   bonusRewardGoldIcon: {
     fontSize: 16,
@@ -399,13 +357,12 @@ const styles = StyleSheet.create({
   },
   bonusClaimedText: {
     color: theme.colors.success,
-    fontSize: 13,
-    fontWeight: '700',
+    ...theme.type.label,
     textAlign: 'center',
   },
   bonusPendingText: {
     color: theme.colors.textSecondary,
-    fontSize: 12,
+    ...theme.type.caption,
     textAlign: 'center',
   },
 });
