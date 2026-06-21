@@ -1,10 +1,7 @@
 import { Hero, MissionAction, MissionActorType } from '../types';
 import { MissionTemplate } from '../constants/missions';
-import { 
+import {
   CRIT_MULTIPLIER,
-  ENEMY_ROWS,
-  GRID_COLUMNS,
-  GRID_ROWS,
   HIT_CHANCE_DISTANCE_PENALTY
 } from '../constants/game';
 import { GameMath } from './gameMath';
@@ -14,7 +11,8 @@ import { ClassId } from '../types';
 import { executePreAttackSkills, onHeroDamagedSkills, onHeroDeathSkills, onRogueHitSkills, processDoTBuffs, getShieldReduction } from './skillEffects';
 import { applyPersonalityOnHit, applyProtectorShield } from './personalityEffects';
 import { applyEnemyPassiveSkills, executeEnemyPreAttackSkills, onEnemyHitSkills, onEnemyDamagedSkills, processEnemyRegenBuffs } from './enemySkillEffects';
-import { assignEnemySkills } from '../constants/enemySkills';
+
+import { createEnemies, findMovePath } from './battle/grid';
 
 export type {
   SynergyId,
@@ -27,76 +25,7 @@ export type {
 import type { BattleState, BattleEnemy } from './battle/types';
 
 export const BattleEngine = {
-  /**
-   * Cria os inimigos para a batalha baseado no template da missão.
-   * @param rng PRNG a usar para aleatoriedade — default Math.random para retrocompatibilidade
-   *            (call sites de produção como missionHandler não passam rng).
-   */
-  createEnemies(template: MissionTemplate, rng: () => number = Math.random): BattleEnemy[] {
-    const enemies: BattleEnemy[] = [];
-    const enemyPositions = [...ENEMY_ROWS].flatMap(r =>
-      Array.from({ length: GRID_COLUMNS }, (_, c) => r * GRID_COLUMNS + c)
-    );
-    // Shuffle positions to place enemies randomly in the enemy zone
-    for (let i = enemyPositions.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      [enemyPositions[i], enemyPositions[j]] = [enemyPositions[j], enemyPositions[i]];
-    }
-
-    let posIdx = 0;
-
-    if (template.enemies && template.enemies.length > 0) {
-      template.enemies.forEach((edef, gi) => {
-        const cnt = edef.count ?? 1;
-        for (let i = 0; i < cnt; i++) {
-          const attackType = edef.attackType ?? (rng() < 0.5 ? 'MELEE' : 'RANGED');
-          enemies.push({
-            id: `enemy_${gi}_${i}`,
-            hp: edef.hp,
-            maxHp: edef.hp,
-            atk: edef.atk,
-            mp: edef.mp,
-            defense: edef.defense ?? 2,
-            crit: edef.crit ?? 5,
-            agility: edef.agility ?? 5,
-            alive: true,
-            attackType,
-            position: enemyPositions[posIdx++] ?? 0,
-            range: edef.range ?? (attackType === 'RANGED' ? 3 : 1),
-            movement: edef.movement ?? 2,
-          });
-          const difficulty = template.difficulty ?? 1;
-          const isBoss = (edef.hp ?? 0) >= 100;
-          const assigned = assignEnemySkills(difficulty, isBoss, rng);
-          if (assigned.length > 0) enemies[enemies.length - 1].skills = assigned;
-        }
-      });
-    } else {
-      const enemyCount = template.minHeroes;
-      for (let i = 0; i < enemyCount; i++) {
-        enemies.push({
-          id: `orc_${i}`,
-          hp: 5,
-          maxHp: 5,
-          atk: 2,
-          mp: 1,
-          defense: 1,
-          crit: 2,
-          agility: 2,
-          alive: true,
-          attackType: i % 2 === 0 ? 'MELEE' : 'RANGED',
-          position: enemyPositions[posIdx++] ?? 0,
-          range: i % 2 === 0 ? 1 : 3,
-          movement: 2,
-        });
-        const difficulty = template.difficulty ?? 1;
-        const isBoss = false;
-        const assigned = assignEnemySkills(difficulty, isBoss, rng);
-        if (assigned.length > 0) enemies[enemies.length - 1].skills = assigned;
-      }
-    }
-    return enemies;
-  },
+  createEnemies,
 
   /**
    * Constructs a fresh BattleState with synergy handlers wired up and
@@ -109,7 +38,7 @@ export const BattleEngine = {
     opts: { heroPositions?: Record<string, number>; rng?: () => number } = {}
   ): BattleState {
     const rng = opts.rng ?? Math.random;
-    const enemies = this.createEnemies(template, rng);
+    const enemies = createEnemies(template, rng);
     const enemyPositions: Record<string, number> = {};
     enemies.forEach(e => { if (e.position !== undefined) enemyPositions[e.id] = e.position; });
 
@@ -154,45 +83,7 @@ export const BattleEngine = {
     }
   },
 
-  /**
-   * Encontra a melhor posição para se mover em direção ao alvo.
-   */
-  findMovePath(
-    currentPos: number,
-    targetPos: number,
-    movement: number,
-    occupiedPositions: Set<number>
-  ): number {
-    if (movement <= 0) return currentPos;
-    
-    let bestPos = currentPos;
-    let minDistance = GameMath.getHexDistance(currentPos, targetPos);
-
-    // BFS simplificada para encontrar a célula dentro do alcance de movimento que está mais próxima do alvo
-    const queue: { pos: number; dist: number }[] = [{ pos: currentPos, dist: 0 }];
-    const visited = new Set<number>([currentPos]);
-
-    while (queue.length > 0) {
-      const { pos, dist } = queue.shift()!;
-
-      if (dist < movement) {
-        const neighbors = GameMath.getHexNeighbors(pos, GRID_ROWS, GRID_COLUMNS);
-        for (const neighbor of neighbors) {
-          if (!visited.has(neighbor) && !occupiedPositions.has(neighbor)) {
-            visited.add(neighbor);
-            const dToTarget = GameMath.getHexDistance(neighbor, targetPos);
-            if (dToTarget < minDistance) {
-              minDistance = dToTarget;
-              bestPos = neighbor;
-            }
-            queue.push({ pos: neighbor, dist: dist + 1 });
-          }
-        }
-      }
-    }
-
-    return bestPos;
-  },
+  findMovePath,
 
   /**
    * Lógica de seleção de alvo.
@@ -481,7 +372,7 @@ export const BattleEngine = {
 
       if (dist > range) {
         const move = hero.movement ?? 2;
-        const nextPos = this.findMovePath(currentPos, targetPos, move, getOccupied());
+        const nextPos = findMovePath(currentPos, targetPos, move, getOccupied());
         
         if (nextPos !== currentPos) {
           const moveTxt = `${hero.name} moveu-se para a posição ${nextPos}`;
@@ -628,7 +519,7 @@ export const BattleEngine = {
 
       if (dist > range) {
         const move = enemy.movement ?? 2;
-        const nextPos = this.findMovePath(currentPos, targetPos, move, getOccupied());
+        const nextPos = findMovePath(currentPos, targetPos, move, getOccupied());
 
         if (nextPos !== currentPos) {
           const moveTxt = `${enemy.id} moveu-se para a posição ${nextPos}`;
