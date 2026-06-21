@@ -57,10 +57,10 @@ export function MissionResultModal() {
         setDisplayedLog((s) => [...s, action.text]);
 
         if (action.actionType === 'hit' && action.amount) {
-          emit(FEEDBACK_EVENTS.FLOAT, { text: `-${Math.floor(action.amount)}`, color: '#ff4d4d' });
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `-${Math.floor(action.amount)}`, color: theme.colors.danger });
           lightTap();
         } else if (action.actionType === 'heal' && action.amount) {
-          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor(action.amount)}`, color: '#2ecc71' });
+          emit(FEEDBACK_EVENTS.FLOAT, { text: `+${Math.floor(action.amount)}`, color: theme.colors.success });
           lightTap();
         }
 
@@ -144,7 +144,7 @@ export function MissionResultModal() {
             />
           )}
 
-          <View style={[styles.header, { backgroundColor: result.success ? '#27AE60' : '#C0392B' }]}>
+          <View style={[styles.header, { backgroundColor: result.success ? theme.colors.success : theme.colors.statHp }]}>
             <Text style={styles.headerEmoji}>{result.success ? '🏆' : '💀'}</Text>
             <Text style={styles.title}>{result.success ? 'Vitoria Real' : 'Missao Fracassada'}</Text>
             <Text style={styles.battleSummary}>{battleSummaryText}</Text>
@@ -229,7 +229,7 @@ export function MissionResultModal() {
                       )}
                       <Text style={[
                         styles.hpRemaining,
-                        { color: isIncapacitated ? '#ff4d4d' : isUnharmed ? theme.colors.success : theme.colors.textSecondary }
+                        { color: isIncapacitated ? theme.colors.danger : isUnharmed ? theme.colors.success : theme.colors.textSecondary }
                       ]}>
                         {Math.floor(Math.max(0, c.hpAfter))}/{heroMaxHp}
                       </Text>
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   incapBadge: {
-    backgroundColor: '#ff4d4d',
+    backgroundColor: theme.colors.danger,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   hpLost: {
-    color: '#ff4d4d',
+    color: theme.colors.danger,
     fontSize: 13,
     fontWeight: '800',
   },
