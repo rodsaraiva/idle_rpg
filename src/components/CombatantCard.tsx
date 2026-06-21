@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Image, Platform, Animated, Easing } from 'react-native';
 import { theme } from '../theme';
+import { textShadow } from '../theme/elevation';
 import { on, FeedbackEvent } from '../services/feedback';
 
 interface CombatantCardProps {
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 12,
-    textShadow: '0px 1px 2px rgba(0,0,0,0.45)',
+    ...textShadow('rgba(0,0,0,0.45)', 0, 1, 2),
   },
   metaRow: {
     flexDirection: 'row',
@@ -261,6 +262,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '900',
     color: '#ff4d4d',
-    textShadow: '0px 2px 3px rgba(0,0,0,0.5)',
+    ...textShadow('rgba(0,0,0,0.5)', 0, 2, 3),
   },
 });

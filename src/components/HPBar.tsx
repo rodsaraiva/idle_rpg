@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { theme } from '../theme';
+import { textShadow } from '../theme/elevation';
 
 interface HPBarProps {
   current: number;
@@ -63,6 +64,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 10,
-    textShadow: '0px 1px 1px rgba(0,0,0,0.35)',
+    ...textShadow('rgba(0,0,0,0.35)', 0, 1, 1),
   },
 });
