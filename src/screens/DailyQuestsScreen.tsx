@@ -8,6 +8,7 @@ import { ScreenContainer } from '../components/ui/ScreenContainer';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { AnimatedGold } from '../components/AnimatedGold';
+import { Icon } from '../components/ui/Icon';
 
 export function DailyQuestsScreen() {
   const { state, dispatch } = useContext(GameContext);
@@ -77,7 +78,9 @@ export function DailyQuestsScreen() {
           <Card elevation="e1">
             <View style={[styles.bonusInner, allClaimed && styles.bonusCardClaimed]}>
               <View style={styles.bonusHeader}>
-                <Text style={styles.bonusIcon}>{'🏆'}</Text>
+                <View style={styles.bonusIconWrapper}>
+                  <Icon name="trophy" size={28} color={theme.colors.gold} />
+                </View>
                 <View style={styles.bonusTextContainer}>
                   <Text style={styles.bonusTitle}>Bônus Diário</Text>
                   <Text style={styles.bonusSubtitle}>
@@ -86,7 +89,7 @@ export function DailyQuestsScreen() {
                 </View>
                 <View style={styles.bonusRewardBadge}>
                   <Text style={styles.bonusRewardText}>+{DAILY_BONUS_REWARD}</Text>
-                  <Text style={styles.bonusRewardGoldIcon}>{'🪙'}</Text>
+                  <Icon name="gold-coin" size={16} color={theme.colors.gold} />
                 </View>
               </View>
 
@@ -165,12 +168,12 @@ function QuestCard({
         ) : completed ? (
           <TouchableOpacity style={styles.claimButton} onPress={onClaim} activeOpacity={0.7}>
             <Text style={styles.claimButtonText}>+{def.reward}</Text>
-            <Text style={styles.claimButtonGold}>{'🪙'}</Text>
+            <Icon name="gold-coin" size={14} color={theme.colors.bgDeep} />
           </TouchableOpacity>
         ) : (
           <View style={styles.rewardPreview}>
             <Text style={styles.rewardPreviewText}>{def.reward}</Text>
-            <Text style={styles.rewardPreviewGold}>{'🪙'}</Text>
+            <Icon name="gold-coin" size={12} color={theme.colors.textSecondary} />
           </View>
         )}
       </View>
@@ -256,10 +259,6 @@ const styles = StyleSheet.create({
     color: theme.colors.bgDeep,
     ...theme.type.label,
   },
-  claimButtonGold: {
-    fontSize: 14,
-  },
-
   // Badge de coletado
   claimedBadge: {
     width: 36,
@@ -287,10 +286,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-  rewardPreviewGold: {
-    fontSize: 12,
-  },
-
   // Card de bônus
   bonusInner: {
     borderWidth: 2,
@@ -306,8 +301,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  bonusIcon: {
-    fontSize: 28,
+  bonusIconWrapper: {
     marginRight: theme.spacing.md,
   },
   bonusTextContainer: {
@@ -330,9 +324,6 @@ const styles = StyleSheet.create({
   bonusRewardText: {
     color: theme.colors.gold,
     ...theme.type.h2,
-  },
-  bonusRewardGoldIcon: {
-    fontSize: 16,
   },
   bonusProgressRow: {
     flexDirection: 'row',
