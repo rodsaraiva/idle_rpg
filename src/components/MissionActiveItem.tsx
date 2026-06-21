@@ -6,6 +6,7 @@ import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
 import { on, FeedbackEvent } from '../services/feedback';
 import { CombatantCard } from './CombatantCard';
+import { Icon } from './ui/Icon';
 
 interface Props {
   mission: ActiveMission;
@@ -42,7 +43,8 @@ export function MissionActiveItem({ mission, onWatch }: Props) {
           style={styles.watchButton} 
           onPress={() => onWatch?.(mission.id)}
         >
-          <Text style={styles.watchButtonText}>👁 Assistir</Text>
+          <Icon name="eye" size={14} color={theme.colors.goldBright} />
+          <Text style={styles.watchButtonText}> Assistir</Text>
         </TouchableOpacity>
       </View>
 

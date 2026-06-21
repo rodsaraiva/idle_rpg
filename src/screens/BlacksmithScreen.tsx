@@ -35,7 +35,7 @@ const STAT_LABELS: Record<string, string> = {
 const TYPE_ICONS: Record<string, IconName> = {
   weapon: 'sword',
   armor: 'shield',
-  accessory: 'coin',
+  accessory: 'accessory',
 };
 
 function formatStatBonus(statBonus: Equipment['statBonus']): string {

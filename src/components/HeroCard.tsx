@@ -33,7 +33,7 @@ interface HeroCardProps {
 }
 
 const TASK_LABEL_MAP: Record<HeroTask, { icon: IconName; label: string }> = {
-  [HeroTask.IDLE]: { icon: 'coin', label: 'Ocioso' },
+  [HeroTask.IDLE]: { icon: 'sleep', label: 'Ocioso' },
   [HeroTask.TRAIN_HP]: { icon: 'stat-hp', label: 'Treinando HP' },
   [HeroTask.TRAIN_ATK]: { icon: 'stat-atk', label: 'Treinando ATK' },
   [HeroTask.TRAIN_MP]: { icon: 'stat-mp', label: 'Treinando MP' },
@@ -178,11 +178,11 @@ export function HeroCard({
             <Text style={styles.statValue}>{Math.floor(hero.defense || 0)}</Text>
           </View>
           <View style={styles.statItem} accessibilityLabel={`CRIT ${Math.floor(hero.crit || 0)}%`}>
-            <Icon name="shield" size={14} color={theme.colors.statDef} />
+            <Icon name="crit" size={14} color={theme.colors.statDef} />
             <Text style={styles.statValue}>{Math.floor(hero.crit || 0)}%</Text>
           </View>
           <View style={styles.statItem} accessibilityLabel={`AGI ${Math.floor(hero.agility || 0)}`}>
-            <Icon name="sword" size={14} color={theme.colors.statDef} />
+            <Icon name="agility" size={14} color={theme.colors.statDef} />
             <Text style={styles.statValue}>{Math.floor(hero.agility || 0)}</Text>
           </View>
         </View>

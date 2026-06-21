@@ -95,7 +95,7 @@ export function PantheonScreen() {
       {/* Instrução de fusão */}
       <Card elevation="e1">
         <View style={styles.instructionHeader}>
-          <Icon name="castle" size={18} color={theme.colors.gold} />
+          <Icon name="merge" size={18} color={theme.colors.gold} />
           <Text style={styles.instructionTitle}> Fusão de Heróis</Text>
         </View>
         <Text style={styles.instructionText}>
@@ -188,7 +188,7 @@ export function PantheonScreen() {
                   </View>
                   {isSelected && (
                     <View style={styles.checkMark}>
-                      <Icon name="trophy" size={16} color={theme.colors.bgDeep} />
+                      <Icon name="check" size={16} color={theme.colors.bgDeep} />
                     </View>
                   )}
                 </View>
@@ -223,7 +223,7 @@ export function PantheonScreen() {
             </View>
 
             <View style={styles.modalArrowRow}>
-              <Icon name="stat-def" size={24} color={theme.colors.textSecondary} />
+              <Icon name="merge" size={24} color={theme.colors.textSecondary} />
             </View>
             <View style={styles.modalResultPreview}>
               <Icon name="trophy" size={18} color={theme.colors.goldBright} />

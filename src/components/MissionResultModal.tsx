@@ -225,7 +225,7 @@ export function MissionResultModal() {
                       )}
                       {isUnharmed && !isIncapacitated && (
                         <View style={styles.ilesoBadge}>
-                          <Icon name="trophy" size={9} color={theme.colors.success} />
+                          <Icon name="unharmed" size={9} color={theme.colors.success} />
                           <Text style={styles.ilesoText}>ILESO</Text>
                         </View>
                       )}

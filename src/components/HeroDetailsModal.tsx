@@ -7,6 +7,7 @@ import { PERSONALITIES } from '../constants/personalities';
 import { HPBar } from './HPBar';
 import { useGame } from '../hooks/useGame';
 import { getEffectiveStats } from '../utils/heroUtils';
+import { Icon, IconName } from './ui/Icon';
 
 interface HeroDetailsModalProps {
   hero: Hero | null;
@@ -51,10 +52,14 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
     agility: { label: 'AGI', color: theme.colors.success },
   };
 
-  const StatItem = ({ label, value, icon, color }: { label: string; value: string | number; icon: string; color?: string }) => (
+  const ICON_NAMES: ReadonlySet<IconName> = new Set<IconName>(['crit', 'agility', 'bow']);
+  const StatItem = ({ label, value, icon, color }: { label: string; value: string | number; icon: IconName | string; color?: string }) => (
     <View style={styles.statRow}>
       <View style={styles.statLabelContainer}>
-        <Text style={styles.statIcon}>{icon}</Text>
+        {ICON_NAMES.has(icon as IconName)
+          ? <Icon name={icon as IconName} size={16} color={color ?? theme.colors.textPrimary} />
+          : <Text style={styles.statIcon}>{icon}</Text>
+        }
         <Text style={styles.statLabel}>{label}</Text>
       </View>
       <Text style={[styles.statValue, color ? { color } : null]}>{value}</Text>
@@ -128,19 +133,21 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
               <StatItem
                 label="Crítico"
                 value={critDelta > 0 ? `${Math.floor(effectiveStats.crit)}% (+${critDelta})` : `${Math.floor(effectiveStats.crit)}%`}
-                icon="🎯"
+                icon="crit"
+                color={theme.colors.gold}
               />
               <StatItem
                 label="Agilidade"
                 value={agilityDelta > 0 ? `${Math.floor(effectiveStats.agility)} (+${agilityDelta})` : Math.floor(effectiveStats.agility)}
-                icon="🏃"
+                icon="agility"
+                color={theme.colors.success}
               />
             </View>
 
             {classDef && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Informações de Classe</Text>
-                <StatItem label="Tipo de Ataque" value={hero.attackType === 'RANGED' ? 'Distância' : 'Corpo a Corpo'} icon="🏹" />
+                <StatItem label="Tipo de Ataque" value={hero.attackType === 'RANGED' ? 'Distância' : 'Corpo a Corpo'} icon={hero.attackType === 'RANGED' ? 'bow' : 'sword'} />
                 {classDef.ability && (
                   <View style={styles.abilityContainer}>
                     <Text style={styles.abilityLabel}>Habilidade Especial:</Text>
