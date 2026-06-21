@@ -71,7 +71,7 @@ export function GuildScreen() {
           </Text>
         </View>
         <View style={styles.summaryItem}>
-          <Icon name="castle" size={14} color={theme.colors.textMuted} />
+          <Icon name="sleep" size={14} color={theme.colors.textMuted} />
           <Text style={styles.summaryText}>
             {state.heroes.filter((h) => h.currentTask === 'IDLE').length} Ociosos
           </Text>
@@ -90,12 +90,14 @@ export function GuildScreen() {
         />
       )}
 
-      <LottieView
-        ref={recruitRef}
-        source={LOTTIE_ASSETS.RECRUIT}
-        style={styles.recruitFx}
-        loop={false}
-      />
+      <View style={styles.recruitFx} pointerEvents="none">
+        <LottieView
+          ref={recruitRef}
+          source={LOTTIE_ASSETS.RECRUIT}
+          style={StyleSheet.absoluteFillObject}
+          loop={false}
+        />
+      </View>
 
       <OfflineSummaryModal
         visible={!!offlineSummary}
