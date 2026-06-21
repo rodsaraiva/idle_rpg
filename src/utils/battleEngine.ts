@@ -10,6 +10,7 @@ import { applyEnemyPassiveSkills, executeEnemyPreAttackSkills, onEnemyHitSkills,
 
 import { createEnemies, findMovePath } from './battle/grid';
 import { calculateAttack, cleanExpiredBuffs } from './battle/resolution';
+import { selectTarget } from './battle/targeting';
 
 export type {
   SynergyId,
@@ -71,98 +72,7 @@ export const BattleEngine = {
 
   findMovePath,
 
-  /**
-   * Lógica de seleção de alvo.
-   * Agora considera a distância, classe e personalidade.
-   */
-  selectTarget<T extends { id: string; hp?: number; hpCurrent?: number; position?: number; classId?: string; range?: number }>(
-    attacker: { id: string; attackType?: 'MELEE' | 'RANGED'; personality?: string; classId?: string; range?: number },
-    attackerPos: number,
-    candidates: T[],
-    rng: () => number,
-    context: {
-      lastAttackerId?: string;
-      alliesInDanger?: string[];
-      threats?: Record<string, string>; // enemyId -> targetAllyId
-      modifyScore?: (candidate: T, baseScore: number) => number;
-    } = {}
-  ): T | undefined {
-    if (!candidates || candidates.length === 0) return undefined;
-
-    const hpOf = (c: T) => (typeof c.hp === 'number' ? c.hp : c.hpCurrent ?? 0);
-    const maxHpOf = (c: any) => (typeof c.maxHp === 'number' ? c.maxHp : 100); // Default fallback
-
-    const scores = candidates.map(target => {
-      let score = 100; // Base score
-      const dist = GameMath.getHexDistance(attackerPos, target.position ?? 0);
-      const targetHpPct = hpOf(target) / maxHpOf(target);
-      
-      // 1. Distância (Penalidade base)
-      score -= dist * 10;
-
-      // 2. Lógica por Classe do Atacante
-      if (attacker.classId === 'TANK' || attacker.classId === 'WARRIOR') {
-        // Preferem alvos próximos
-        if (dist <= 1) score += 20;
-      } else if (attacker.classId === 'ROGUE' || attacker.classId === 'ARCHER' || attacker.classId === 'MAGE') {
-        // Preferem alvos frágeis (não TANK)
-        if (target.classId !== 'TANK') score += 15;
-        if (targetHpPct < 0.5) score += 10;
-      }
-
-      // 3. Lógica por Personalidade
-      switch (attacker.personality) {
-        case 'AGGRESSIVE':
-          // Prioriza quem pode morrer
-          if (targetHpPct < 0.3) score += 40;
-          // Se puder matar com o dano médio, ignora distância (no simulador isso será refletido no score alto)
-          break;
-        case 'PROTECTOR':
-          // Prioriza quem atacou aliados em perigo
-          if (context.threats && target.id in context.threats) {
-            const targetOfEnemy = context.threats[target.id];
-            if (context.alliesInDanger?.includes(targetOfEnemy)) {
-              score += 100;
-            }
-          }
-          break;
-        case 'CAUTIOUS':
-          // Prefere alvos no alcance sem mover
-          const range = attacker.range ?? 1;
-          if (dist <= range) score += 30;
-          // Alvos isolados (menos vizinhos inimigos - simplificado para: prefere quem está longe do centro do grid inimigo)
-          break;
-        case 'VENGEFUL':
-          // Bônus imenso contra quem o atacou
-          if (target.id === context.lastAttackerId) {
-            score += 200;
-          }
-          break;
-        case 'OPPORTUNIST':
-          // Alvos fáceis e HP baixo
-          if (target.classId !== 'TANK') score += 20;
-          if (targetHpPct < 0.4) score += 30;
-          break;
-      }
-
-      if (context.modifyScore) {
-        score = context.modifyScore(target, score);
-      }
-
-      return { target, score };
-    });
-
-    // Ordena por score descendente e pega o melhor
-    scores.sort((a, b) => b.score - a.score);
-    
-    // Adiciona uma pequena aleatoriedade para não ser 100% determinístico
-    const topCandidates = scores.slice(0, 2);
-    if (topCandidates.length > 1 && rng() < 0.2) {
-      return topCandidates[1].target;
-    }
-
-    return topCandidates[0]?.target;
-  },
+  selectTarget,
 
   calculateAttack,
 
@@ -250,7 +160,7 @@ export const BattleEngine = {
 
     // 1b. Verificar skills desbloqueadas (pre-attack)
     const preTarget = aliveEnemies.length > 0
-      ? this.selectTarget(hero, state.heroPositions[hero.id] ?? 45, aliveEnemies, rng, {
+      ? selectTarget(hero, state.heroPositions[hero.id] ?? 45, aliveEnemies, rng, {
           lastAttackerId: state.lastAttacker[hero.id],
         })
       : undefined;
@@ -262,7 +172,7 @@ export const BattleEngine = {
 
     // 2. Movimentação
     const currentPos = state.heroPositions[hero.id] ?? 45;
-    const initialTarget = this.selectTarget(hero, currentPos, aliveEnemies, rng, {
+    const initialTarget = selectTarget(hero, currentPos, aliveEnemies, rng, {
       lastAttackerId: state.lastAttacker[hero.id],
       alliesInDanger: getAlliesInDanger(),
       threats: state.threats
@@ -302,7 +212,7 @@ export const BattleEngine = {
 
     // 3. Ataque (reavaliar alvo após possível movimento)
     const updatedPos = state.heroPositions[hero.id] ?? currentPos;
-    const finalTarget = this.selectTarget(hero, updatedPos, aliveEnemies, rng, {
+    const finalTarget = selectTarget(hero, updatedPos, aliveEnemies, rng, {
       lastAttackerId: state.lastAttacker[hero.id],
       alliesInDanger: getAlliesInDanger(),
       threats: state.threats
@@ -414,7 +324,7 @@ export const BattleEngine = {
 
     // 1. Movimentação
     const currentPos = state.enemyPositions[enemy.id] ?? 0;
-    const initialTarget = this.selectTarget(enemy, currentPos, aliveHeroes, rng, {
+    const initialTarget = selectTarget(enemy, currentPos, aliveHeroes, rng, {
       lastAttackerId: state.lastAttacker[enemy.id],
       alliesInDanger: getEnemiesInDanger(),
       modifyScore,
@@ -449,7 +359,7 @@ export const BattleEngine = {
 
     // 2. Ataque
     const updatedPos = state.enemyPositions[enemy.id] ?? currentPos;
-    const finalTarget = this.selectTarget(enemy, updatedPos, aliveHeroes, rng, {
+    const finalTarget = selectTarget(enemy, updatedPos, aliveHeroes, rng, {
       lastAttackerId: state.lastAttacker[enemy.id],
       alliesInDanger: getEnemiesInDanger(),
       modifyScore,
