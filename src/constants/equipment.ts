@@ -1,13 +1,15 @@
+import { Rarity } from '../theme/tokens/rarity';
+
 export interface EquipmentTemplate {
   type: 'weapon' | 'armor' | 'accessory';
   names: string[];
   statRange: { stat: string; min: number; max: number }[];
 }
 
-export const EQUIPMENT_TIERS = [
-  { tier: 1, label: 'Comum', cost: 50, forgeTimeMs: 30_000, color: '#94A3B8' },
-  { tier: 2, label: 'Raro', cost: 150, forgeTimeMs: 60_000, color: '#3B82F6' },
-  { tier: 3, label: 'Épico', cost: 400, forgeTimeMs: 120_000, color: '#A855F7' },
+export const EQUIPMENT_TIERS: { tier: number; label: string; cost: number; forgeTimeMs: number; rarity: Rarity }[] = [
+  { tier: 1, label: 'Comum', cost: 50, forgeTimeMs: 30_000, rarity: 'common' },
+  { tier: 2, label: 'Raro', cost: 150, forgeTimeMs: 60_000, rarity: 'rare' },
+  { tier: 3, label: 'Épico', cost: 400, forgeTimeMs: 120_000, rarity: 'epic' },
 ];
 
 export const EQUIPMENT_TEMPLATES: EquipmentTemplate[] = [
