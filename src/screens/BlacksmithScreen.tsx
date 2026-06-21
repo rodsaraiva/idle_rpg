@@ -287,10 +287,7 @@ export function BlacksmithScreen() {
         ref={forgeRef}
         source={LOTTIE_ASSETS.FORGE_COMPLETE}
         loop={false}
-        style={styles.forgeFx}
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore — pointerEvents não é prop nativa da lib mas funciona no RN
-        pointerEvents="none"
+        style={[styles.forgeFx, { pointerEvents: 'none' }]}
       />
 
       {/* Modal de seleção de herói para equipar */}
