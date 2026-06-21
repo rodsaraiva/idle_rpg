@@ -30,6 +30,12 @@ const ReactNative = {
   Switch,
   StyleSheet: {
     create: (styles) => styles,
+    flatten: (style) => {
+      if (!style) return {};
+      if (Array.isArray(style)) return Object.assign({}, ...style.map((s) => (s ? s : {})));
+      return style;
+    },
+    absoluteFillObject: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   },
   Platform: {
     OS: 'ios',
