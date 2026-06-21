@@ -25,10 +25,11 @@ import { getActiveSynergies } from '../constants/synergies';
 import { v4 as uuidv4 } from 'uuid';
 import { checkAchievements } from './achievementHandler';
 import { createGuaranteedEquipment } from './equipmentHandler';
-import { refreshDailyQuests, updateDailyProgress } from './dailyQuestHandler';
+import { refreshDailyQuests } from './dailyQuestHandler';
 import { refreshWeeklyState, updateWeeklyProgress, markWeeklyBossDefeated } from './weeklyHandler';
 import { WEEKLY_BOSS_POOL } from '../constants/weeklyBosses';
 import { bossToMissionTemplate } from './bossTemplate';
+import { applyTickProgress } from './progressTrackers';
 import { MissionTemplate } from '../constants/missions';
 import { getUnlockedSkills } from '../constants/skills';
 import { emitSkillUnlocked, emitRareMaterialDrop } from '../services/milestones';
@@ -462,28 +463,13 @@ export function handleTick(state: GameState, now: number): GameState {
     }
   }
 
-  // 4. Update daily quest progress trackers
+  // 4+5. Progresso de daily e weekly num único pass (no-op para deltas zerados)
   const missionsCompletedCount = newResults.length;
-  if (missionsCompletedCount > 0) {
-    stateAfterTick = updateDailyProgress(stateAfterTick, 'missionsCompleted', missionsCompletedCount);
-  }
-  if (totalPointsTrained > 0) {
-    stateAfterTick = updateDailyProgress(stateAfterTick, 'pointsTrained', totalPointsTrained);
-  }
-  if (goldGained > 0) {
-    stateAfterTick = updateDailyProgress(stateAfterTick, 'goldEarned', goldGained);
-  }
-
-  // 5. Update weekly quest progress trackers
-  if (missionsCompletedCount > 0) {
-    stateAfterTick = updateWeeklyProgress(stateAfterTick, 'missionsCompleted', missionsCompletedCount);
-  }
-  if (totalPointsTrained > 0) {
-    stateAfterTick = updateWeeklyProgress(stateAfterTick, 'pointsTrained', totalPointsTrained);
-  }
-  if (goldGained > 0) {
-    stateAfterTick = updateWeeklyProgress(stateAfterTick, 'goldEarned', goldGained);
-  }
+  stateAfterTick = applyTickProgress(stateAfterTick, {
+    missionsCompleted: missionsCompletedCount,
+    pointsTrained: totalPointsTrained,
+    goldEarned: goldGained,
+  });
 
   // Check and award achievements
   return checkAchievements(stateAfterTick);
