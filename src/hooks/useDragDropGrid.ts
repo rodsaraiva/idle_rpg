@@ -103,7 +103,7 @@ export function useDragDropGrid<T>(onDrop?: (item: T, droppedIndex: number) => v
           try { successNotification(); } catch { /* non-critical */ }
           try {
             const { playSound } = require('../services/sound');
-            if (playSound) playSound('chest_reveal' as any).catch(() => {});
+            if (playSound) playSound('chest_reveal' as any);
           } catch { /* non-critical */ }
           clearDragState();
         });

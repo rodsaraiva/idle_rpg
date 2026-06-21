@@ -9,6 +9,7 @@ import { MISSIONS } from '../constants/missions';
 import { WEEKLY_BOSS_POOL, bossToMissionTemplate } from '../constants/weeklyBosses';
 import { calcMissionReward } from './missionMath';
 import { computePointsFromMs } from './trainingMath';
+import { createGuaranteedEquipment } from '../context/equipmentHandler';
 
 export function calculateOfflineProgress(savedState: GameState): OfflineSummaryFull | null {
   const savedAt = savedState.lastSavedAt || Date.now();
@@ -193,6 +194,18 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
           const idx = newHeroes.findIndex((hh) => hh.id === hid);
           if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
         });
+
+        // Boss semanal: espelha o tick online — marca bossDefeated e concede equipamento garantido
+        if (m.isWeeklyBoss) {
+          const defeatedBoss = WEEKLY_BOSS_POOL.find((b) => b.id === m.templateId);
+          if (newState.weeklyState) {
+            newState.weeklyState = { ...newState.weeklyState, bossDefeated: true };
+          }
+          if (defeatedBoss?.guaranteedRewardTier != null) {
+            const rewardItem = createGuaranteedEquipment(defeatedBoss.guaranteedRewardTier);
+            newState.inventory = [...(newState.inventory ?? []), rewardItem];
+          }
+        }
       }
     });
   }

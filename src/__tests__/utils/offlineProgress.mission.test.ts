@@ -180,4 +180,53 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
     expect(summary.newState!.activeMissions!.length).toBe(0);
     expect(summary.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
   });
+
+  test('boss semanal offline: bossDefeated marcado como true no weeklyState após conclusão', () => {
+    const boss = WEEKLY_BOSS_POOL[0];
+    const now = Date.now();
+    const startedAt = now - 1 - boss.durationMs;
+    const heroes = ['h1', 'h2', 'h3', 'h4'].map((id) => makeHero({ id }));
+    const mission = makeMission({
+      templateId: boss.id,
+      isWeeklyBoss: true,
+      looping: false,
+      startedAt,
+      heroIds: ['h1', 'h2', 'h3', 'h4'],
+      precomputedOutcome: {
+        reward: 300, rounds: 1, actions: [], log: [], success: true, casualties: [], enemyCasualties: 0,
+      },
+    });
+    const state = {
+      ...makeState({ elapsedSinceSavedMs: 1 + boss.durationMs, mission, heroes }),
+      weeklyState: { seed: 1, quests: [], progress: {}, allClaimed: false, bossDefeated: false },
+    };
+    const summary = calculateOfflineProgress(state)!;
+    expect(summary.newState!.weeklyState?.bossDefeated).toBe(true);
+  });
+
+  test('boss semanal offline: concede 1 equipamento garantido no inventory (do tier do boss)', () => {
+    const boss = WEEKLY_BOSS_POOL[0]; // guaranteedRewardTier: 2
+    const now = Date.now();
+    const startedAt = now - 1 - boss.durationMs;
+    const heroes = ['h1', 'h2', 'h3', 'h4'].map((id) => makeHero({ id }));
+    const mission = makeMission({
+      templateId: boss.id,
+      isWeeklyBoss: true,
+      looping: false,
+      startedAt,
+      heroIds: ['h1', 'h2', 'h3', 'h4'],
+      precomputedOutcome: {
+        reward: 300, rounds: 1, actions: [], log: [], success: true, casualties: [], enemyCasualties: 0,
+      },
+    });
+    const state = {
+      ...makeState({ elapsedSinceSavedMs: 1 + boss.durationMs, mission, heroes }),
+      weeklyState: { seed: 1, quests: [], progress: {}, allClaimed: false, bossDefeated: false },
+      inventory: [] as any[],
+    };
+    const summary = calculateOfflineProgress(state)!;
+    const inv = summary.newState!.inventory ?? [];
+    expect(inv.length).toBe(1);
+    expect(inv[0].tier).toBe(boss.guaranteedRewardTier);
+  });
 });
