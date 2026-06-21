@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#fff',
+    color: theme.colors.textPrimary,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   incapText: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontSize: 9,
     fontWeight: '900',
   },

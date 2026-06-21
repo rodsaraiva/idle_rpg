@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerButtonText: {
-    color: '#000',
+    color: theme.colors.bgDeep,
     fontSize: 16,
     fontWeight: 'bold',
     textTransform: 'uppercase',

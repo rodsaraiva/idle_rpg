@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   collectBtnText: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 13,
   },
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   equipBtnText: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 13,
   },

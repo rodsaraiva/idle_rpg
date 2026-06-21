@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fuseButtonDisabled: { backgroundColor: theme.colors.surfaceLight },
-  fuseButtonText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  fuseButtonText: { color: theme.colors.textPrimary, fontWeight: '800', fontSize: 14 },
   // Hero cards
   heroCard: {
     flexDirection: 'row',
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  checkMarkText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  checkMarkText: { color: theme.colors.textPrimary, fontSize: 16, fontWeight: '800' },
   // Empty state
   emptyCard: {
     backgroundColor: theme.colors.surface,
@@ -447,5 +447,5 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     alignItems: 'center',
   },
-  modalConfirmText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  modalConfirmText: { color: theme.colors.textPrimary, fontWeight: '800', fontSize: 14 },
 });

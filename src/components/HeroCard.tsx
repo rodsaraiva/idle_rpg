@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
   },
   checkMark: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontWeight: '700',
   },
   compactInfo: {

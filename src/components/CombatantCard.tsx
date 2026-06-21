@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   hpOverlayText: {
     position: 'absolute',
     alignSelf: 'center',
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 12,
     ...textShadow('rgba(0,0,0,0.45)', 0, 1, 2),

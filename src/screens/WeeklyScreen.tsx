@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     gap: 4,
   },
-  claimButtonText: { color: '#1a1a1a', fontSize: 14, fontWeight: '800' },
+  claimButtonText: { color: theme.colors.bgDeep, fontSize: 14, fontWeight: '800' },
   claimButtonGold: { fontSize: 14 },
   claimedBadge: {
     width: 36,
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  claimedBadgeText: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  claimedBadgeText: { color: theme.colors.textPrimary, fontSize: 18, fontWeight: '800' },
   rewardPreview: { flexDirection: 'row', alignItems: 'center', gap: 2, opacity: 0.5 },
   rewardPreviewText: { color: theme.colors.textSecondary, fontSize: 13, fontWeight: '600' },
   rewardPreviewGold: { fontSize: 12 },

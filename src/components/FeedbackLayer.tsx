@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     ...elevation(3),
   },
   toastText: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 14,
     textAlign: 'center',

@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
     alignSelf: 'center',
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 10,
     ...textShadow('rgba(0,0,0,0.35)', 0, 1, 1),

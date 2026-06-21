@@ -567,7 +567,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
   },
   loopCheckmark: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontSize: 14,
     fontWeight: 'bold',
   },
