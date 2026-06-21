@@ -163,7 +163,7 @@ function QuestCard({
 
         {claimed ? (
           <View style={styles.claimedBadge}>
-            <Text style={styles.claimedBadgeText}>{'✓'}</Text>
+            <Icon name="check" size={18} color={theme.colors.textPrimary} />
           </View>
         ) : completed ? (
           <TouchableOpacity style={styles.claimButton} onPress={onClaim} activeOpacity={0.7}>
@@ -267,11 +267,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.success,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  claimedBadgeText: {
-    color: theme.colors.textPrimary,
-    fontSize: 18,
-    fontWeight: '800',
   },
 
   // Prévia de recompensa (ainda não claimable)

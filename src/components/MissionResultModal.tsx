@@ -267,7 +267,7 @@ export function MissionResultModal() {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: theme.colors.overlayDeep,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -303,19 +303,19 @@ const styles = StyleSheet.create({
   battleSummary: {
     fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.75)',
+    color: theme.colors.textSubdued,
     marginTop: 6,
   },
   summaryContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: theme.colors.overlayMid,
     paddingVertical: 12,
   },
   summaryBox: {
     flex: 1,
     alignItems: 'center',
     borderRightWidth: 1,
-    borderRightColor: 'rgba(255,255,255,0.1)',
+    borderRightColor: theme.colors.dividerLight,
     paddingHorizontal: 4,
   },
   summaryLabel: {
@@ -382,11 +382,11 @@ const styles = StyleSheet.create({
   },
   logContainer: {
     height: 150,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: theme.colors.overlayLight,
     borderRadius: 12,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: theme.colors.dividerFaint,
   },
   log: {
     padding: 12,
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   logLine: {
-    color: 'rgba(255,255,255,0.7)',
+    color: theme.colors.textSubduedMid,
     fontSize: 12,
     marginBottom: 6,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: theme.colors.rowHover,
     padding: 12,
     borderRadius: 8,
   },
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     gap: 12,
-    backgroundColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: theme.colors.overlayFaint,
   },
   skipButton: {
     flex: 1,

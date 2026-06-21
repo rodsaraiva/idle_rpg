@@ -28,6 +28,17 @@ export const darkColors = {
   // Bordas / molduras
   border: '#4A3826',
   borderGold: '#8A6D1B',
+  // Overlays / backdrop modal
+  overlay: 'rgba(0,0,0,0.75)',      // modal standard
+  overlayDeep: 'rgba(0,0,0,0.85)',  // modal de resultado / critical
+  overlayLight: 'rgba(0,0,0,0.2)',  // overlay sutil (log bg, ações)
+  overlayMid: 'rgba(0,0,0,0.3)',    // mid overlay (summary bg)
+  overlayFaint: 'rgba(0,0,0,0.1)',  // hover / pressed sutil
+  dividerLight: 'rgba(255,255,255,0.1)', // divisória sutil
+  dividerFaint: 'rgba(255,255,255,0.05)', // divisória muito sutil
+  textSubdued: 'rgba(255,255,255,0.75)', // texto sobre overlay
+  textSubduedMid: 'rgba(255,255,255,0.7)', // texto log sobre overlay
+  rowHover: 'rgba(255,255,255,0.03)', // row bg hover
   // Feedback (musgo medieval)
   success: '#6B8E23',
   successBright: '#9ACD32',

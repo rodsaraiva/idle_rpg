@@ -13,6 +13,7 @@ import { WEEKLY_BONUS_REWARD } from '../constants/weeklyQuests';
 import { GameContext } from '../context/GameContext';
 import { HeroTask } from '../types';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
+import { Icon } from '../components/ui/Icon';
 
 export function WeeklyScreen() {
   const { state, dispatch } = useContext(GameContext);
@@ -157,7 +158,8 @@ function BossCard({ boss, bossDefeated, onFight }: { boss: WeeklyBossTemplate; b
 
         {bossDefeated ? (
           <View style={styles.bossDefeatedBanner}>
-            <Text style={styles.bossDefeatedText}>{'✓'} Derrotado esta semana</Text>
+            <Icon name="check" size={14} color={theme.colors.success} />
+            <Text style={styles.bossDefeatedText}> Derrotado esta semana</Text>
           </View>
         ) : (
           <TouchableOpacity
@@ -211,7 +213,7 @@ function WeeklyQuestCard({
 
           {claimed ? (
             <View style={styles.claimedBadge}>
-              <Text style={styles.claimedBadgeText}>{'✓'}</Text>
+              <Icon name="check" size={18} color={theme.colors.textPrimary} />
             </View>
           ) : completed ? (
             <TouchableOpacity style={styles.claimButton} onPress={onClaim} activeOpacity={0.7}>
@@ -253,7 +255,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     paddingVertical: 10,
     borderRadius: theme.borderRadius.md,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    gap: 4,
     borderWidth: 1,
     borderColor: theme.colors.success,
   },
@@ -312,7 +317,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  claimedBadgeText: { ...theme.type.label, color: theme.colors.textPrimary, fontSize: 18 },
   rewardPreview: { flexDirection: 'row', alignItems: 'center', gap: 2, opacity: 0.5 },
   rewardPreviewText: { ...theme.type.caption, color: theme.colors.textSecondary },
 

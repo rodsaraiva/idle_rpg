@@ -67,7 +67,7 @@ export function HeroCard({
         accessibilityState={{ selected }}
       >
         <View style={[styles.checkbox, selected ? styles.checked : null]}>
-          {selected ? <Text style={styles.checkMark}>✓</Text> : null}
+          {selected ? <Icon name="check" size={14} color={theme.colors.textPrimary} /> : null}
         </View>
         <View style={styles.compactInfo}>
           <Text style={styles.name}>{hero.name}</Text>
@@ -391,10 +391,6 @@ const styles = StyleSheet.create({
   checked: {
     backgroundColor: theme.colors.gold,
     borderColor: theme.colors.gold,
-  },
-  checkMark: {
-    color: theme.colors.textPrimary,
-    fontWeight: '700',
   },
   compactInfo: {
     flex: 1,

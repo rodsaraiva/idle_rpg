@@ -18,7 +18,11 @@ import { CLASS_DEFS } from '../constants/classes';
 function StarBadge({ stars }: { stars: number }) {
   if (!stars) return null;
   return (
-    <Text style={styles.starBadge}>{'★'.repeat(stars)}</Text>
+    <View style={styles.starBadge}>
+      {Array.from({ length: stars }).map((_, i) => (
+        <Icon key={i} name="star" size={12} color={theme.colors.gold} />
+      ))}
+    </View>
   );
 }
 
@@ -112,7 +116,7 @@ export function PantheonScreen() {
                 <Seal kind={hero.classId ?? 'WARRIOR'} size={28} />
                 <Text style={styles.selectedName}>{hero.name}</Text>
                 <TouchableOpacity onPress={() => toggleHero(hero.id)}>
-                  <Text style={styles.removeBtn}>✕</Text>
+                  <Icon name="close" size={14} color={theme.colors.textMuted} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -280,7 +284,6 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.borderGold,
   },
   selectedName: { ...theme.type.label, color: theme.colors.textPrimary },
-  removeBtn: { color: theme.colors.textMuted, fontSize: 14, fontWeight: '700' },
   actionRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
   clearButton: {
     flex: 1,
@@ -312,7 +315,7 @@ const styles = StyleSheet.create({
   heroCardInfo: { flex: 1 },
   heroNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   heroName: { ...theme.type.body, color: theme.colors.textPrimary, fontWeight: '700' },
-  starBadge: { color: theme.colors.gold, fontSize: 12, fontWeight: '800' },
+  starBadge: { flexDirection: 'row', gap: 1 },
   heroClass: { ...theme.type.caption, color: theme.colors.textSecondary, marginTop: 1 },
   heroStats: { ...theme.type.caption, color: theme.colors.textMuted, marginTop: 2 },
   checkMark: {
@@ -339,7 +342,7 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: theme.colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: theme.spacing.lg,
