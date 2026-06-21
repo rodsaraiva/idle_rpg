@@ -7,6 +7,7 @@ import { ClassSeal } from './icons/ClassSeals';
 
 export type IconName =
   | 'sword' | 'shield' | 'castle' | 'anvil' | 'potion' | 'coin' | 'scroll' | 'trophy' | 'sleep'
+  | 'skull' | 'heart' | 'gold-coin' | 'map-marker-path'
   | 'stat-hp' | 'stat-atk' | 'stat-mp' | 'stat-def'
   | 'class-warrior' | 'class-tank' | 'class-rogue' | 'class-archer' | 'class-mage' | 'class-healer';
 
@@ -26,6 +27,10 @@ const MCI_MAP: Record<string, React.ComponentProps<typeof MaterialCommunityIcons
   scroll: 'script-text',
   trophy: 'trophy',
   sleep: 'sleep',
+  skull: 'skull',
+  heart: 'heart',
+  'gold-coin': 'circle-multiple',
+  'map-marker-path': 'map-marker-path',
 };
 
 const STAT_MAP: Record<string, (p: SvgIconProps) => React.JSX.Element> = {

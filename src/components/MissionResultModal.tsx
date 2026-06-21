@@ -9,6 +9,7 @@ import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { playSound } from '../services/sound';
 import { lightTap, successNotification } from '../services/haptics';
 import { LOTTIE_ASSETS } from '../constants/assets';
+import { Icon } from './ui/Icon';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -145,7 +146,7 @@ export function MissionResultModal() {
           )}
 
           <View style={[styles.header, { backgroundColor: result.success ? theme.colors.success : theme.colors.statHp }]}>
-            <Text style={styles.headerEmoji}>{result.success ? '🏆' : '💀'}</Text>
+            <Icon name={result.success ? 'trophy' : 'skull'} size={40} color={theme.colors.textPrimary} />
             <Text style={styles.title}>{result.success ? 'Vitoria Real' : 'Missao Fracassada'}</Text>
             <Text style={styles.battleSummary}>{battleSummaryText}</Text>
           </View>
@@ -153,7 +154,10 @@ export function MissionResultModal() {
           <View style={styles.summaryContainer}>
             <View style={styles.summaryBox}>
               <Text style={styles.summaryLabel}>Ouro Ganho</Text>
-              <Text style={styles.goldValue}>💰 {Math.floor(result.reward)}</Text>
+              <View style={styles.goldRow}>
+                <Icon name="gold-coin" size={18} color={theme.colors.gold} />
+                <Text style={styles.goldValue}>{Math.floor(result.reward)}</Text>
+              </View>
             </View>
             <View style={styles.summaryBox}>
               <Text style={styles.summaryLabel}>Duracao</Text>
@@ -161,12 +165,15 @@ export function MissionResultModal() {
             </View>
             <View style={[styles.summaryBox, { borderRightWidth: 0 }]}>
               <Text style={styles.summaryLabel}>Inimigos</Text>
-              <Text style={[
-                styles.summaryValue,
-                { color: result.enemyCasualties === totalEnemies && totalEnemies > 0 ? theme.colors.success : theme.colors.textPrimary }
-              ]}>
-                ⚔️ {enemySummaryText}
-              </Text>
+              <View style={styles.enemyRow}>
+                <Icon name="sword" size={13} color={result.enemyCasualties === totalEnemies && totalEnemies > 0 ? theme.colors.success : theme.colors.textPrimary} />
+                <Text style={[
+                  styles.summaryValue,
+                  { color: result.enemyCasualties === totalEnemies && totalEnemies > 0 ? theme.colors.success : theme.colors.textPrimary }
+                ]}>
+                  {enemySummaryText}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -212,20 +219,23 @@ export function MissionResultModal() {
                       <Text style={styles.heroName}>{heroName}</Text>
                       {isIncapacitated && (
                         <View style={styles.incapBadge}>
-                          <Text style={styles.incapText}>💀 INCAPACITADO</Text>
+                          <Icon name="skull" size={9} color={theme.colors.textPrimary} />
+                          <Text style={styles.incapText}>INCAPACITADO</Text>
                         </View>
                       )}
                       {isUnharmed && !isIncapacitated && (
                         <View style={styles.ilesoBadge}>
-                          <Text style={styles.ilesoText}>✨ ILESO</Text>
+                          <Icon name="trophy" size={9} color={theme.colors.success} />
+                          <Text style={styles.ilesoText}>ILESO</Text>
                         </View>
                       )}
                     </View>
                     <View style={styles.hpDetail}>
                       {!isUnharmed && (
-                        <Text style={styles.hpLost}>
-                          ❤️ -{Math.floor(c.hpLost)} HP
-                        </Text>
+                        <View style={styles.hpLostRow}>
+                          <Icon name="heart" size={12} color={theme.colors.danger} />
+                          <Text style={styles.hpLost}>-{Math.floor(c.hpLost)} HP</Text>
+                        </View>
                       )}
                       <Text style={[
                         styles.hpRemaining,
@@ -282,14 +292,10 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 24,
     alignItems: 'center',
-  },
-  headerEmoji: {
-    fontSize: 40,
-    marginBottom: 8,
+    gap: 8,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '900',
+    ...theme.type.h1,
     color: theme.colors.textPrimary,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -319,11 +325,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 4,
   },
+  goldRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   goldValue: {
     color: theme.colors.gold,
     fontSize: 18,
     fontWeight: '900',
   },
+  enemyRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  hpLostRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   summaryValue: {
     color: theme.colors.textPrimary,
     fontSize: 13,
@@ -365,9 +374,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sectionTitle: {
-    fontWeight: '800',
+    ...theme.type.label,
     color: theme.colors.textSecondary,
-    fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     marginBottom: 10,
@@ -415,6 +423,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   incapBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
     backgroundColor: theme.colors.danger,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -426,7 +437,10 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   ilesoBadge: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: theme.colors.surfaceRaised,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
