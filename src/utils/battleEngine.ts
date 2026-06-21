@@ -11,6 +11,7 @@ import { applyEnemyPassiveSkills, executeEnemyPreAttackSkills, onEnemyHitSkills,
 import { createEnemies, findMovePath } from './battle/grid';
 import { calculateAttack, cleanExpiredBuffs } from './battle/resolution';
 import { selectTarget } from './battle/targeting';
+import { initializeBattle } from './battle/setup';
 
 export type {
   SynergyId,
@@ -25,48 +26,7 @@ import type { BattleState, BattleEnemy } from './battle/types';
 export const BattleEngine = {
   createEnemies,
 
-  /**
-   * Constructs a fresh BattleState with synergy handlers wired up and
-   * positions initialized.
-   * @param opts.rng PRNG a usar — default Math.random para retrocompatibilidade.
-   */
-  initializeBattle(
-    heroes: Hero[],
-    template: MissionTemplate,
-    opts: { heroPositions?: Record<string, number>; rng?: () => number } = {}
-  ): BattleState {
-    const rng = opts.rng ?? Math.random;
-    const enemies = createEnemies(template, rng);
-    const enemyPositions: Record<string, number> = {};
-    enemies.forEach(e => { if (e.position !== undefined) enemyPositions[e.id] = e.position; });
-
-    const classIds = heroes.map(h => h.classId).filter(Boolean) as ClassId[];
-    const activeSynergyDefs = getActiveSynergies(classIds);
-    const activeSynergies = activeSynergyDefs.map(s => s.id);
-    const handlers = createSynergyHandlers(activeSynergies);
-
-    const state: BattleState = {
-      heroes,
-      enemies,
-      heroPositions: { ...(opts.heroPositions || {}) },
-      enemyPositions,
-      lastAttacker: {},
-      threats: {},
-      log: [],
-      actions: [],
-      rounds: 0,
-      activeSynergies,
-      buffs: {},
-      flags: {},
-      handlers,
-      skillCooldowns: {},
-      skillOnceUsed: {},
-      rng,
-    };
-
-    handlers.onBattleStart(state);
-    return state;
-  },
+  initializeBattle,
 
   cleanExpiredBuffs,
 
