@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, Platform, Animated, Easing } from 'react
 import { theme } from '../theme';
 import { textShadow } from '../theme/elevation';
 import { on, FeedbackEvent } from '../services/feedback';
+import { Icon } from './ui/Icon';
 
 interface CombatantCardProps {
   id: string;
@@ -132,9 +133,15 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
           </View>
         </View>
         <View style={styles.metaRow}>
-          {typeof atk === 'number' ? <Text style={styles.metaText}>⚔️ {Math.floor(atk)}</Text> : null}
-          {typeof mp === 'number' ? <Text style={styles.metaText}>🔮 {Math.floor(mp)}</Text> : null}
-          {typeof defense === 'number' ? <Text style={styles.metaText}>🛡️ {Math.floor(defense)}</Text> : null}
+          {typeof atk === 'number' ? (
+            <View style={styles.metaItem}><Icon name="stat-atk" size={11} color={theme.colors.textSecondary} /><Text style={styles.metaText}>{Math.floor(atk)}</Text></View>
+          ) : null}
+          {typeof mp === 'number' ? (
+            <View style={styles.metaItem}><Icon name="stat-mp" size={11} color={theme.colors.textSecondary} /><Text style={styles.metaText}>{Math.floor(mp)}</Text></View>
+          ) : null}
+          {typeof defense === 'number' ? (
+            <View style={styles.metaItem}><Icon name="stat-def" size={11} color={theme.colors.textSecondary} /><Text style={styles.metaText}>{Math.floor(defense)}</Text></View>
+          ) : null}
           {attackType ? <Text style={styles.typeText}>{attackType === 'RANGED' ? 'R' : 'M'}</Text> : null}
         </View>
       </View>
@@ -225,6 +232,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
   metaText: {
     color: theme.colors.textSecondary,
     fontSize: 11,
@@ -235,9 +247,9 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   highlight: {
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.gold,
     borderWidth: 2,
-    backgroundColor: 'rgba(255, 215, 0, 0.05)',
+    backgroundColor: theme.colors.surface,
   },
   hitOverlay: {
     position: 'absolute',
