@@ -127,7 +127,7 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
             accessible
             accessibilityLabel={`${name} HP ${Math.floor(hp)}/${Math.floor(maxHp)}`}
           >
-            <Animated.View style={[styles.hpFill, { width: hpWidth, backgroundColor: hpPct > 0.6 ? '#3CB371' : hpPct > 0.3 ? '#FFD24D' : '#FF7A7A' }]} />
+            <Animated.View style={[styles.hpFill, { width: hpWidth, backgroundColor: hpPct > 0.6 ? theme.colors.hpHigh : hpPct > 0.3 ? theme.colors.hpMid : theme.colors.hpLow }]} />
             <Text style={styles.hpOverlayText}>{Math.floor(hp)}/{Math.floor(maxHp)}</Text>
           </View>
         </View>
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#ff4d4d',
+    backgroundColor: theme.colors.danger,
     borderRadius: theme.borderRadius.sm,
     opacity: 0,
     zIndex: 10,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   dmgText: {
     fontSize: 20,
     fontWeight: '900',
-    color: '#ff4d4d',
+    color: theme.colors.danger,
     ...textShadow('rgba(0,0,0,0.5)', 0, 2, 3),
   },
 });
