@@ -139,9 +139,8 @@ export function MissionResultModal() {
             <LottieView
               ref={confettiRef}
               source={LOTTIE_ASSETS.CONFETTI}
-              style={styles.confetti}
+              style={[styles.confetti, { pointerEvents: 'none' }]}
               loop={false}
-              pointerEvents="none"
             />
           )}
 

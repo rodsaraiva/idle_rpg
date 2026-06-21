@@ -18,6 +18,9 @@ export const theme = {
 
     success: '#10B981',
     danger: '#EF4444',
+    // TODO SPEC 2: revisar na paleta "Reino" (valores temporários alinhados ao tema atual)
+    warning: '#F59E0B',
+    accent: '#A78BFA',
 
     textPrimary: '#F8FAFC',
     textSecondary: '#94A3B8',

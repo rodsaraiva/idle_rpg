@@ -71,7 +71,7 @@ export function HeroCard({
         <View style={styles.compactInfo}>
           <Text style={styles.name}>{hero.name}</Text>
           <Text style={styles.classLabel}>
-            {CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}
+            {(hero.classId ? CLASS_DEFS[hero.classId] : undefined)?.displayName ?? ''}
             {hero.personality && PERSONALITIES[hero.personality] ? ` · ${PERSONALITIES[hero.personality].emoji} ${PERSONALITIES[hero.personality].displayName}` : ''}
           </Text>
           <Text style={styles.smallStats}>
@@ -135,7 +135,7 @@ export function HeroCard({
             <Text style={styles.name}>{hero.name}</Text>
           </View>
           <Text style={styles.classLabel}>
-            {CLASS_DEFS[hero.classId ?? undefined]?.displayName ?? ''}
+            {(hero.classId ? CLASS_DEFS[hero.classId] : undefined)?.displayName ?? ''}
             {hero.personality && PERSONALITIES[hero.personality] ? ` · ${PERSONALITIES[hero.personality].emoji} ${PERSONALITIES[hero.personality].displayName}` : ''}
           </Text>
         </View>
