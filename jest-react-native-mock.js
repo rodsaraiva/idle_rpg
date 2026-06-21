@@ -13,6 +13,9 @@ const Image = (props) => React.createElement('Image', props, props.children);
 const ImageBackground = (props) => React.createElement('ImageBackground', props, props.children);
 const Pressable = (props) => React.createElement('Pressable', props, props.children);
 const Switch = (props) => React.createElement('Switch', props, props.children);
+const StatusBar = (props) => React.createElement('StatusBar', props, props.children);
+StatusBar.setBarStyle = () => {};
+StatusBar.setBackgroundColor = () => {};
 
 const ReactNative = {
   Text,
@@ -28,6 +31,7 @@ const ReactNative = {
   ImageBackground,
   Pressable,
   Switch,
+  StatusBar,
   StyleSheet: {
     create: (styles) => styles,
     flatten: (style) => {

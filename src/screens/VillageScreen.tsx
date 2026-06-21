@@ -1,106 +1,119 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  ImageBackground,
   StyleSheet,
-  ScrollView,
-  StatusBar
+  StatusBar,
+  LayoutChangeEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
-import { ScreenHeader } from '../components/ui/ScreenHeader';
+import { IMAGE_ASSETS } from '../constants/assets';
+import { Banner } from '../components/ui/Banner';
+import { Card } from '../components/ui/Card';
+import { Icon, IconName } from '../components/ui/Icon';
+import { PressableScale } from '../components/ui/PressableScale';
+import { AnimatedGold } from '../components/AnimatedGold';
+import { useGame } from '../hooks/useGame';
+
+export interface Hotspot {
+  screen: string;
+  icon: IconName;
+  label: string;
+  x: number; // 0..1 relativo à largura do mapa
+  y: number; // 0..1 relativo à altura do mapa
+}
+
+// Coordenadas provisórias — calibrar sobre village_map.png real por screenshot (§3.3 do spec).
+export const HOTSPOTS: Hotspot[] = [
+  { screen: 'Treinamento', icon: 'sword', label: 'Treinamento', x: 0.22, y: 0.4 },
+  { screen: 'Enfermaria', icon: 'potion', label: 'Enfermaria', x: 0.5, y: 0.3 },
+  { screen: 'Ferreiro', icon: 'anvil', label: 'Ferreiro', x: 0.78, y: 0.42 },
+  { screen: 'MissoesDiarias', icon: 'scroll', label: 'Missões Diárias', x: 0.3, y: 0.68 },
+  { screen: 'Conquistas', icon: 'trophy', label: 'Conquistas', x: 0.55, y: 0.72 },
+  { screen: 'Panteao', icon: 'castle', label: 'Panteão', x: 0.8, y: 0.7 },
+  { screen: 'Semanal', icon: 'coin', label: 'Desafio Semanal', x: 0.15, y: 0.55 },
+  { screen: 'Guilda', icon: 'shield', label: 'Guilda', x: 0.65, y: 0.5 },
+];
 
 export function VillageScreen() {
   const nav = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { state } = useGame();
+  const [imageFailed, setImageFailed] = useState(false);
+  const [mapSize, setMapSize] = useState({ width: 0, height: 0 });
 
-  const VillageCard = ({ title, icon, description, screen }: { title: string; icon: string; description: string; screen: string }) => (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      style={styles.card}
-      onPress={() => nav.navigate(screen)}
-    >
-      <View style={styles.cardIconContainer}>
-        <Text style={styles.cardIcon}>{icon}</Text>
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        <Text style={styles.cardDescription}>{description}</Text>
-      </View>
-    </TouchableOpacity>
+  const hasDailyNovelty = (state.dailyQuests?.quests ?? []).some(
+    (q: any) => q.completed && !q.claimed
+  );
+
+  const onMapLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setMapSize({ width, height });
+  };
+
+  const renderHotspot = (h: Hotspot) => {
+    const left = h.x * mapSize.width;
+    const top = h.y * mapSize.height;
+    const novelty = h.screen === 'MissoesDiarias' && hasDailyNovelty;
+    return (
+      <PressableScale
+        key={h.screen}
+        testID={`hotspot-${h.screen}`}
+        onPress={() => nav.navigate(h.screen)}
+        style={[styles.hotspot, { left, top }]}
+      >
+        <View style={[styles.hotspotBadge, novelty && styles.hotspotBadgeNovelty]}>
+          <Icon name={h.icon} size={24} color={theme.colors.goldBright} />
+        </View>
+        <Text style={styles.hotspotLabel}>{h.label}</Text>
+      </PressableScale>
+    );
+  };
+
+  const renderFallback = () => (
+    <View style={styles.fallbackGrid}>
+      {HOTSPOTS.map((h) => (
+        <PressableScale
+          key={h.screen}
+          testID={`fallback-${h.screen}`}
+          onPress={() => nav.navigate(h.screen)}
+        >
+          <Card elevation="e1">
+            <View style={styles.fallbackRow}>
+              <Icon name={h.icon} size={28} color={theme.colors.goldBright} />
+              <Text style={styles.fallbackLabel}>{h.label}</Text>
+            </View>
+          </Card>
+        </PressableScale>
+      ))}
+    </View>
   );
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
-      
-      {/* Header Padronizado e Totalmente Opaco */}
-      <View style={styles.headerWrapper}>
-        <ScreenHeader 
-          title="Vila de Ouro" 
-          subtitle="O coração da sua guilda"
-          showGold={false} 
-        />
-      </View>
-
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.grid}>
-          <VillageCard 
-            title="Treinamento" 
-            icon="⚔️" 
-            description="Melhore os atributos dos seus heróis"
-            screen="Treinamento"
-          />
-          <VillageCard 
-            title="Enfermaria" 
-            icon="🩺" 
-            description="Recupere heróis feridos em batalha"
-            screen="Enfermaria"
-          />
-          <VillageCard 
-            title="Ferreiro" 
-            icon="⚒️" 
-            description="Forje e melhore equipamentos"
-            screen="Ferreiro"
-          />
-          <VillageCard
-            title="Missoes Diarias"
-            icon="📋"
-            description="Complete objetivos diarios por recompensas"
-            screen="MissoesDiarias"
-          />
-          <VillageCard
-            title="Conquistas"
-            icon="🏆"
-            description="Veja suas conquistas e recompensas"
-            screen="Conquistas"
-          />
-          <VillageCard
-            title="Panteão"
-            icon="🏛️"
-            description="Fusão de heróis e bônus permanentes"
-            screen="Panteao"
-          />
-          <VillageCard
-            title="Desafio Semanal"
-            icon="📅"
-            description="Quests semanais e boss especial"
-            screen="Semanal"
-          />
-          <VillageCard
-            title="Guilda"
-            icon="⚔️"
-            description="Gerencie e recrute seus heróis"
-            screen="Guilda"
-          />
-        </View>
-      </ScrollView>
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.bgDeep} />
+      <Banner
+        title="Vila de Ouro"
+        subtitle="O coração da sua guilda"
+        right={<AnimatedGold gold={state.gold} />}
+      />
+      {imageFailed ? (
+        renderFallback()
+      ) : (
+        <ImageBackground
+          testID="village-map-image"
+          source={IMAGE_ASSETS.VILLAGE_MAP}
+          resizeMode="cover"
+          style={styles.map}
+          onLayout={onMapLayout}
+          onError={() => setImageFailed(true)}
+        >
+          {mapSize.width > 0 ? HOTSPOTS.map(renderHotspot) : null}
+        </ImageBackground>
+      )}
     </View>
   );
 }
@@ -108,59 +121,55 @@ export function VillageScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.bgBase,
   },
-  headerWrapper: {
-    paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.surfaceLight,
-  },
-  scrollView: {
+  map: {
     flex: 1,
-  },
-  scrollContent: {
-    padding: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-  },
-  grid: {
-    gap: 12,
-  },
-  card: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.surface,
+    margin: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
-    elevation: 2,
-    boxShadow: '0px 2px 4px rgba(0,0,0,0.1)',
+    overflow: 'hidden',
   },
-  cardIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: theme.colors.surfaceLight,
+  hotspot: {
+    position: 'absolute',
+    alignItems: 'center',
+    width: 64,
+    marginLeft: -32,
+    marginTop: -24,
+  },
+  hotspotBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 2,
+    borderColor: theme.colors.borderGold,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: theme.spacing.md,
+    ...theme.elevation.glowGold,
   },
-  cardIcon: {
-    fontSize: 22,
+  hotspotBadgeNovelty: {
+    borderColor: theme.colors.goldBright,
+    ...theme.elevation.glowGold,
   },
-  cardContent: {
-    flex: 1,
-  },
-  cardTitle: {
+  hotspotLabel: {
+    ...theme.type.caption,
     color: theme.colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 2,
+    marginTop: 2,
+    textAlign: 'center',
   },
-  cardDescription: {
-    color: theme.colors.textSecondary,
-    fontSize: 12,
-    lineHeight: 16,
+  fallbackGrid: {
+    flex: 1,
+    padding: theme.spacing.md,
+    gap: 12,
+  },
+  fallbackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    padding: theme.spacing.sm,
+  },
+  fallbackLabel: {
+    ...theme.type.h2,
+    color: theme.colors.textPrimary,
   },
 });
