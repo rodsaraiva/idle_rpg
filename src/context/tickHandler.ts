@@ -383,17 +383,20 @@ export function handleTick(state: GameState, now: number): GameState {
   currentState = refreshWeeklyState(currentState);
 
   // 1. Process Training
-  const prevSkills: Record<string, string[]> = {};
-  for (const hero of currentState.heroes) {
-    prevSkills[hero.id] = getUnlockedSkills(hero).map(s => s.id);
-  }
   const { heroes: heroesAfterTraining, totalPointsTrained } = processTraining(currentState.heroes, tickMs, inflation);
-  for (const hero of heroesAfterTraining) {
-    const newSkills = getUnlockedSkills(hero);
-    const prev = prevSkills[hero.id] ?? [];
-    for (const skill of newSkills) {
-      if (!prev.includes(skill.id)) {
-        emitSkillUnlocked(hero.name, skill.icon, skill.name);
+  // Skills só mudam quando algum trainingCount sobe → totalPointsTrained > 0.
+  // processTraining retorna o herói pela MESMA referência quando não treina
+  // (case default), então só reavalia quem mudou de referência.
+  if (totalPointsTrained > 0) {
+    const before = new Map(currentState.heroes.map(h => [h.id, h]));
+    for (const hero of heroesAfterTraining) {
+      const prevHero = before.get(hero.id);
+      if (prevHero === hero) continue; // não treinou → skills idênticas
+      const prevSkills = getUnlockedSkills(prevHero!).map(s => s.id);
+      for (const skill of getUnlockedSkills(hero)) {
+        if (!prevSkills.includes(skill.id)) {
+          emitSkillUnlocked(hero.name, skill.icon, skill.name);
+        }
       }
     }
   }
