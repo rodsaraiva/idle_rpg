@@ -24,10 +24,12 @@ module.exports = {
     '!src/**/*.stories.tsx',
     '!src/**/*.test.{ts,tsx}',
   ],
-  // Nota: cobertura global de branches é ~48% (components/screens/navigation em 0% puxam a média).
-  // Threshold aplicado apenas aos diretórios core com testes reais (utils, context, services).
-  // Branches nos 3 diretórios: ~75%. Threshold em 75 para não travar o ciclo.
-  // TODO: elevar para 80 quando components/screens ganharem testes.
+  // Nota: cobertura global de branches é ~48% (components/screens/navigation em 0% puxam a média),
+  // impossibilitando o alvo de 80% global sem testes de UI. Por-diretório:
+  //   utils:    76% real → threshold 75
+  //   context:  75% real → threshold 75
+  //   services: 69% real → threshold 65 (sound.ts/haptics.ts/battleRunner.ts sem testes — puxam a média)
+  // TODO: elevar services para 75 e global para 80 quando sound/haptics/battleRunner ganharem testes (SPEC 2).
   coverageThreshold: {
     './src/utils/': { branches: 75 },
     './src/context/': { branches: 75 },
