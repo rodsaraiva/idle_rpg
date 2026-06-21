@@ -18,7 +18,7 @@ interface HexagonProps {
  */
 export const Hexagon: React.FC<HexagonProps> = ({ 
   children, 
-  fill = theme.colors.surfaceLight, 
+  fill = theme.colors.surfaceRaised, 
   stroke = theme.colors.border, 
   strokeWidth = 1,
   style,

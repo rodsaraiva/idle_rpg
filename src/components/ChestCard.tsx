@@ -93,14 +93,14 @@ const styles = StyleSheet.create({
     color: theme.colors.danger,
   },
   buyButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     marginLeft: 12,
   },
   buyButtonDisabled: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
   },
   buyButtonText: {
     color: theme.colors.textPrimary,

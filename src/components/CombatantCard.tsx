@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     minWidth: 120,
     maxWidth: 220,
     borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
+    borderColor: theme.colors.surfaceRaised,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -190,14 +190,14 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 8,
     marginRight: theme.spacing.sm,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
   },
   info: {
     flex: 1,
   },
   name: {
     color: theme.colors.textPrimary,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: '600',
     marginBottom: 4,
   },
   hpColumn: {
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   hpBarContainer: {
     width: '100%',
     height: 16,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: 8,
     overflow: 'hidden',
     justifyContent: 'center',
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   hpFill: {
     height: '100%',
-    backgroundColor: theme.colors.hp,
+    backgroundColor: theme.colors.statHp,
   },
   hpOverlayText: {
     position: 'absolute',

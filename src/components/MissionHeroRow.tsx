@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: theme.spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.surfaceLight,
+    borderBottomColor: theme.colors.surfaceRaised,
   },
   mainInfo: {
     flex: 1,

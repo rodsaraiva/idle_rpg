@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
+    borderColor: theme.colors.surfaceRaised,
     elevation: 10,
   },
   confetti: {
@@ -358,15 +358,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   synergyBadge: {
-    backgroundColor: theme.colors.primaryDark,
+    backgroundColor: theme.colors.goldDark,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: theme.colors.primaryLight,
+    borderColor: theme.colors.goldBright,
   },
   synergyText: {
-    color: theme.colors.primaryLight,
+    color: theme.colors.goldBright,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderRadius: 12,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
   },
   skipText: {
     color: theme.colors.textSecondary,
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderRadius: 12,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
   },
   closeButtonText: {
     color: theme.colors.textPrimary,

@@ -6,19 +6,19 @@ export function getHeroActions(hero: Hero, setHeroTask: (id: string, task: HeroT
     {
       label: 'Treinar HP',
       isActive: hero.currentTask === HeroTask.TRAIN_HP,
-      color: theme.colors.hp,
+      color: theme.colors.statHp,
       onPress: () => setHeroTask(hero.id, HeroTask.TRAIN_HP),
     },
     {
       label: 'Treinar ATK',
       isActive: hero.currentTask === HeroTask.TRAIN_ATK,
-      color: theme.colors.atk,
+      color: theme.colors.statAtk,
       onPress: () => setHeroTask(hero.id, HeroTask.TRAIN_ATK),
     },
     {
       label: 'Treinar MP',
       isActive: hero.currentTask === HeroTask.TRAIN_MP,
-      color: theme.colors.mp,
+      color: theme.colors.statMp,
       onPress: () => setHeroTask(hero.id, HeroTask.TRAIN_MP),
     },
     {

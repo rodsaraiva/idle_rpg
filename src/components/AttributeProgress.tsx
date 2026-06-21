@@ -18,7 +18,7 @@ function formatMs(ms: number) {
   return `${m}m ${sec}s`;
 }
 
-export function AttributeProgress({ fraction, color = theme.colors.primary, label, timeRemainingMs }: Props) {
+export function AttributeProgress({ fraction, color = theme.colors.gold, label, timeRemainingMs }: Props) {
   const pct = Math.max(0, Math.min(1, fraction));
   const anim = useRef(new Animated.Value(pct)).current;
 
@@ -37,7 +37,7 @@ export function AttributeProgress({ fraction, color = theme.colors.primary, labe
 
   return (
     <View style={styles.container} accessible accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(pct * 100) }}>
-      <View style={[styles.track, { backgroundColor: theme.colors.surfaceLight }]}>
+      <View style={[styles.track, { backgroundColor: theme.colors.surfaceRaised }]}>
         <Animated.View style={[styles.fill, { width, backgroundColor: color }]} />
       </View>
       <View style={styles.row}>
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 6,
     overflow: 'hidden',
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
   },
   fill: {
     height: 8,
@@ -69,11 +69,11 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.xs,
+    fontSize: 11,
   },
   time: {
     color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.xs,
+    fontSize: 11,
   },
 });
 

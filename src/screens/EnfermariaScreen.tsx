@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary, 
   },
   badge: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   selectionCount: {
     fontSize: 12,
-    color: theme.colors.primary,
+    color: theme.colors.gold,
     fontWeight: '600',
     marginLeft: 'auto',
   },

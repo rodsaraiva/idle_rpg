@@ -274,14 +274,14 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
           <Hexagon
             fill={
               hero
-                ? theme.colors.primary
+                ? theme.colors.gold
                 : enemy
                 ? 'rgba(255, 0, 0, 0.3)'
                 : isHeroRow
                 ? 'rgba(100, 149, 237, 0.15)'
                 : isEnemyRow
                 ? 'rgba(255, 0, 0, 0.05)'
-                : theme.colors.surfaceLight
+                : theme.colors.surfaceRaised
             }
             stroke={
               isHeroRow && !hero ? theme.colors.statMp : theme.colors.border
@@ -466,8 +466,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  cellEmpty: { backgroundColor: theme.colors.surfaceLight, borderWidth: 1, borderColor: theme.colors.border },
-  cellFilled: { backgroundColor: theme.colors.primary, borderWidth: 0 },
+  cellEmpty: { backgroundColor: theme.colors.surfaceRaised, borderWidth: 1, borderColor: theme.colors.border },
+  cellFilled: { backgroundColor: theme.colors.gold, borderWidth: 0 },
   cellHeroRow: { backgroundColor: 'rgba(100, 149, 237, 0.15)', borderColor: theme.colors.statMp, borderStyle: 'dashed' },
   cellEnemyRow: { backgroundColor: 'rgba(255, 0, 0, 0.05)', borderColor: 'transparent' },
   cellEnemyFilled: { backgroundColor: 'rgba(255, 0, 0, 0.3)', borderWidth: 0 },
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
   cellTextEnemy: { color: theme.colors.danger, fontSize: 8, textAlign: 'center', fontWeight: 'bold' },
   subtitle: { color: theme.colors.textSecondary, marginBottom: 8, textAlign: 'center', fontSize: 12 },
   heroItem: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     padding: 8,
     marginRight: 8,
     borderRadius: 6,
@@ -513,13 +513,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 4,
     padding: 8,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.gold,
   },
   synergiesTitle: {
-    color: theme.colors.primaryLight,
+    color: theme.colors.goldBright,
     fontSize: 12,
     fontWeight: 'bold',
     marginBottom: 6,
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   synergyPreviewBadge: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -563,8 +563,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   loopCheckboxActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
+    borderColor: theme.colors.gold,
   },
   loopCheckmark: {
     color: theme.colors.textPrimary,

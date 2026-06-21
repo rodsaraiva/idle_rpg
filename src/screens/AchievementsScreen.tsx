@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   rewardText: {
     ...theme.type.caption,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: '600',
   },
   rewardTagLocked: {
     opacity: 0.5,

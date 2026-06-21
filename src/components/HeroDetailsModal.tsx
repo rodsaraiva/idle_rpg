@@ -43,9 +43,9 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
   };
 
   const statLabelMap: Record<string, { label: string; color: string }> = {
-    hp: { label: 'HP', color: theme.colors.hp },
-    atk: { label: 'ATK', color: theme.colors.atk },
-    mp: { label: 'MP', color: theme.colors.mp },
+    hp: { label: 'HP', color: theme.colors.statHp },
+    atk: { label: 'ATK', color: theme.colors.statAtk },
+    mp: { label: 'MP', color: theme.colors.statMp },
     defense: { label: 'DEF', color: theme.colors.textSecondary },
     crit: { label: 'CRIT', color: theme.colors.gold },
     agility: { label: 'AGI', color: theme.colors.success },
@@ -94,13 +94,13 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
                 label="Ataque"
                 value={atkDelta > 0 ? `${Math.floor(effectiveStats.atk)} (+${atkDelta})` : Math.floor(effectiveStats.atk)}
                 icon="⚔️"
-                color={theme.colors.atk}
+                color={theme.colors.statAtk}
               />
               <StatItem
                 label="Mana"
                 value={mpDelta > 0 ? `${Math.floor(effectiveStats.mp)} (+${mpDelta})` : Math.floor(effectiveStats.mp)}
                 icon="🔮"
-                color={theme.colors.mp}
+                color={theme.colors.statMp}
               />
             </View>
 
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.bgBase,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: theme.spacing.lg,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 8,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     marginBottom: theme.spacing.md,
     borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
+    borderColor: theme.colors.surfaceRaised,
   },
   sectionTitle: {
     fontSize: 14,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   hpValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: theme.colors.hp,
+    color: theme.colors.statHp,
   },
   personalityContainer: {
     marginTop: 4,
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   personalityHeader: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: theme.colors.primary,
+    color: theme.colors.gold,
     marginBottom: 4,
   },
   personalityDescription: {
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   },
   abilityValue: {
     fontSize: 15,
-    color: theme.colors.primary,
+    color: theme.colors.gold,
     fontWeight: '600',
   },
   noEquipmentText: {
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   footerButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',

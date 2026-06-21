@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     marginBottom: theme.spacing.sm,
     borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
+    borderColor: theme.colors.surfaceRaised,
   },
   header: {
     flexDirection: 'row',
@@ -126,19 +126,19 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   title: {
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   watchButton: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.gold,
   },
   watchButtonText: {
-    color: theme.colors.primaryLight,
+    color: theme.colors.goldBright,
     fontSize: 11,
     fontWeight: 'bold',
   },
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   heroMini: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     padding: 6,
     borderRadius: theme.borderRadius.sm,
     alignItems: 'center',
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   heroMiniName: {
     color: theme.colors.textPrimary,
     fontSize: 12,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: '600',
     marginBottom: 4,
   },
   hpRow: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   hpFill: {
     height: '100%',
-    backgroundColor: theme.colors.hp,
+    backgroundColor: theme.colors.statHp,
   },
   hpText: {
     color: theme.colors.textSecondary,
@@ -215,18 +215,18 @@ const styles = StyleSheet.create({
   },
   highlight: {
     borderWidth: 1,
-    borderColor: theme.colors.primary,
-    boxShadow: `0px 0px 8px ${theme.colors.primary}`,
+    borderColor: theme.colors.gold,
+    boxShadow: `0px 0px 8px ${theme.colors.gold}`,
   },
   progressBar: {
     height: 8,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: 6,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     borderRadius: 6,
   },
   battleHeader: {
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   synergyBadge: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 12,

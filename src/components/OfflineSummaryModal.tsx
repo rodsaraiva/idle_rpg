@@ -96,11 +96,11 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     borderRadius: theme.borderRadius.lg,
     borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
+    borderColor: theme.colors.surfaceRaised,
   },
   title: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 24,
+    fontWeight: '700',
     color: theme.colors.textPrimary,
     marginBottom: theme.spacing.md,
     textAlign: 'center',
@@ -112,16 +112,16 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.sm,
+    fontSize: 12,
   },
   value: {
     color: theme.colors.textPrimary,
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.semibold,
+    fontSize: 14,
+    fontWeight: '600',
   },
   button: {
     marginTop: theme.spacing.md,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.borderRadius.md,
     alignItems: 'center',
@@ -132,29 +132,29 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
   },
   cancel: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     flex: 1,
   },
   apply: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     flex: 1,
   },
   buttonText: {
     color: theme.colors.textPrimary,
-    fontWeight: theme.fontWeight.bold,
+    fontWeight: '700',
   },
   heroRow: {
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.surfaceLight,
+    borderBottomColor: theme.colors.surfaceRaised,
   },
   heroName: {
     color: theme.colors.textPrimary,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: '600',
   },
   heroChange: {
     color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.sm,
+    fontSize: 12,
   },
 });
 

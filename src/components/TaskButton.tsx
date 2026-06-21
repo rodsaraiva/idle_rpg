@@ -14,7 +14,7 @@ export function TaskButton({
   label,
   onPress,
   isActive,
-  color = theme.colors.primary,
+  color = theme.colors.gold,
   disabled = false,
 }: TaskButtonProps) {
   return (

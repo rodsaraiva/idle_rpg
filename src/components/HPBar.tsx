@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   barWrap: {
     width: '100%',
     height: 14,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: 8,
     overflow: 'hidden',
     justifyContent: 'center',

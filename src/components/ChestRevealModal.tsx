@@ -357,13 +357,13 @@ export function ChestRevealModal({
                 <Text style={styles.heroClass}>{classDef?.displayName ?? 'Desconhecido'}</Text>
 
                 <View style={styles.statsRow}>
-                  <Text style={[styles.statText, { color: theme.colors.hp }]}>
+                  <Text style={[styles.statText, { color: theme.colors.statHp }]}>
                     HP {revealedHero.hpMax}
                   </Text>
-                  <Text style={[styles.statText, { color: theme.colors.atk }]}>
+                  <Text style={[styles.statText, { color: theme.colors.statAtk }]}>
                     ATK {revealedHero.atk}
                   </Text>
-                  <Text style={[styles.statText, { color: theme.colors.mp }]}>
+                  <Text style={[styles.statText, { color: theme.colors.statMp }]}>
                     MP {revealedHero.mp}
                   </Text>
                 </View>
@@ -408,8 +408,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   chestLabel: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 24,
+    fontWeight: '700',
     color: theme.colors.gold,
     marginBottom: theme.spacing.lg,
   },
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     fontSize: 80,
   },
   suspenseText: {
-    fontSize: theme.fontSize.md,
+    fontSize: 14,
     color: theme.colors.textSecondary,
     marginBottom: theme.spacing.lg,
   },
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
   },
   skipText: {
     color: theme.colors.textMuted,
-    fontSize: theme.fontSize.sm,
+    fontSize: 12,
   },
   lottieBurst: {
     position: 'absolute',
@@ -476,8 +476,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   revealTitle: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 18,
+    fontWeight: '700',
     color: theme.colors.gold,
     marginBottom: theme.spacing.sm,
   },
@@ -486,13 +486,13 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   heroName: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 24,
+    fontWeight: '700',
     color: theme.colors.textPrimary,
     marginBottom: 4,
   },
   heroClass: {
-    fontSize: theme.fontSize.md,
+    fontSize: 14,
     color: theme.colors.textSecondary,
     marginBottom: theme.spacing.md,
   },
@@ -501,18 +501,18 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   statText: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.semibold,
+    fontSize: 14,
+    fontWeight: '600',
   },
   confirmButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
     paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.xl,
     borderRadius: theme.borderRadius.lg,
   },
   confirmText: {
     color: theme.colors.textPrimary,
-    fontWeight: theme.fontWeight.bold,
-    fontSize: theme.fontSize.lg,
+    fontWeight: '700',
+    fontSize: 18,
   },
 });

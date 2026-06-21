@@ -26,13 +26,13 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   label: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontSize: 12,
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   value: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

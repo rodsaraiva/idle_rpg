@@ -226,7 +226,7 @@ export function HeroCard({
             key={`${a.label}-${i}`}
             label={a.label}
             isActive={!!a.isActive}
-            color={a.color ?? theme.colors.primary}
+            color={a.color ?? theme.colors.gold}
             onPress={a.onPress}
             disabled={!!a.disabled}
           />
@@ -258,8 +258,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   name: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 18,
+    fontWeight: '700',
     color: theme.colors.textPrimary,
   },
   nameRow: {
@@ -274,13 +274,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: 2,
     borderRadius: theme.borderRadius.sm,
   },
   taskBadgeText: {
-    fontSize: theme.fontSize.xs,
+    fontSize: 11,
     color: theme.colors.textSecondary,
   },
   statusRow: {
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   classLabel: {
-    fontSize: theme.fontSize.xs,
+    fontSize: 11,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 12,
     color: theme.colors.textPrimary,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: '600',
   },
   // statBadge removed (attack type no longer shown)
   equipmentRow: {
@@ -334,13 +334,13 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   equipmentPill: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: theme.borderRadius.sm,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   equipmentPillText: {
-    fontSize: theme.fontSize.xs,
+    fontSize: 11,
     color: theme.colors.textSecondary,
   },
   actions: {
@@ -355,19 +355,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   hpLabel: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontSize: 12,
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   hpValue: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 14,
+    fontWeight: '700',
   },
   incapText: {
     marginTop: 4,
     color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.xs,
+    fontSize: 11,
   },
   compactRow: {
     flexDirection: 'row',
@@ -383,14 +383,14 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: theme.colors.surfaceLight,
+    borderColor: theme.colors.surfaceRaised,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   checked: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.gold,
+    borderColor: theme.colors.gold,
   },
   checkMark: {
     color: theme.colors.textPrimary,
