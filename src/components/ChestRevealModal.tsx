@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Animated,
   Easing,
+  Dimensions,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { SOUND_ASSETS, LOTTIE_ASSETS } from '../constants/assets';
@@ -386,7 +387,7 @@ export function ChestRevealModal({
 
 const styles = StyleSheet.create({
   backdrop: {
-    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
@@ -401,7 +402,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     width: '100%',
     maxWidth: 720,
-    maxHeight: '84vh',
+    maxHeight: Dimensions.get('window').height * 0.84,
     justifyContent: 'center',
     paddingVertical: theme.spacing.lg,
     overflow: 'hidden',

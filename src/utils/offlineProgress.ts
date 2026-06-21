@@ -6,8 +6,10 @@ import {
   MAX_OFFLINE_MS,
 } from '../constants/game';
 import { MISSIONS } from '../constants/missions';
+import { WEEKLY_BOSS_POOL, bossToMissionTemplate } from '../constants/weeklyBosses';
 import { calcMissionReward } from './missionMath';
 import { computePointsFromMs } from './trainingMath';
+import { createGuaranteedEquipment } from '../context/equipmentHandler';
 
 export function calculateOfflineProgress(savedState: GameState): OfflineSummaryFull | null {
   const savedAt = savedState.lastSavedAt || Date.now();
@@ -136,54 +138,74 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
   let additionalGold = 0;
 
   if (savedState.activeMissions && savedState.activeMissions.length > 0) {
+    const nowOffline = savedAt + cappedMs; // "agora" limitado pelo cap de 72h
+
     savedState.activeMissions.forEach((m: any) => {
-      const remaining = typeof m.remainingMs === 'number' ? m.remainingMs - ticks * tickInterval : undefined;
+      // Resolução de template idêntica ao tick online (missão normal ou boss semanal)
+      let template = MISSIONS.find((t) => t.id === m.templateId);
+      if (!template && m.isWeeklyBoss) {
+        const boss = WEEKLY_BOSS_POOL.find((b) => b.id === m.templateId);
+        if (boss) template = bossToMissionTemplate(boss);
+      }
+      if (!template || template.durationMs <= 0) {
+        newActiveMissions.push({ ...m });
+        return;
+      }
 
-      if (typeof remaining === 'number' && remaining <= 0) {
-        const template = MISSIONS.find((t) => t.id === m.templateId);
-        if (template) {
-          const heroesForMission = newHeroes.filter((h) => m.heroIds.includes(h.id));
-          const reward = calcMissionReward(template, heroesForMission, {
-            healerBuffMultiplier: m.healerBuffMultiplier,
-            rogueRngBonus: m.rogueRngBonus,
-          });
+      const startedAt = m.startedAt;
+      const endsAt = startedAt + template.durationMs;
 
-          if (m.looping) {
-            // For looping missions: calculate how many full cycles completed offline
-            const timeForFirstCompletion = Math.abs(remaining); // time past first completion
-            const cyclesAfterFirst = template.durationMs > 0 ? Math.floor(timeForFirstCompletion / template.durationMs) : 0;
-            const totalCycles = 1 + cyclesAfterFirst;
-            const totalReward = reward * totalCycles;
-            additionalGold += totalReward;
+      if (nowOffline < endsAt) {
+        // ainda em andamento → mantém intacta (startedAt preservado)
+        newActiveMissions.push({ ...m });
+        return;
+      }
 
-            const n = m.heroIds.length || 1;
-            const per = Math.floor(totalReward / n);
-            m.heroIds.forEach((hid: string) => {
-              perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
-            });
+      // completou >= 1 ciclo offline — reward espelha o tick online
+      const heroesForMission = newHeroes.filter((h) => m.heroIds.includes(h.id));
+      const reward = m.precomputedOutcome?.reward
+        ?? calcMissionReward(template, heroesForMission, {
+          healerBuffMultiplier: m.healerBuffMultiplier,
+          rogueRngBonus: m.rogueRngBonus,
+        });
 
-            // Keep mission active and looping with remaining time into the next cycle
-            const leftoverMs = template.durationMs > 0
-              ? template.durationMs - (timeForFirstCompletion % template.durationMs)
-              : 0;
-            newActiveMissions.push({
-              ...m,
-              remainingMs: leftoverMs > 0 ? leftoverMs : template.durationMs,
-            });
-          } else {
-            additionalGold += reward;
+      const n = m.heroIds.length || 1;
+      const creditPerHero = (total: number) => {
+        const per = Math.floor(total / n);
+        m.heroIds.forEach((hid: string) => {
+          perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
+        });
+      };
 
-            const n = m.heroIds.length || 1;
-            const per = Math.floor(reward / n);
-            m.heroIds.forEach((hid: string) => {
-              const idx = newHeroes.findIndex((hh) => hh.id === hid);
-              if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
-              perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
-            });
+      if (m.looping) {
+        const totalElapsed = nowOffline - startedAt;
+        const cycles = Math.floor(totalElapsed / template.durationMs); // >= 1
+        const total = reward * cycles;
+        creditPerHero(total);
+        additionalGold += total;
+        // re-armar: novo startedAt alinhado ao último ciclo (espelha o tick online)
+        const leftover = totalElapsed % template.durationMs;
+        newActiveMissions.push({ ...m, startedAt: nowOffline - leftover });
+      } else {
+        creditPerHero(reward);
+        additionalGold += reward;
+        // missão não-loop encerra: heróis voltam a IDLE, não re-empurra a missão
+        m.heroIds.forEach((hid: string) => {
+          const idx = newHeroes.findIndex((hh) => hh.id === hid);
+          if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
+        });
+
+        // Boss semanal: espelha o tick online — marca bossDefeated e concede equipamento garantido
+        if (m.isWeeklyBoss) {
+          const defeatedBoss = WEEKLY_BOSS_POOL.find((b) => b.id === m.templateId);
+          if (newState.weeklyState) {
+            newState.weeklyState = { ...newState.weeklyState, bossDefeated: true };
+          }
+          if (defeatedBoss?.guaranteedRewardTier != null) {
+            const rewardItem = createGuaranteedEquipment(defeatedBoss.guaranteedRewardTier);
+            newState.inventory = [...(newState.inventory ?? []), rewardItem];
           }
         }
-      } else {
-        newActiveMissions.push(typeof remaining === 'number' ? { ...m, remainingMs: remaining } : { ...m });
       }
     });
   }

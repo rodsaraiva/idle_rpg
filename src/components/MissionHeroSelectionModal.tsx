@@ -10,6 +10,8 @@ import {
   ScrollView,
   Animated,
   Platform,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 import { useDragDropGrid } from '../hooks/useDragDropGrid';
 import { Hero } from '../types';
@@ -238,10 +240,10 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
     const isHeroRow = HERO_ROWS.includes(row);
     const isEnemyRow = ENEMY_ROWS.includes(row);
 
-    const cellStyle = [
+    const cellStyle: StyleProp<ViewStyle> = [
       styles.cell,
       {
-        position: 'absolute',
+        position: 'absolute' as const,
         left: (i % GRID_COLUMNS) * HEX_WIDTH + ((row % 2) * HEX_WIDTH) / 2,
         top: row * HEX_VERTICAL_SPACING,
       },

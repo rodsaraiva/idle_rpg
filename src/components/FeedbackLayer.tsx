@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Animated, StyleSheet, Easing, Platform, Dimensions } from 'react-native';
 import { on, FEEDBACK_EVENTS } from '../services/feedback';
 import { theme } from '../theme';
+import { textShadow, elevation } from '../theme/elevation';
 
 const { width } = Dimensions.get('window');
 
@@ -14,7 +15,7 @@ interface FloatItem {
 interface ToastItem {
   id: string;
   text: string;
-  type?: 'success' | 'error' | 'info';
+  type?: 'success' | 'error' | 'info' | 'milestone';
 }
 
 export function FeedbackLayer() {
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     color: '#ffd34d',
-    textShadow: '0px 2px 4px rgba(0,0,0,0.5)',
+    ...textShadow('rgba(0,0,0,0.5)', 0, 2, 4),
   },
   toasts: {
     position: 'absolute',
@@ -176,8 +177,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 10,
     width: '100%',
-    boxShadow: '0px 4px 6px rgba(0,0,0,0.3)',
-    elevation: 8,
+    ...elevation(3),
   },
   toastText: {
     color: '#fff',

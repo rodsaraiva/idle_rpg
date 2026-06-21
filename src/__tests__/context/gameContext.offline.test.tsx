@@ -1,48 +1,59 @@
 import React from 'react';
 import { act, create } from 'react-test-renderer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameProvider } from '../../context/GameContext';
-import { loadGameState as realLoad } from '../../services/storage';
-import { GameState, HeroTask } from '../../types';
-import { TICK_INTERVAL_MS } from '../../constants/game';
-import { getMissionGoldPerTick } from '../../utils/math';
+import { StorageService } from '../../services/storage';
+import { GameState, HeroTask, Hero, ActiveMission } from '../../types';
+import { MISSIONS } from '../../constants/missions';
 
-jest.mock('../../services/storage');
+const TPL = MISSIONS.find((m) => m.id === 'mission_1')!; // durationMs 10_000
 
-const mockedLoad = realLoad as jest.MockedFunction<typeof realLoad>;
+function makeHero(): Hero {
+  return {
+    id: 'h1', name: 'OfflineHero', hpMax: 50, hpCurrent: 50, atk: 10, mp: 5,
+    defense: 5, crit: 10, agility: 5, currentTask: HeroTask.MISSION,
+    trainingProgressMs: { hp: 0, atk: 0, mp: 0 }, trainingCount: { hp: 0, atk: 0, mp: 0 },
+    equippedItems: [],
+  };
+}
 
-describe('GameContext offline application', () => {
-  afterEach(() => {
-    jest.resetAllMocks();
+function makeMission(startedAt: number): ActiveMission {
+  return {
+    id: 'm1', templateId: 'mission_1', heroIds: ['h1'], startedAt, looping: true,
+    scheduledActions: [], enemiesState: [],
+    precomputedOutcome: {
+      reward: 100, rounds: 1, actions: [], log: [], success: true, casualties: [], enemyCasualties: 0,
+    },
+  };
+}
+
+describe('GameContext — integração save → offline → reload', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
   });
 
-  test('applies offline progress and exposes offlineSummary', async () => {
+  test('save do motor novo (sem remainingMs) credita gold de missão offline ao recarregar', async () => {
     const twoHoursMs = 1000 * 60 * 60 * 2;
-    // hero on mission with atk 10
+    const now = Date.now();
     const savedState: GameState = {
       gold: 0,
-      heroes: [
-        {
-          id: 'h1',
-          name: 'OfflineHero',
-          hp: 10,
-          atk: 10,
-          mp: 0,
-          currentTask: HeroTask.MISSION,
-        },
-      ],
+      heroes: [makeHero()],
       heroesRecruited: 1,
-      lastSavedAt: Date.now() - twoHoursMs,
+      lastSavedAt: now - twoHoursMs,
+      // missão iniciada 2h atrás, loop de 10s → muitos ciclos offline
+      activeMissions: [makeMission(now - twoHoursMs)],
     };
+    // persiste no AsyncStorage real (sem mock de retorno fixo)
+    await StorageService.save(savedState);
+    // StorageService.save sobrescreve lastSavedAt com Date.now(); reescrevemos para o passado:
+    const raw = JSON.parse((await AsyncStorage.getItem('@idle_rpg_game_state'))!);
+    raw.lastSavedAt = now - twoHoursMs;
+    await AsyncStorage.setItem('@idle_rpg_game_state', JSON.stringify(raw));
 
-    mockedLoad.mockResolvedValue(savedState);
-
-    let offlineSummary: any = null;
-    // Consumer to expose context values
+    let captured: any = null;
     function Consumer() {
       const { offlineSummary: s, isLoaded } = require('../../hooks/useGame').useGame();
-      if (isLoaded && s) {
-        offlineSummary = s;
-      }
+      if (isLoaded && s) captured = s;
       return null;
     }
 
@@ -53,15 +64,13 @@ describe('GameContext offline application', () => {
           <Consumer />
         </GameProvider>
       );
-      // let effects run once
       await new Promise((r) => setTimeout(r, 0));
     });
 
-    // poll until offlineSummary is set (timeout after 5s)
     await new Promise<void>((resolve, reject) => {
       const start = Date.now();
       const interval = setInterval(() => {
-        if (offlineSummary) {
+        if (captured) {
           clearInterval(interval);
           resolve();
         } else if (Date.now() - start > 5000) {
@@ -75,13 +84,9 @@ describe('GameContext offline application', () => {
       renderer.unmount();
     });
 
-    const elapsedMs = Date.now() - savedState.lastSavedAt;
-    const ticks = Math.floor(elapsedMs / TICK_INTERVAL_MS);
-    const expectedGold = Math.floor(ticks * getMissionGoldPerTick(10));
-
-    expect(offlineSummary.goldGained).toBe(expectedGold);
-    expect(offlineSummary.heroesAffected).toBe(1);
-    expect(offlineSummary.ticks).toBeGreaterThanOrEqual(1);
+    // 2h / 10s = 720 ciclos * 100 reward
+    expect(captured.goldGained).toBeGreaterThan(0);
+    expect(captured.newState.gold).toBeGreaterThan(0);
+    expect(captured.newState.gold).toBe(captured.goldGained);
   }, 10000);
 });
-

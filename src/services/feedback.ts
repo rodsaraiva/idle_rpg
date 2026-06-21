@@ -81,12 +81,14 @@ export const FeedbackService = {
   },
 };
 
-// Backward compatibility exports
-export const emit = (event: any, payload: any) => 
-  FeedbackService.emit(event as FeedbackEvent, payload);
+// Backward compatibility exports — preservam o PayloadMap para os chamadores
+export function emit<T extends FeedbackEvent>(event: T, payload: PayloadMap[T]) {
+  return FeedbackService.emit(event, payload);
+}
 
-export const on = (event: any, cb: any) => 
-  FeedbackService.on(event as FeedbackEvent, cb);
+export function on<T extends FeedbackEvent>(event: T, cb: (payload: PayloadMap[T]) => void) {
+  return FeedbackService.on(event, cb);
+}
 
 export const FEEDBACK_EVENTS = {
   FLOAT: FeedbackEvent.FLOAT,
@@ -95,4 +97,4 @@ export const FEEDBACK_EVENTS = {
   BATTLE_HIT: FeedbackEvent.BATTLE_HIT,
   BATTLE_TARGET: FeedbackEvent.BATTLE_TARGET,
   BATTLE_DEATH: FeedbackEvent.BATTLE_DEATH,
-};
+} as const;

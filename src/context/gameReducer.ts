@@ -1,4 +1,5 @@
 import { GameState, GameAction } from '../types';
+import { validateShape } from '../services/storage';
 import { handleTick } from './tickHandler';
 import {
   handleStartMission,
@@ -104,7 +105,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return handleStartWeeklyBoss(state, action.heroIds, action.heroPositions, action.now);
 
     case 'LOAD_STATE':
-      return { ...action.state };
+      try {
+        return validateShape({ ...action.state });
+      } catch {
+        return state; // estado inválido não derruba o reducer
+      }
 
     default:
       return state;

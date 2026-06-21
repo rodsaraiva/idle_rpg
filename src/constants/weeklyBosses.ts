@@ -81,3 +81,18 @@ export function getWeeklyBoss(seed: number): WeeklyBossTemplate {
   const index = seed % WEEKLY_BOSS_POOL.length;
   return WEEKLY_BOSS_POOL[index];
 }
+
+/** Converte um boss semanal em MissionTemplate para reuso no tick e no offline. */
+export function bossToMissionTemplate(boss: WeeklyBossTemplate): MissionTemplate {
+  return {
+    id: boss.id,
+    name: boss.bossName,
+    minHeroes: boss.minHeroes,
+    durationMs: boss.durationMs,
+    rewardMin: boss.rewardMin,
+    rewardMax: boss.rewardMax,
+    statWeights: boss.statWeights,
+    difficulty: boss.difficulty,
+    enemies: boss.enemies,
+  };
+}
