@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { GameState, GameAction, HeroTask, OfflineSummaryFull } from '../types';
 import { gameReducer, initialGameState } from './gameReducer';
-import { loadGameState, saveGameState } from '../services/storage';
+import { loadGameState, saveGameState, CorruptSaveError } from '../services/storage';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { calculateOfflineProgress } from '../utils/offlineProgress';
 import { useGameFeedback } from '../hooks/useGameFeedback';
@@ -72,8 +72,8 @@ export function GameProvider({ children }: GameProviderProps) {
   useEffect(() => {
     async function initialize() {
       try {
-      const savedState = await loadGameState();
-      if (savedState) {
+        const savedState = await loadGameState();
+        if (savedState) {
           const summary = calculateOfflineProgress(savedState);
           if (summary) {
             setOfflineSummary(summary);
@@ -82,7 +82,15 @@ export function GameProvider({ children }: GameProviderProps) {
           }
         }
       } catch (error) {
-        console.error('GameProvider: Error during initialization', error);
+        if (error instanceof CorruptSaveError) {
+          // Save ilegível: inicia do estado inicial SEM sobrescrever o save/.bak (preserva diagnóstico)
+          emit(FEEDBACK_EVENTS.TOAST, {
+            text: 'Save corrompido — iniciando novo jogo (backup preservado)',
+            type: 'error',
+          });
+        } else {
+          console.error('GameProvider: Error during initialization', error);
+        }
       } finally {
         setIsLoaded(true);
       }
