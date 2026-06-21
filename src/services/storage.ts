@@ -2,11 +2,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameState } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
-const CURRENT_VERSION = 8; // Incremented for migrations
+const BACKUP_KEY = '@idle_rpg_game_state.bak';
+const CURRENT_VERSION = 9; // Incremented for migrations
 
 interface SaveData extends GameState {
   _version: number;
   lastSavedAt: number;
+}
+
+/** Lançada quando um save existe mas não pôde ser lido/validado — distinto de "sem save" (null). */
+export class CorruptSaveError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CorruptSaveError';
+  }
 }
 
 /**
@@ -15,7 +24,6 @@ interface SaveData extends GameState {
  */
 const migrations: Record<number, (data: any) => any> = {
   2: (data) => {
-    // Version 2 Migration: Ensure training fields and perHeroGold exist
     if (data && Array.isArray(data.heroes)) {
       data.heroes = data.heroes.map((h: any) => ({
         trainingProgressMs: h.trainingProgressMs ?? { hp: 0, atk: 0, mp: 0 },
@@ -27,7 +35,6 @@ const migrations: Record<number, (data: any) => any> = {
     return data;
   },
   3: (data) => {
-    // Version 3 Migration: Ensure hpCurrent is always set
     if (data && Array.isArray(data.heroes)) {
       data.heroes = data.heroes.map((h: any) => ({
         ...h,
@@ -38,36 +45,24 @@ const migrations: Record<number, (data: any) => any> = {
     return data;
   },
   4: (data) => {
-    // Version 4 Migration: ensure training fields have hp/atk/mp
     if (data && Array.isArray(data.heroes)) {
       data.heroes = data.heroes.map((h: any) => ({
         ...h,
-        trainingProgressMs: {
-          hp: 0, atk: 0, mp: 0,
-          ...(h.trainingProgressMs ?? {}),
-        },
-        trainingCount: {
-          hp: 0, atk: 0, mp: 0,
-          ...(h.trainingCount ?? {}),
-        },
+        trainingProgressMs: { hp: 0, atk: 0, mp: 0, ...(h.trainingProgressMs ?? {}) },
+        trainingCount: { hp: 0, atk: 0, mp: 0, ...(h.trainingCount ?? {}) },
       }));
     }
     return data;
   },
   5: (data) => {
-    // Version 5 Migration: Ensure inventory, forgingQueue, and hero equippedItems exist
     data.inventory = data.inventory ?? [];
     data.forgingQueue = data.forgingQueue ?? [];
     if (data && Array.isArray(data.heroes)) {
-      data.heroes = data.heroes.map((h: any) => ({
-        ...h,
-        equippedItems: h.equippedItems ?? [],
-      }));
+      data.heroes = data.heroes.map((h: any) => ({ ...h, equippedItems: h.equippedItems ?? [] }));
     }
     return data;
   },
   6: (data) => {
-    // Version 6: Pantheon fusion fields
     if (data && Array.isArray(data.heroes)) {
       for (const hero of data.heroes) {
         if (hero.stars === undefined) hero.stars = 0;
@@ -76,23 +71,25 @@ const migrations: Record<number, (data: any) => any> = {
     if (data.pantheonFusions === undefined) data.pantheonFusions = 0;
     return data;
   },
-  7: (data) => {
-    // Version 7: Weekly state (initialized at runtime by refreshWeeklyState)
+  7: (data) => data,
+  8: (data) => {
+    if (data.materials === undefined) data.materials = {};
     return data;
   },
-  8: (data) => {
-    // Version 8: Materials inventory
-    if (data.materials === undefined) data.materials = {};
+  9: (data) => {
+    // Version 9: remove o campo legado remainingMs e garante startedAt nas missões ativas
+    if (Array.isArray(data.activeMissions)) {
+      data.activeMissions = data.activeMissions.map((m: any) => {
+        const { remainingMs, ...rest } = m;
+        return { ...rest, startedAt: typeof rest.startedAt === 'number' ? rest.startedAt : Date.now() };
+      });
+    }
     return data;
   },
 };
 
-/**
- * Applies migrations to the data based on its version.
- */
 function applyMigrations(data: any): GameState {
   let version = data._version || 1;
-
   while (version < CURRENT_VERSION) {
     version++;
     if (migrations[version]) {
@@ -100,43 +97,61 @@ function applyMigrations(data: any): GameState {
       data = migrations[version](data);
     }
   }
-
   data._version = version;
   return data as GameState;
 }
 
+/**
+ * Validação mínima de shape. Lança se o estado for estruturalmente inválido.
+ * Compartilhada entre load() e o LOAD_STATE do reducer.
+ */
+export function validateShape(state: any): GameState {
+  if (!state || typeof state !== 'object') throw new Error('estado não é objeto');
+  if (typeof state.gold !== 'number') throw new Error('gold inválido');
+  if (!Array.isArray(state.heroes)) throw new Error('heroes não é array');
+  for (const h of state.heroes) {
+    if (typeof h?.id !== 'string') throw new Error('hero.id inválido');
+    if (typeof h.hpMax !== 'number') throw new Error('hero.hpMax inválido');
+  }
+  return state as GameState;
+}
+
 export const StorageService = {
-  /** Salva o estado do jogo no armazenamento local */
+  /** Salva o estado do jogo, mantendo backup do save válido anterior. */
   async save(state: GameState): Promise<void> {
     try {
-      const saveData: SaveData = {
-        ...state,
-        _version: CURRENT_VERSION,
-        lastSavedAt: Date.now(),
-      };
+      const saveData: SaveData = { ...state, _version: CURRENT_VERSION, lastSavedAt: Date.now() };
+      const prev = await AsyncStorage.getItem(STORAGE_KEY);
+      if (prev) await AsyncStorage.setItem(BACKUP_KEY, prev);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
     } catch (error) {
       if (__DEV__) console.error('StorageService: Erro ao salvar estado:', error);
     }
   },
 
-  /** Carrega o estado do jogo do armazenamento local */
+  /**
+   * Carrega o estado. Retorna null APENAS quando não há save.
+   * Save existente mas ilegível → tenta o backup; se também falhar, lança CorruptSaveError.
+   */
   async load(): Promise<GameState | null> {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    if (raw == null) return null;
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!data) return null;
-
-      let parsed = JSON.parse(data);
-      parsed = applyMigrations(parsed);
-      
-      return parsed as GameState;
-    } catch (error) {
-      if (__DEV__) console.error('StorageService: Erro ao carregar estado:', error);
-      return null;
+      return validateShape(applyMigrations(JSON.parse(raw)));
+    } catch (e) {
+      const bak = await AsyncStorage.getItem(BACKUP_KEY);
+      if (bak) {
+        try {
+          return validateShape(applyMigrations(JSON.parse(bak)));
+        } catch {
+          // backup também inválido — segue para lançar
+        }
+      }
+      throw new CorruptSaveError(String(e));
     }
   },
 
-  /** Limpa o estado do jogo salvo */
+  /** Limpa o estado do jogo salvo (mantém o backup intacto). */
   async clear(): Promise<void> {
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
