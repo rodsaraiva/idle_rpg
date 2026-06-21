@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   claimButtonText: {
-    color: '#1a1a1a',
+    color: theme.colors.bgDeep,
     fontSize: 14,
     fontWeight: '800',
   },
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   claimedBadgeText: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontSize: 18,
     fontWeight: '800',
   },

@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   priceTextDisabled: {
-    color: '#ff4d4d',
+    color: theme.colors.danger,
   },
   buyButton: {
     backgroundColor: theme.colors.primary,

@@ -9,6 +9,10 @@ const FlatList = (props) => React.createElement('FlatList', props, props.childre
 const Modal = (props) => React.createElement('Modal', props, props.children);
 const ActivityIndicator = (props) => React.createElement('ActivityIndicator', props, props.children);
 const TextInput = (props) => React.createElement('TextInput', props, props.children);
+const Image = (props) => React.createElement('Image', props, props.children);
+const ImageBackground = (props) => React.createElement('ImageBackground', props, props.children);
+const Pressable = (props) => React.createElement('Pressable', props, props.children);
+const Switch = (props) => React.createElement('Switch', props, props.children);
 
 const ReactNative = {
   Text,
@@ -20,8 +24,18 @@ const ReactNative = {
   Modal,
   ActivityIndicator,
   TextInput,
+  Image,
+  ImageBackground,
+  Pressable,
+  Switch,
   StyleSheet: {
     create: (styles) => styles,
+    flatten: (style) => {
+      if (!style) return {};
+      if (Array.isArray(style)) return Object.assign({}, ...style.map((s) => (s ? s : {})));
+      return style;
+    },
+    absoluteFillObject: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   },
   Platform: {
     OS: 'ios',

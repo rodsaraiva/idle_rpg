@@ -124,8 +124,8 @@ function ToastNotification({ text, type = 'info' }: { text: string; type?: strin
 
   const getBackgroundColor = () => {
     switch (type) {
-      case 'success': return '#2ECC71';
-      case 'error': return '#E74C3C';
+      case 'success': return theme.colors.successBright;
+      case 'error': return theme.colors.danger;
       default: return 'rgba(0,0,0,0.85)';
     }
   };
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   floatText: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#ffd34d',
+    color: theme.colors.warning,
     ...textShadow('rgba(0,0,0,0.5)', 0, 2, 4),
   },
   toasts: {
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     ...elevation(3),
   },
   toastText: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 14,
     textAlign: 'center',

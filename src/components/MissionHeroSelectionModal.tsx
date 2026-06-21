@@ -284,7 +284,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                 : theme.colors.surfaceLight
             }
             stroke={
-              isHeroRow && !hero ? '#6495ed' : theme.colors.border
+              isHeroRow && !hero ? theme.colors.statMp : theme.colors.border
             }
             strokeWidth={isHeroRow && !hero ? 1 : 1}
           >
@@ -468,13 +468,13 @@ const styles = StyleSheet.create({
   },
   cellEmpty: { backgroundColor: theme.colors.surfaceLight, borderWidth: 1, borderColor: theme.colors.border },
   cellFilled: { backgroundColor: theme.colors.primary, borderWidth: 0 },
-  cellHeroRow: { backgroundColor: 'rgba(100, 149, 237, 0.15)', borderColor: '#6495ed', borderStyle: 'dashed' },
+  cellHeroRow: { backgroundColor: 'rgba(100, 149, 237, 0.15)', borderColor: theme.colors.statMp, borderStyle: 'dashed' },
   cellEnemyRow: { backgroundColor: 'rgba(255, 0, 0, 0.05)', borderColor: 'transparent' },
   cellEnemyFilled: { backgroundColor: 'rgba(255, 0, 0, 0.3)', borderWidth: 0 },
-  cellHover: { borderColor: theme.colors.accent, borderWidth: 2 },
+  cellHover: { borderColor: theme.colors.gold, borderWidth: 2 },
   cellText: { color: theme.colors.textSecondary, fontSize: 16, opacity: 0.5 },
   cellTextSmall: { color: theme.colors.textPrimary, fontSize: 8, textAlign: 'center' },
-  cellTextEnemy: { color: '#ff4d4d', fontSize: 8, textAlign: 'center', fontWeight: 'bold' },
+  cellTextEnemy: { color: theme.colors.danger, fontSize: 8, textAlign: 'center', fontWeight: 'bold' },
   subtitle: { color: theme.colors.textSecondary, marginBottom: 8, textAlign: 'center', fontSize: 12 },
   heroItem: {
     backgroundColor: theme.colors.surfaceLight,
@@ -567,7 +567,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
   },
   loopCheckmark: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontSize: 14,
     fontWeight: 'bold',
   },

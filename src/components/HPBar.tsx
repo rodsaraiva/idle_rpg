@@ -14,9 +14,9 @@ export function HPBar({ current, max, showText = true }: HPBarProps) {
   
   const getBarColor = () => {
     const ratio = current / Math.max(1, max);
-    if (ratio > 0.6) return '#3CB371';
-    if (ratio > 0.3) return '#FFD24D';
-    return '#FF7A7A';
+    if (ratio > 0.6) return theme.colors.hpHigh;
+    if (ratio > 0.3) return theme.colors.hpMid;
+    return theme.colors.hpLow;
   };
 
   return (
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
     alignSelf: 'center',
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 10,
     ...textShadow('rgba(0,0,0,0.35)', 0, 1, 1),

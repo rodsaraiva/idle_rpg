@@ -9,6 +9,7 @@ import {
   Modal,
 } from 'react-native';
 import { theme } from '../theme';
+import { rarity } from '../theme/tokens/rarity';
 import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { GoldDisplay } from '../components/GoldDisplay';
 import { useGame } from '../hooks/useGame';
@@ -41,7 +42,7 @@ function formatStatBonus(statBonus: Equipment['statBonus']): string {
 
 function getTierColor(tier: number): string {
   const def = EQUIPMENT_TIERS.find(t => t.tier === tier);
-  return def?.color || '#94A3B8';
+  return def ? rarity[def.rarity].color : rarity.common.color;
 }
 
 export function BlacksmithScreen() {
@@ -90,7 +91,7 @@ export function BlacksmithScreen() {
     return (
       <TouchableOpacity
         key={tierDef.tier}
-        style={[styles.tierCard, { borderColor: tierDef.color }]}
+        style={[styles.tierCard, { borderColor: rarity[tierDef.rarity].color }]}
         onPress={() => {
             setSelectedTier(tierDef.tier);
             handleForge(tierDef.tier, selectedEquipmentType);
@@ -99,7 +100,7 @@ export function BlacksmithScreen() {
         activeOpacity={0.7}
       >
         <View style={styles.tierHeader}>
-          <Text style={[styles.tierLabel, { color: tierDef.color }]}>
+          <Text style={[styles.tierLabel, { color: rarity[tierDef.rarity].color }]}>
             {tierDef.label}
           </Text>
           <Text style={[styles.tierCost, !canAfford && styles.costDisabled]}>
@@ -443,7 +444,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   collectBtnText: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 13,
   },
@@ -489,7 +490,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   equipBtnText: {
-    color: '#fff',
+    color: theme.colors.textPrimary,
     fontWeight: '700',
     fontSize: 13,
   },
