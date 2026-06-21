@@ -2,8 +2,8 @@ import React from 'react';
 import { View, ScrollView, StatusBar, StyleSheet } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../theme';
+import { Parchment } from './Parchment';
 
 interface ScreenContainerProps {
   children: React.ReactNode;
@@ -42,13 +42,7 @@ export function ScreenContainer({
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.bgDeep} />
-      {texture === 'leather' ? (
-        <LinearGradient
-          colors={[theme.colors.surface, theme.colors.bgBase]}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-      ) : null}
+      {texture === 'leather' ? <Parchment style={StyleSheet.absoluteFill} /> : null}
       {content}
     </View>
   );
