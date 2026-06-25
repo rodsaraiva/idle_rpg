@@ -22,6 +22,8 @@ import { runMissionSimulation, SimulationResult } from '../utils/simulationRunne
 import { PERSONALITY_LIST, PERSONALITIES } from '../../src/constants/personalities';
 import { SYNERGIES, getActiveSynergies } from '../../src/constants/synergies';
 import { EQUIPMENT_TIERS } from '../../src/constants/equipment';
+import { generateEquipment } from '../../src/context/equipmentHandler';
+import { makeRng } from '../../src/utils/math';
 
 const ITERATIONS = 2000; // Fast but still statistically meaningful
 const OUTPUT_FILE = 'scripts/simulations/BALANCE_REPORT.md';
@@ -91,16 +93,6 @@ function applyEquipmentToHero(hero: Hero, items: Equipment[]): Hero {
   return clone;
 }
 
-function makeEquipment(tier: number, stat: 'atk' | 'defense' | 'hp' | 'crit', value: number): Equipment {
-  return {
-    id: `sim_eq_${tier}_${stat}`,
-    name: `Sim ${stat} T${tier}`,
-    type: stat === 'defense' || stat === 'hp' ? 'armor' : stat === 'crit' ? 'accessory' : 'weapon',
-    statBonus: { [stat]: value } as any,
-    tier,
-  };
-}
-
 function uniqueHeroes<T extends Hero>(heroes: T[]): T[] {
   // Clone and give unique IDs so simulationRunner doesn't deduplicate by id
   return heroes.map((h, i) => ({ ...h, id: `${h.id}_${i}` }));
@@ -153,28 +145,39 @@ interface PersonalityResult {
   personality: PersonalityId;
   mission: string;
   winPct: number;
+  deltaVsNone: number;
   avgHpLost: number;
 }
 
 function sweepPersonalities(): PersonalityResult[] {
-  console.log('\n[2/5] Personality × Class sweep...');
+  console.log('\n[2/6] Personality × Class sweep (vs sem-personalidade, headroom)...');
   const results: PersonalityResult[] = [];
-  const mission = 'mission_1'; // Solo mission
+  const mission = PERSONALITY_STAGE_MISSION;
 
   for (const classId of CLASSES) {
+    // Baseline: MESMA classe/seed SEM personalidade.
+    const baseHero = generateTrainedHero(classId, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(classId) });
+    baseHero.personality = undefined;
+    baseHero.id = `p_${classId}_none`;
+    const baseWin = parsePercent(
+      runMissionSimulation({ heroes: [baseHero], missionId: mission, iterations: ITERATIONS, seed: 555 }).winRate
+    );
+
     for (const p of PERSONALITY_LIST) {
       const hero = generateTrainedHero(classId, {
-        ms: STAGE_MS,
+        ms: STAGES.HEADROOM.ms,
         focus: getFocusForClass(classId),
         personality: p.id,
       });
       hero.id = `p_${classId}_${p.id}`;
-      const r = runMissionSimulation({ heroes: [hero], missionId: mission, iterations: ITERATIONS });
+      const r = runMissionSimulation({ heroes: [hero], missionId: mission, iterations: ITERATIONS, seed: 555 });
+      const winPct = parsePercent(r.winRate);
       results.push({
         classId,
         personality: p.id,
         mission,
-        winPct: parsePercent(r.winRate),
+        winPct,
+        deltaVsNone: winPct - baseWin,
         avgHpLost: r.avgHpLostWin === '-' ? 0 : parseFloat(r.avgHpLostWin),
       });
     }
@@ -196,25 +199,25 @@ interface EquipmentResult {
 }
 
 function sweepEquipment(): EquipmentResult[] {
-  console.log('\n[3/5] Equipment impact sweep...');
+  console.log('\n[3/6] Equipment impact sweep (roll real, headroom)...');
   const results: EquipmentResult[] = [];
-  const mission = 'mission_1';
+  const mission = EQUIP_STAGE_MISSION;
+  const eqRng = makeRng(777); // determinístico p/ reprodutibilidade do roll
 
-  // Representative items per tier: weapon (+atk) and armor (+defense)
   const conditions: { label: string; items: Equipment[] }[] = [
     { label: 'Sem itens', items: [] },
-    { label: '1x Comum ATK', items: [makeEquipment(1, 'atk', 5)] },
-    { label: '1x Raro ATK', items: [makeEquipment(2, 'atk', 10)] },
-    { label: '1x Épico ATK', items: [makeEquipment(3, 'atk', 15)] },
-    { label: 'ATK+DEF Épico', items: [makeEquipment(3, 'atk', 15), makeEquipment(3, 'defense', 20)] },
+    { label: '1x Comum', items: [generateEquipment(1, 'weapon', eqRng)] },
+    { label: '1x Raro', items: [generateEquipment(2, 'weapon', eqRng)] },
+    { label: '1x Épico', items: [generateEquipment(3, 'weapon', eqRng)] },
+    { label: 'Conjunto Épico', items: [generateEquipment(3, 'weapon', eqRng), generateEquipment(3, 'armor', eqRng)] },
   ];
 
   for (const classId of CLASSES) {
     for (const cond of conditions) {
-      const baseHero = generateTrainedHero(classId, { ms: STAGE_MS, focus: getFocusForClass(classId) });
+      const baseHero = generateTrainedHero(classId, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(classId) });
       const equipped = applyEquipmentToHero(baseHero, cond.items);
       equipped.id = `eq_${classId}_${cond.label}`;
-      const r = runMissionSimulation({ heroes: [equipped], missionId: mission, iterations: ITERATIONS });
+      const r = runMissionSimulation({ heroes: [equipped], missionId: mission, iterations: ITERATIONS, seed: 777 });
       results.push({
         classId,
         condition: cond.label,
@@ -453,6 +456,16 @@ function generateReport(
   p('');
   p('**Insight**: Deltas grandes (>10pp) indicam que a escolha de personalidade importa. Deltas pequenos significam que o sistema de personalidade tem pouco impacto nessa classe.');
   p('');
+  p('**Δ vs sem-personalidade (cada personalidade, por classe natural):**');
+  p('');
+  p('| Classe | Personalidade | Win % | Δ vs nenhuma |');
+  p('|--------|---------------|-------|--------------|');
+  for (const r of personality) {
+    const clsName = configProvider.getClassDef(r.classId).displayName;
+    const pName = PERSONALITIES[r.personality].displayName;
+    p(`| ${clsName} | ${pName} | ${r.winPct.toFixed(0)}% | ${r.deltaVsNone >= 0 ? '+' : ''}${r.deltaVsNone.toFixed(1)}pp |`);
+  }
+  p('');
   p('---');
   p('');
 
@@ -477,10 +490,10 @@ function generateReport(
   // Delta: sem-item vs épico+defense
   const deltas = CLASSES.map(cls => {
     const noItem = equipment.find(e => e.classId === cls && e.condition === 'Sem itens');
-    const full = equipment.find(e => e.classId === cls && e.condition === 'ATK+DEF Épico');
+    const full = equipment.find(e => e.classId === cls && e.condition === 'Conjunto Épico');
     return { cls, delta: (full?.winPct ?? 0) - (noItem?.winPct ?? 0) };
   }).sort((a, b) => b.delta - a.delta);
-  p('**Impacto dos equipamentos (Sem itens → Épico ATK+DEF):**');
+  p('**Impacto dos equipamentos (Sem itens → Conjunto Épico):**');
   for (const d of deltas) {
     const name = configProvider.getClassDef(d.cls).displayName;
     p(`- ${name}: +${d.delta.toFixed(1)}pp`);
