@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { theme } from '../theme';
@@ -14,6 +14,10 @@ import { useGuild } from '../hooks/useGuild';
 import { GuildEmptyState } from '../components/GuildEmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { LOTTIE_ASSETS } from '../constants/assets';
+import { registerTarget } from '../onboarding/targetRegistry';
+import { getRecruitCost } from '../utils/math';
+import { emitSecondRecruitHint } from '../services/milestones';
+import { useGame } from '../hooks/useGame';
 
 export function GuildScreen() {
   const {
@@ -27,6 +31,31 @@ export function GuildScreen() {
     applyOfflineSummary,
     getHeroActions,
   } = useGuild();
+
+  const { markHintSeen } = useGame();
+
+  const recruitBtnRef = useRef<View>(null);
+
+  useEffect(() => {
+    return registerTarget('recruit-button', () =>
+      new Promise((resolve) => {
+        const node = recruitBtnRef.current as any;
+        if (!node?.measureInWindow) return resolve(null);
+        node.measureInWindow((x: number, y: number, width: number, height: number) =>
+          resolve({ x, y, width, height })
+        );
+      })
+    );
+  }, []);
+
+  const onRecruitGuarded = useCallback(() => {
+    const cost = getRecruitCost(state.heroesRecruited);
+    if (state.gold < cost && !state.onboarding?.hintsSeen.second_recruit) {
+      emitSecondRecruitHint();
+      markHintSeen('second_recruit');
+    }
+    recruitHero();
+  }, [state.heroesRecruited, state.gold, state.onboarding, recruitHero, markHintSeen]);
 
   const recruitRef = useRef<LottieView>(null);
   const prevCount = useRef(state.heroes.length);
@@ -59,8 +88,8 @@ export function GuildScreen() {
         />
       }
     >
-      <View style={styles.recruitSection}>
-        <RecruitButton cost={nextRecruitCost} canAfford={canAfford} onPress={recruitHero} />
+      <View style={styles.recruitSection} ref={recruitBtnRef} collapsable={false}>
+        <RecruitButton cost={nextRecruitCost} canAfford={canAfford} onPress={onRecruitGuarded} />
       </View>
 
       <View style={styles.summaryRow}>
