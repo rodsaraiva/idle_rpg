@@ -125,6 +125,10 @@ export interface GameState {
   };
   materials?: Record<string, number>;
   onboarding?: OnboardingState;
+  // meta-progressão de Legado (sem reset)
+  legacy?: { level: number; totalExp: number; sealsEarned: string[] };
+  activeEvent?: { id: string; startedAt: number; endsAt: number; seed: number } | null;
+  legacyUpgrades?: Record<string, number>; // upgradeId -> ranks comprados
 }
 
 /** Ação disparada para alterar o estado do jogo */

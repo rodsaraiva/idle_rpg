@@ -1,10 +1,11 @@
 import { ClassId } from '../types';
 
 export interface MissionRequirement {
-  type: 'min_stat' | 'class_needed' | 'min_avg_stat';
+  type: 'min_stat' | 'class_needed' | 'min_avg_stat' | 'mission_cleared';
   stat?: 'hp' | 'atk' | 'mp';
   value?: number;
   classId?: ClassId;
+  missionId?: string; // usado por 'mission_cleared'
   label: string;
 }
 

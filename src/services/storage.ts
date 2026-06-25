@@ -3,7 +3,7 @@ import { GameState } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
 const BACKUP_KEY = '@idle_rpg_game_state.bak';
-const CURRENT_VERSION = 10; // Incremented for migrations
+export const CURRENT_VERSION = 11; // Incremented for migrations
 
 interface SaveData extends GameState {
   _version: number;
@@ -98,7 +98,19 @@ const migrations: Record<number, (data: any) => any> = {
     }
     return data;
   },
+  11: (data) => {
+    // Version 11: campos de meta-progressão de Legado e eventos sazonais.
+    if (data.legacy === undefined) data.legacy = { level: 0, totalExp: 0, sealsEarned: [] };
+    if (data.activeEvent === undefined) data.activeEvent = null;
+    if (data.legacyUpgrades === undefined) data.legacyUpgrades = {};
+    return data;
+  },
 };
+
+/** Exportado para testes: aplica migrações de versão em um save. */
+export function migrateState(data: any): GameState {
+  return applyMigrations(data);
+}
 
 function applyMigrations(data: any): GameState {
   let version = data._version || 1;
