@@ -13,6 +13,7 @@ import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
 import { Hero, HeroTask } from '../types';
 import { useTraining } from '../hooks/useTraining';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { registerTarget } from '../onboarding/targetRegistry';
 
 export function TrainingScreen() {
   const {
@@ -24,6 +25,19 @@ export function TrainingScreen() {
     applyOfflineSummary,
     clearOfflineSummary,
   } = useTraining();
+
+  const trainAtkRef = React.useRef<View>(null);
+  React.useEffect(() => {
+    return registerTarget('train-atk', () =>
+      new Promise((resolve) => {
+        const node = trainAtkRef.current as any;
+        if (!node?.measureInWindow) return resolve(null);
+        node.measureInWindow((x: number, y: number, width: number, height: number) =>
+          resolve({ x, y, width, height })
+        );
+      })
+    );
+  }, []);
 
   const [selectedHero, setSelectedHero] = React.useState<Hero | null>(null);
 
@@ -67,12 +81,14 @@ export function TrainingScreen() {
             color={theme.colors.statHp}
             onPress={() => setAllHeroesTask(HeroTask.TRAIN_HP)}
           />
-          <BatchButton
-            title="ATK"
-            icon="sword"
-            color={theme.colors.statAtk}
-            onPress={() => setAllHeroesTask(HeroTask.TRAIN_ATK)}
-          />
+          <View ref={trainAtkRef} collapsable={false}>
+            <BatchButton
+              title="ATK"
+              icon="sword"
+              color={theme.colors.statAtk}
+              onPress={() => setAllHeroesTask(HeroTask.TRAIN_ATK)}
+            />
+          </View>
           <BatchButton
             title="MP"
             icon="stat-mp"
