@@ -89,3 +89,104 @@ describe('gold bonus via pantheonBonuses', () => {
     expect(next.gold).toBe(110);
   });
 });
+
+describe('invariante de referência do tick (base para otimização getUnlockedSkills)', () => {
+  function makeIdleHeroAtFullHp(id: string) {
+    return {
+      id,
+      name: `Hero ${id}`,
+      hpMax: 30,
+      hpCurrent: 30, // cheio: processRegeneration não toca (clona só se hpCurrent < hpMax)
+      atk: 10,
+      mp: 5,
+      defense: 5,
+      crit: 10,
+      agility: 5,
+      currentTask: HeroTask.IDLE,
+      trainingCount: { hp: 0, atk: 0, mp: 0 },
+      trainingProgressMs: { hp: 0, atk: 0, mp: 0 },
+      equippedItems: [],
+    } as any;
+  }
+
+  test('herói IDLE em HP cheio atravessa o tick pela MESMA referência (não treinou nem regenerou)', () => {
+    const hero = makeIdleHeroAtFullHp('h1');
+    const state = {
+      gold: 0,
+      heroes: [hero],
+      heroesRecruited: 1,
+      lastSavedAt: 0,
+      inventory: [],
+      activeMissions: [],
+    } as any;
+
+    const next = handleTick(state, Date.now());
+    expect(next.heroes[0]).toBe(hero); // referência idêntica
+  });
+
+  test('herói em TRAIN_ATK com progresso suficiente recebe NOVA referência e ganha atk', () => {
+    const hero = makeIdleHeroAtFullHp('h2');
+    hero.currentTask = HeroTask.TRAIN_ATK;
+    // progresso já acumulado alto força >=1 ponto neste tick
+    hero.trainingProgressMs = { hp: 0, atk: 10_000_000, mp: 0 };
+    const state = {
+      gold: 0,
+      heroes: [hero],
+      heroesRecruited: 1,
+      lastSavedAt: 0,
+      inventory: [],
+      activeMissions: [],
+    } as any;
+
+    const next = handleTick(state, Date.now());
+    expect(next.heroes[0]).not.toBe(hero); // referência nova
+    expect(next.heroes[0].atk).toBeGreaterThan(hero.atk);
+  });
+});
+
+import * as skills from '../../constants/skills';
+
+describe('otimização getUnlockedSkills no tick', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  test('NÃO chama getUnlockedSkills quando nenhum herói treina', () => {
+    const spy = jest.spyOn(skills, 'getUnlockedSkills');
+    const hero = {
+      id: 'h1', name: 'Idle', hpMax: 30, hpCurrent: 30, atk: 10, mp: 5,
+      defense: 5, crit: 10, agility: 5, currentTask: HeroTask.IDLE,
+      trainingCount: { hp: 0, atk: 0, mp: 0 },
+      trainingProgressMs: { hp: 0, atk: 0, mp: 0 }, equippedItems: [],
+    } as any;
+    const state = {
+      gold: 0, heroes: [hero], heroesRecruited: 1, lastSavedAt: 0,
+      inventory: [], activeMissions: [],
+    } as any;
+
+    handleTick(state, Date.now());
+    expect(spy).toHaveBeenCalledTimes(0);
+  });
+
+  test('chama getUnlockedSkills só para o herói que treinou (2 chamadas: antes+depois)', () => {
+    const spy = jest.spyOn(skills, 'getUnlockedSkills');
+    const trainer = {
+      id: 'h1', name: 'Trainer', hpMax: 30, hpCurrent: 30, atk: 10, mp: 5,
+      defense: 5, crit: 10, agility: 5, currentTask: HeroTask.TRAIN_ATK,
+      trainingCount: { hp: 0, atk: 0, mp: 0 },
+      trainingProgressMs: { hp: 0, atk: 10_000_000, mp: 0 }, equippedItems: [],
+    } as any;
+    const idler = {
+      id: 'h2', name: 'Idle', hpMax: 30, hpCurrent: 30, atk: 10, mp: 5,
+      defense: 5, crit: 10, agility: 5, currentTask: HeroTask.IDLE,
+      trainingCount: { hp: 0, atk: 0, mp: 0 },
+      trainingProgressMs: { hp: 0, atk: 0, mp: 0 }, equippedItems: [],
+    } as any;
+    const state = {
+      gold: 0, heroes: [trainer, idler], heroesRecruited: 2, lastSavedAt: 0,
+      inventory: [], activeMissions: [],
+    } as any;
+
+    handleTick(state, Date.now());
+    // só o trainer é reavaliado: getUnlockedSkills(prevHero) + getUnlockedSkills(hero) = 2
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+});

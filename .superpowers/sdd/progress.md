@@ -51,3 +51,16 @@ SPEC3 Task 21: 30413ff
 SPEC3 Task 22: 3429cd6
 SPEC3 Task 23: 3dd34d9
 SPEC3 Task 24: 1efe9cc
+SPEC6 Task 1: 715f5a2
+SPEC6 Task 2: 63400d2
+SPEC6 Task 3: b8a6373
+SPEC6 Task 4: 3e05bdd
+SPEC6 Task 5: 4c3d8bb
+SPEC6 Task 6: 601a17d
+SPEC6 Task 7: be710e0
+SPEC6 Task 8: a9c90cc
+SPEC6 Task 9: b4588b8
+SPEC6 Task 10: 9688990
+SPEC6 Task 11: 7f3354c
+SPEC6 Task 12: 9bb0e5f
+SPEC6 Task 13: (verificação — tsc 0, 525 testes, 3 snapshots; ACs ok; smoke browser manual-pending sandbox)
