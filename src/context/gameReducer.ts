@@ -37,6 +37,7 @@ export const initialGameState: GameState = {
   gold: 25, // cobre 1 recruta extra (15) só depois de a missão render ouro — não trivializa
   heroes: [createHero('WARRIOR')], // herói semeado determinístico: remove a vila de prédios inúteis
   heroesRecruited: 1, // o herói grátis conta como o 1º → próximo custa floor(10*1.5)=15 (preço cheio)
+  unlockedAchievements: ['recruit_1'], // pré-creditado: o herói semeado JÁ satisfaz "recrute o 1º" — sem o +20 grátis no boot (sem gold passivo)
   lastSavedAt: Date.now(),
   tickIntervalMs: TICK_INTERVAL_MS,
   trainInflationFactor: TRAIN_INFLATION_FACTOR,

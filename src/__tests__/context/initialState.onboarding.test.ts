@@ -1,5 +1,6 @@
 import { initialGameState, gameReducer } from '../../context/gameReducer';
 import { getRecruitCost } from '../../utils/math';
+import { checkAchievements } from '../../context/achievementHandler';
 
 describe('estado inicial revisto (FTUE)', () => {
   test('semeia exatamente 1 herói WARRIOR', () => {
@@ -31,6 +32,14 @@ describe('estado inicial revisto (FTUE)', () => {
     const c2 = getRecruitCost(2); // 22
     expect(gold).toBeGreaterThanOrEqual(c1);
     expect(gold).toBeLessThan(c1 + c2); // 25 < 37 → não consegue o 3º herói de cara
+  });
+
+  test('boot não dá ouro grátis: recruit_1 já vem desbloqueado (gold efetivo continua 25)', () => {
+    // Sem isto, heroesRecruited:1 dispararia recruit_1 (+20) no 1º checkAchievements,
+    // levando o ouro efetivo a 45 → trivializa (afora a regra "sem gold passivo").
+    expect(initialGameState.unlockedAchievements).toContain('recruit_1');
+    const afterCheck = checkAchievements(initialGameState);
+    expect(afterCheck.gold).toBe(25);
   });
 });
 
