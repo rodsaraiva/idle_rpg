@@ -329,10 +329,10 @@ describe('D4 — Curas de skill disparam onHealApplied', () => {
 
     executePreAttackSkills(healer, makeEnemy(), state, alwaysHit);
 
-    // LINHA_DE_FRENTE adiciona atkMul 1.30 ao guerreiro curado
+    // LINHA_DE_FRENTE adiciona atkMul 1.40 ao guerreiro curado
     const furorBuff = state.buffs['warrior1']?.find(b => b.source === 'LINHA_DE_FRENTE' && b.type === 'atkMul');
     expect(furorBuff).toBeDefined();
-    expect(furorBuff?.value).toBe(1.30);
+    expect(furorBuff?.value).toBe(1.40);
   });
 
   test('Purificação dispara onHealApplied e aplica buff LINHA_DE_FRENTE no Guerreiro', () => {
@@ -367,6 +367,6 @@ describe('D4 — Curas de skill disparam onHealApplied', () => {
     // Purificação remove o dot e cura 20% HP, deve disparar onHealApplied
     const furorBuff = state.buffs['warrior2']?.find(b => b.source === 'LINHA_DE_FRENTE' && b.type === 'atkMul');
     expect(furorBuff).toBeDefined();
-    expect(furorBuff?.value).toBe(1.30);
+    expect(furorBuff?.value).toBe(1.40);
   });
 });

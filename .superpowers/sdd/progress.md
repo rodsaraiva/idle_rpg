@@ -64,3 +64,13 @@ SPEC6 Task 10: 9688990
 SPEC6 Task 11: 7f3354c
 SPEC6 Task 12: 9bb0e5f
 SPEC6 Task 13: (verificação — tsc 0, 525 testes, 3 snapshots; ACs ok; smoke browser manual-pending sandbox)
+SPEC4 Task 1: 3ae5198
+SPEC4 Task 2: ea52850
+SPEC4 Task 3: 87d6049
+SPEC4 Task 4: 40658b6
+SPEC4 Task 5: fa64e59
+SPEC4 Task 6: 73354bb
+SPEC4 Task 7: a3a5eee
+SPEC4 Task 8: f401aea
+SPEC4 Task 9: b2bffa8
+SPEC4 Task 10: 2e4cc15

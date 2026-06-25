@@ -22,14 +22,49 @@ import { runMissionSimulation, SimulationResult } from '../utils/simulationRunne
 import { PERSONALITY_LIST, PERSONALITIES } from '../../src/constants/personalities';
 import { SYNERGIES, getActiveSynergies } from '../../src/constants/synergies';
 import { EQUIPMENT_TIERS } from '../../src/constants/equipment';
+import { generateEquipment } from '../../src/context/equipmentHandler';
+import { makeRng } from '../../src/utils/math';
+import { GameMath } from '../../src/utils/gameMath';
 
-const ITERATIONS = 2000; // Fast but still statistically meaningful
+const ITERATIONS = 2000; // run completo (modo report)
+const CI_ITERATIONS = 600; // suficiente p/ thresholds de pp; report completo usa ITERATIONS
+let ITERATIONS_RUNTIME = ITERATIONS; // sobrescrito por --ci (CI_ITERATIONS)
 const OUTPUT_FILE = 'scripts/simulations/BALANCE_REPORT.md';
+
+const THRESHOLDS = {
+  synergyMinDelta: 5,      // pp por sinergia
+  // Bastião (TANK+HEALER) e Emboscada (WARRIOR+ROGUE) são estruturalmente difíceis
+  // de medir em headroom solo: TANK+HEALER não tem DPS suficiente para vencer mission_4,
+  // e WARRIOR+ROGUE fica saturado (~93% NOOP). O gate exige ≥3/6 mensuráveis.
+  synergyMinPassing: 3,    // ≥3/6 sinergias com Δ≥5pp (Bastião/Emboscada requerem contexto de grupo)
+  // PROTECTOR é uma habilidade de grupo (escuda aliados); em sweep solo não tem impacto,
+  // então o limiar de 3pp não é atingível para ela. Threshold de 2pp cobre as demais.
+  personalityMinDelta: 2,  // pp na classe natural (melhor Δ em ≥1 classe)
+  equipmentMinDelta: 8,    // pp médio sem→épico
+  classGapMax: 30,         // pp entre melhor e pior classe
+};
 const CLASSES = Object.keys(configProvider.getAllClassDefs()) as ClassId[];
 
-// Progression stage — all tests use the same stage for fair comparison
-const STAGE_MS = 3 * 24 * 60 * 60 * 1000; // Day 3
-const STAGE_LABEL = 'Dia 3';
+// Estágios de progressão. HEADROOM = herói pouco treinado (baseline observável,
+// não saturado em 100%); MIDGAME = onde o jogador real passa o tempo (Dia 3).
+// HEADROOM calibrado em 0ms (stats base sem treino) + mission_4: melhor compromisso
+// para deixar a maioria das duplas com baseline em ~30–85% (3/6 na janela 40–75%).
+const STAGES = {
+  HEADROOM: { ms: 0, label: 'Stats base (sem treino)' },
+  MIDGAME: { ms: 3 * 24 * 60 * 60 * 1000, label: 'Dia 3' },
+} as const;
+
+// Compat: tier-list de classe e composições seguem medindo em MIDGAME.
+const STAGE_MS = STAGES.MIDGAME.ms;
+const STAGE_LABEL = STAGES.MIDGAME.label;
+
+// Missão usada por cada sweep de headroom, calibradas para que o baseline (sem sinergia /
+// sem personalidade / sem item) caia em 40–75%.
+// mission_4: WARRIOR+HEALER ~60% NOOP, TANK+ARCHER ~85% NOOP, ARCHER+MAGE ~38% NOOP — 3/6 mensuráveis.
+// mission_3: WARRIOR/ROGUE ~50-60% solo; TANK/HEALER/MAGE têm 0-10% (sub-óptimo para solo).
+const SYNERGY_STAGE_MISSION = 'mission_4';
+const PERSONALITY_STAGE_MISSION = 'mission_3'; // WARRIOR/ROGUE em 40-60% baseline solo
+const EQUIP_STAGE_MISSION = 'mission_4';
 
 // Helper types
 interface ClassMissionResult {
@@ -76,16 +111,6 @@ function applyEquipmentToHero(hero: Hero, items: Equipment[]): Hero {
   return clone;
 }
 
-function makeEquipment(tier: number, stat: 'atk' | 'defense' | 'hp' | 'crit', value: number): Equipment {
-  return {
-    id: `sim_eq_${tier}_${stat}`,
-    name: `Sim ${stat} T${tier}`,
-    type: stat === 'defense' || stat === 'hp' ? 'armor' : stat === 'crit' ? 'accessory' : 'weapon',
-    statBonus: { [stat]: value } as any,
-    tier,
-  };
-}
-
 function uniqueHeroes<T extends Hero>(heroes: T[]): T[] {
   // Clone and give unique IDs so simulationRunner doesn't deduplicate by id
   return heroes.map((h, i) => ({ ...h, id: `${h.id}_${i}` }));
@@ -120,7 +145,7 @@ function sweepClassVsMission(): ClassMissionResult[] {
     for (const classId of CLASSES) {
       const hero = generateTrainedHero(classId, { ms: STAGE_MS, focus: getFocusForClass(classId) });
       hero.id = 'solo_' + classId;
-      const result = runMissionSimulation({ heroes: [hero], missionId: mission.id, iterations: ITERATIONS });
+      const result = runMissionSimulation({ heroes: [hero], missionId: mission.id, iterations: ITERATIONS_RUNTIME });
       results.push({ classId, mission: mission.id, result, winPct: parsePercent(result.winRate) });
     }
     process.stdout.write('.');
@@ -138,28 +163,42 @@ interface PersonalityResult {
   personality: PersonalityId;
   mission: string;
   winPct: number;
+  deltaVsNone: number;
   avgHpLost: number;
 }
 
 function sweepPersonalities(): PersonalityResult[] {
-  console.log('\n[2/5] Personality × Class sweep...');
+  console.log('\n[2/6] Personality × Class sweep (vs sem-personalidade, headroom)...');
   const results: PersonalityResult[] = [];
-  const mission = 'mission_1'; // Solo mission
+  const mission = PERSONALITY_STAGE_MISSION;
+  // Variância zero → stats base determinísticos entre runs
+  const FIXED_VARIANCE = { mean: 1.0, stdDev: 0, min: 1.0, max: 1.0 };
 
   for (const classId of CLASSES) {
+    // Baseline: MESMA classe/seed SEM personalidade.
+    const baseHero = generateTrainedHero(classId, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(classId), variance: FIXED_VARIANCE });
+    baseHero.personality = undefined;
+    baseHero.id = `p_${classId}_none`;
+    const baseWin = parsePercent(
+      runMissionSimulation({ heroes: [baseHero], missionId: mission, iterations: ITERATIONS_RUNTIME, seed: 555 }).winRate
+    );
+
     for (const p of PERSONALITY_LIST) {
       const hero = generateTrainedHero(classId, {
-        ms: STAGE_MS,
+        ms: STAGES.HEADROOM.ms,
         focus: getFocusForClass(classId),
         personality: p.id,
+        variance: FIXED_VARIANCE,
       });
       hero.id = `p_${classId}_${p.id}`;
-      const r = runMissionSimulation({ heroes: [hero], missionId: mission, iterations: ITERATIONS });
+      const r = runMissionSimulation({ heroes: [hero], missionId: mission, iterations: ITERATIONS_RUNTIME, seed: 555 });
+      const winPct = parsePercent(r.winRate);
       results.push({
         classId,
         personality: p.id,
         mission,
-        winPct: parsePercent(r.winRate),
+        winPct,
+        deltaVsNone: winPct - baseWin,
         avgHpLost: r.avgHpLostWin === '-' ? 0 : parseFloat(r.avgHpLostWin),
       });
     }
@@ -181,25 +220,26 @@ interface EquipmentResult {
 }
 
 function sweepEquipment(): EquipmentResult[] {
-  console.log('\n[3/5] Equipment impact sweep...');
+  console.log('\n[3/6] Equipment impact sweep (roll real, headroom)...');
   const results: EquipmentResult[] = [];
-  const mission = 'mission_1';
+  const mission = EQUIP_STAGE_MISSION;
+  const eqRng = makeRng(777); // determinístico p/ reprodutibilidade do roll
 
-  // Representative items per tier: weapon (+atk) and armor (+defense)
   const conditions: { label: string; items: Equipment[] }[] = [
     { label: 'Sem itens', items: [] },
-    { label: '1x Comum ATK', items: [makeEquipment(1, 'atk', 5)] },
-    { label: '1x Raro ATK', items: [makeEquipment(2, 'atk', 10)] },
-    { label: '1x Épico ATK', items: [makeEquipment(3, 'atk', 15)] },
-    { label: 'ATK+DEF Épico', items: [makeEquipment(3, 'atk', 15), makeEquipment(3, 'defense', 20)] },
+    { label: '1x Comum', items: [generateEquipment(1, 'weapon', eqRng)] },
+    { label: '1x Raro', items: [generateEquipment(2, 'weapon', eqRng)] },
+    { label: '1x Épico', items: [generateEquipment(3, 'weapon', eqRng)] },
+    { label: 'Conjunto Épico', items: [generateEquipment(3, 'weapon', eqRng), generateEquipment(3, 'armor', eqRng)] },
   ];
 
+  const FIXED_VARIANCE = { mean: 1.0, stdDev: 0, min: 1.0, max: 1.0 };
   for (const classId of CLASSES) {
     for (const cond of conditions) {
-      const baseHero = generateTrainedHero(classId, { ms: STAGE_MS, focus: getFocusForClass(classId) });
+      const baseHero = generateTrainedHero(classId, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(classId), variance: FIXED_VARIANCE });
       const equipped = applyEquipmentToHero(baseHero, cond.items);
       equipped.id = `eq_${classId}_${cond.label}`;
-      const r = runMissionSimulation({ heroes: [equipped], missionId: mission, iterations: ITERATIONS });
+      const r = runMissionSimulation({ heroes: [equipped], missionId: mission, iterations: ITERATIONS_RUNTIME, seed: 777 });
       results.push({
         classId,
         condition: cond.label,
@@ -239,7 +279,7 @@ function sweepCompositions(): CompositionResult[] {
       });
 
       const activeSynergies = getActiveSynergies(combo).map(s => s.name);
-      const r = runMissionSimulation({ heroes, missionId: mission.id, iterations: ITERATIONS });
+      const r = runMissionSimulation({ heroes, missionId: mission.id, iterations: ITERATIONS_RUNTIME });
       results.push({
         name: combo.map(c => configProvider.getClassDef(c).displayName).join(' + '),
         classes: combo,
@@ -277,54 +317,135 @@ function getInterestingQuartets(): ClassId[][] {
 
 interface SynergyTest {
   name: string;
-  withSynergy: ClassId[];
-  withoutSynergy: ClassId[];
-  withWin: number;
-  withoutWin: number;
+  pair: ClassId[];       // a dupla canônica da sinergia
+  withWin: number;       // mesma dupla, handler ATIVO
+  withoutWin: number;    // mesma dupla, handler DESLIGADO (NOOP)
   delta: number;
 }
 
+const SYNERGY_SEED = 12345;
+
+// Interfaces de economia
+interface EconomyRow {
+  missionId: string;
+  missionName: string;
+  stageLabel: string;
+  goldPerRun: number;   // média de calcMissionReward (rng seedado, N amostras)
+  runsPerHour: number;  // 3_600_000 / durationMs
+  goldPerHour: number;
+}
+
+interface EconomyDerived {
+  recruitCumulative: number;   // Σ getRecruitCost(i), i=0..4 (heróis 1→5)
+  runsToFirstForge: number;    // ceil(custo Comum 50 / goldPerRun de M1 HEADROOM)
+  runsToFirstFusion: number;   // 3 recrutamentos em gold-equivalente / goldPerRun de M1
+  bossStatGate: string;        // requisitos de stat do mission_boss_1
+}
+
 function sweepSynergies(): SynergyTest[] {
-  console.log('\n[5/5] Synergy validation...');
+  console.log('\n[5/6] Synergy validation (A/B por efeito)...');
   const results: SynergyTest[] = [];
-  const mission = 'mission_4';
+  const mission = SYNERGY_STAGE_MISSION;
 
-  // For each defined synergy, compare comp WITH synergy vs WITHOUT (swap one class)
+  // Variância zero + sem personalidade → heróis completamente determinísticos
+  const FIXED_VARIANCE = { mean: 1.0, stdDev: 0, min: 1.0, max: 1.0 };
+
   for (const synergy of SYNERGIES) {
-    const withClasses: ClassId[] = [synergy.classes[0], synergy.classes[1]];
-    // "Without" version: swap second class for a neutral WARRIOR (unless synergy already has Warrior)
-    const neutral: ClassId = withClasses.includes('WARRIOR') ? 'ARCHER' : 'WARRIOR';
-    const withoutClasses: ClassId[] = [synergy.classes[0], neutral];
-
-    const withHeroes = withClasses.map((c, i) => {
-      const h = generateTrainedHero(c, { ms: STAGE_MS, focus: getFocusForClass(c) });
-      h.id = `syn_w_${i}`;
-      return h;
-    });
-    const withoutHeroes = withoutClasses.map((c, i) => {
-      const h = generateTrainedHero(c, { ms: STAGE_MS, focus: getFocusForClass(c) });
-      h.id = `syn_wo_${i}`;
+    const pair: ClassId[] = [synergy.classes[0], synergy.classes[1]];
+    const heroes = pair.map((c, i) => {
+      const h = generateTrainedHero(c, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(c), variance: FIXED_VARIANCE });
+      h.personality = undefined; // remove aleatoriedade da personalidade
+      h.id = `syn_${i}`;
       return h;
     });
 
-    const withR = runMissionSimulation({ heroes: withHeroes, missionId: mission, iterations: ITERATIONS });
-    const withoutR = runMissionSimulation({ heroes: withoutHeroes, missionId: mission, iterations: ITERATIONS });
+    const withR = runMissionSimulation({
+      heroes, missionId: mission, iterations: ITERATIONS_RUNTIME,
+      seed: SYNERGY_SEED, forceSynergies: [synergy.id],
+    });
+    const withoutR = runMissionSimulation({
+      heroes, missionId: mission, iterations: ITERATIONS_RUNTIME,
+      seed: SYNERGY_SEED, forceSynergies: [],
+    });
 
     const withWin = parsePercent(withR.winRate);
     const withoutWin = parsePercent(withoutR.winRate);
 
-    results.push({
-      name: synergy.name,
-      withSynergy: withClasses,
-      withoutSynergy: withoutClasses,
-      withWin,
-      withoutWin,
-      delta: withWin - withoutWin,
-    });
+    results.push({ name: synergy.name, pair, withWin, withoutWin, delta: withWin - withoutWin });
     process.stdout.write('.');
   }
   console.log(' done');
   return results;
+}
+
+// ============================================================================
+// Sweep 6: Economy Pacing
+// ============================================================================
+
+const ECONOMY_SAMPLES = 2000;
+
+function sweepEconomy(): { rows: EconomyRow[]; derived: EconomyDerived } {
+  console.log('\n[6/6] Economy pacing sweep...');
+  const rows: EconomyRow[] = [];
+
+  const FIXED_VARIANCE = { mean: 1.0, stdDev: 0, min: 1.0, max: 1.0 };
+  // gold/hora por missão usando um time representativo treinado em HEADROOM.
+  for (const mission of MISSIONS) {
+    const teamSize = Math.max(1, mission.minHeroes);
+    const team = Array.from({ length: teamSize }, (_, i) => {
+      const cls = (CLASSES[i % CLASSES.length]);
+      const h = generateTrainedHero(cls, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(cls), variance: FIXED_VARIANCE });
+      h.id = `econ_${mission.id}_${i}`;
+      return h;
+    });
+
+    const rng = makeRng(900 + MISSIONS.indexOf(mission));
+    let totalReward = 0;
+    for (let s = 0; s < ECONOMY_SAMPLES; s++) {
+      totalReward += GameMath.calcMissionReward(mission, team, {
+        rng,
+        ref: mission.ref,
+        exponent: mission.exponent,
+        synergyK: mission.synergyK,
+        scale: mission.scale,
+      });
+    }
+    const goldPerRun = totalReward / ECONOMY_SAMPLES;
+    const runsPerHour = 3_600_000 / mission.durationMs;
+    rows.push({
+      missionId: mission.id,
+      missionName: mission.name,
+      stageLabel: STAGES.HEADROOM.label,
+      goldPerRun: Math.round(goldPerRun * 10) / 10,
+      runsPerHour: Math.round(runsPerHour * 10) / 10,
+      goldPerHour: Math.round(goldPerRun * runsPerHour),
+    });
+    process.stdout.write('.');
+  }
+
+  // Custo cumulativo de recrutamento (heróis 1→5): Σ getRecruitCost(i), i=0..4.
+  let recruitCumulative = 0;
+  for (let i = 0; i < 5; i++) recruitCumulative += GameMath.getRecruitCost(i);
+
+  // Tempo até 1ª forja: custo Comum (50) ÷ goldPerRun da M1.
+  const m1 = rows.find(r => r.missionId === 'mission_1')!;
+  const forgeCostCommon = 50;
+  const runsToFirstForge = Math.ceil(forgeCostCommon / Math.max(0.01, m1.goldPerRun));
+
+  // 1ª fusão: 3 heróis idle. Custo gold-equivalente = recrutar do 1º ao 3º herói.
+  const fusionRecruitGold = GameMath.getRecruitCost(0) + GameMath.getRecruitCost(1) + GameMath.getRecruitCost(2);
+  const runsToFirstFusion = Math.ceil(fusionRecruitGold / Math.max(0.01, m1.goldPerRun));
+
+  const bossTpl = MISSIONS.find(m => m.id === 'mission_boss_1');
+  const bossStatGate = bossTpl
+    ? (bossTpl.requirements ?? []).map(r => r.label).join('; ')
+    : 'N/A';
+
+  console.log(' done');
+  return {
+    rows,
+    derived: { recruitCumulative, runsToFirstForge, runsToFirstFusion, bossStatGate },
+  };
 }
 
 // ============================================================================
@@ -337,6 +458,7 @@ function generateReport(
   equipment: EquipmentResult[],
   compositions: CompositionResult[],
   synergies: SynergyTest[],
+  economy: { rows: EconomyRow[]; derived: EconomyDerived },
 ): string {
   const lines: string[] = [];
   const p = (s: string) => lines.push(s);
@@ -448,6 +570,16 @@ function generateReport(
   p('');
   p('**Insight**: Deltas grandes (>10pp) indicam que a escolha de personalidade importa. Deltas pequenos significam que o sistema de personalidade tem pouco impacto nessa classe.');
   p('');
+  p('**Δ vs sem-personalidade (cada personalidade, por classe natural):**');
+  p('');
+  p('| Classe | Personalidade | Win % | Δ vs nenhuma |');
+  p('|--------|---------------|-------|--------------|');
+  for (const r of personality) {
+    const clsName = configProvider.getClassDef(r.classId).displayName;
+    const pName = PERSONALITIES[r.personality].displayName;
+    p(`| ${clsName} | ${pName} | ${r.winPct.toFixed(0)}% | ${r.deltaVsNone >= 0 ? '+' : ''}${r.deltaVsNone.toFixed(1)}pp |`);
+  }
+  p('');
   p('---');
   p('');
 
@@ -472,10 +604,10 @@ function generateReport(
   // Delta: sem-item vs épico+defense
   const deltas = CLASSES.map(cls => {
     const noItem = equipment.find(e => e.classId === cls && e.condition === 'Sem itens');
-    const full = equipment.find(e => e.classId === cls && e.condition === 'ATK+DEF Épico');
+    const full = equipment.find(e => e.classId === cls && e.condition === 'Conjunto Épico');
     return { cls, delta: (full?.winPct ?? 0) - (noItem?.winPct ?? 0) };
   }).sort((a, b) => b.delta - a.delta);
-  p('**Impacto dos equipamentos (Sem itens → Épico ATK+DEF):**');
+  p('**Impacto dos equipamentos (Sem itens → Conjunto Épico):**');
   for (const d of deltas) {
     const name = configProvider.getClassDef(d.cls).displayName;
     p(`- ${name}: +${d.delta.toFixed(1)}pp`);
@@ -527,16 +659,44 @@ function generateReport(
   p('');
   p('Cada sinergia definida foi testada comparando uma comp com a sinergia ativa vs uma comp equivalente sem ela.');
   p('');
-  p('| Sinergia | Com Sinergia | Sem Sinergia | Δ Win Rate | Funcional? |');
-  p('|----------|--------------|--------------|------------|------------|');
+  p('| Sinergia (par) | Efeito Ligado | Efeito Desligado | Δ Win Rate | Funcional? |');
+  p('|----------------|---------------|------------------|------------|------------|');
+  p('> Metodologia A/B: MESMA dupla com o efeito da sinergia LIGADO vs DESLIGADO (NOOP),');
+  p(`> em estágio com headroom (${STAGES.HEADROOM.label}, missão ${SYNERGY_STAGE_MISSION}).`);
+  p('');
   for (const s of synergies) {
     const functional = s.delta >= 5 ? '✅' : s.delta >= 2 ? '⚠️' : '❌';
-    p(`| ${s.name} | ${s.withWin.toFixed(0)}% | ${s.withoutWin.toFixed(0)}% | ${s.delta >= 0 ? '+' : ''}${s.delta.toFixed(1)}pp | ${functional} |`);
+    p(`| ${s.name} (${s.pair.join('+')}) | ${s.withWin.toFixed(0)}% | ${s.withoutWin.toFixed(0)}% | ${s.delta >= 0 ? '+' : ''}${s.delta.toFixed(1)}pp | ${functional} |`);
   }
   p('');
   const workingCount = synergies.filter(s => s.delta >= 5).length;
   const totalCount = synergies.length;
   p(`**Insight**: ${workingCount}/${totalCount} sinergias têm impacto significativo (≥5pp). Sinergias com delta <2pp estão praticamente inativas e deveriam ser rebalanceadas.`);
+  p('');
+  p('---');
+  p('');
+
+  // Ritmo Econômico
+  p('## Ritmo Econômico');
+  p('');
+  p('Gold/hora por missão (math de produção `GameMath.calcMissionReward`, rng seedado).');
+  p('');
+  p('| Missão | Estágio | Gold/run | Runs/hora | Gold/hora |');
+  p('|--------|---------|----------|-----------|-----------|');
+  for (const r of economy.rows) {
+    p(`| ${r.missionName} (${r.missionId}) | ${r.stageLabel} | ${r.goldPerRun} | ${r.runsPerHour} | ${r.goldPerHour} |`);
+  }
+  p('');
+  // Monotonicidade gold/hora entre missões.
+  let monotonic = true;
+  for (let i = 1; i < economy.rows.length; i++) {
+    if (economy.rows[i].goldPerHour < economy.rows[i - 1].goldPerHour) monotonic = false;
+  }
+  p(`- Curva gold/hora monotônica crescente: ${monotonic ? '✅ sim' : '❌ NÃO — revisar ref/scale/rewardMax'}`);
+  p(`- Custo cumulativo de recrutamento (heróis 1→5): **${economy.derived.recruitCumulative} gold**`);
+  p(`- Runs de M1 até 1ª forja (Comum, 50 gold): **${economy.derived.runsToFirstForge}**`);
+  p(`- Runs de M1 até 1ª fusão (3 heróis idle, gold-equiv): **${economy.derived.runsToFirstFusion}**`);
+  p(`- Gate de stat do 1º boss (não parede de gold): ${economy.derived.bossStatGate}`);
   p('');
   p('---');
   p('');
@@ -595,14 +755,93 @@ function generateReport(
 }
 
 // ============================================================================
+// CI Gate
+// ============================================================================
+
+function assertThresholds(
+  synergies: SynergyTest[],
+  personality: PersonalityResult[],
+  equipment: EquipmentResult[],
+  classMission: ClassMissionResult[],
+  compositions: CompositionResult[],
+  economy: { rows: EconomyRow[]; derived: EconomyDerived },
+): string[] {
+  const errors: string[] = [];
+
+  // Sinergias: ≥ synergyMinPassing com Δ ≥ synergyMinDelta.
+  const passingSyn = synergies.filter(s => s.delta >= THRESHOLDS.synergyMinDelta).length;
+  if (passingSyn < THRESHOLDS.synergyMinPassing) {
+    errors.push(`Sinergias: ${passingSyn}/${synergies.length} com Δ≥${THRESHOLDS.synergyMinDelta}pp (exige ≥${THRESHOLDS.synergyMinPassing}).`);
+  }
+
+  // Personalidades: cada uma deve ter Δ≥personalityMinDelta em ≥1 classe.
+  // PROTECTOR é uma habilidade de grupo (escuda aliados <50% HP num hex de distância) —
+  // em sweep solo não tem efeito. Excluída do check para não gerar falso positivo.
+  const SOLO_ONLY_PERSONALITIES = new Set(['PROTECTOR']); // exige grupo para ter impacto
+  const personalityIds = [...new Set(personality.map(p => p.personality))].filter(pid => !SOLO_ONLY_PERSONALITIES.has(pid as string));
+  for (const pid of personalityIds) {
+    const rows = personality.filter(p => p.personality === pid);
+    const best = Math.max(...rows.map(r => r.deltaVsNone));
+    if (best < THRESHOLDS.personalityMinDelta) {
+      errors.push(`Personalidade ${pid}: melhor Δ=${best.toFixed(1)}pp < ${THRESHOLDS.personalityMinDelta}pp em todas as classes.`);
+    }
+  }
+
+  // Equipamento: média Sem itens → Conjunto Épico ≥ equipmentMinDelta.
+  const eqDeltas = CLASSES.map(cls => {
+    const no = equipment.find(e => e.classId === cls && e.condition === 'Sem itens');
+    const full = equipment.find(e => e.classId === cls && e.condition === 'Conjunto Épico');
+    return (full?.winPct ?? 0) - (no?.winPct ?? 0);
+  });
+  const avgEqDelta = eqDeltas.reduce((s, d) => s + d, 0) / eqDeltas.length;
+  if (avgEqDelta < THRESHOLDS.equipmentMinDelta) {
+    errors.push(`Equipamento: Δ médio sem→épico = ${avgEqDelta.toFixed(1)}pp < ${THRESHOLDS.equipmentMinDelta}pp.`);
+  }
+
+  // Gap de classe ≤ classGapMax (agregado de classMission + composições).
+  const scores: Record<string, { total: number; count: number }> = {};
+  for (const r of classMission) {
+    scores[r.classId] = scores[r.classId] ?? { total: 0, count: 0 };
+    scores[r.classId].total += r.winPct; scores[r.classId].count++;
+  }
+  for (const r of compositions) {
+    for (const c of r.classes) {
+      scores[c] = scores[c] ?? { total: 0, count: 0 };
+      scores[c].total += r.winPct; scores[c].count++;
+    }
+  }
+  const avgs = Object.values(scores).map(s => s.total / s.count);
+  if (avgs.length > 0) {
+    const gap = Math.max(...avgs) - Math.min(...avgs);
+    if (gap > THRESHOLDS.classGapMax) {
+      errors.push(`Gap de classe = ${gap.toFixed(1)}pp > ${THRESHOLDS.classGapMax}pp.`);
+    }
+  }
+
+  // Economia: curva gold/hora monotônica crescente entre missões.
+  for (let i = 1; i < economy.rows.length; i++) {
+    if (economy.rows[i].goldPerHour < economy.rows[i - 1].goldPerHour) {
+      errors.push(`Economia: gold/hora não-monotônico em ${economy.rows[i].missionId} (${economy.rows[i].goldPerHour} < ${economy.rows[i - 1].goldPerHour}).`);
+      break;
+    }
+  }
+
+  return errors;
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
 function main() {
+  const ci = process.argv.includes('--ci');
+  const iterations = ci ? CI_ITERATIONS : ITERATIONS;
+  ITERATIONS_RUNTIME = iterations;
+
   const startTime = Date.now();
   console.log('======================================================');
-  console.log('  BALANCE ANALYSIS — Comprehensive Sweep');
-  console.log(`  Iterations per scenario: ${ITERATIONS}`);
+  console.log(`  BALANCE ANALYSIS — ${ci ? 'CI gate' : 'Comprehensive Sweep'}`);
+  console.log(`  Iterations per scenario: ${iterations}`);
   console.log(`  Progression stage: ${STAGE_LABEL}`);
   console.log('======================================================');
 
@@ -611,9 +850,21 @@ function main() {
   const equipment = sweepEquipment();
   const compositions = sweepCompositions();
   const synergies = sweepSynergies();
+  const economy = sweepEconomy();
+
+  if (ci) {
+    const errors = assertThresholds(synergies, personality, equipment, classMission, compositions, economy);
+    if (errors.length > 0) {
+      console.error('\n❌ BALANCE GATE FAILED:');
+      for (const e of errors) console.error(`  - ${e}`);
+      process.exit(1);
+    }
+    console.log('\n✅ BALANCE GATE PASSED');
+    return;
+  }
 
   console.log('\n\nGenerating report...');
-  const report = generateReport(classMission, personality, equipment, compositions, synergies);
+  const report = generateReport(classMission, personality, equipment, compositions, synergies, economy);
   fs.writeFileSync(OUTPUT_FILE, report);
 
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);

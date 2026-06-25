@@ -3,17 +3,20 @@ import { MissionTemplate } from '../../constants/missions';
 import { getActiveSynergies } from '../../constants/synergies';
 import { createSynergyHandlers } from '../synergyEffects';
 import { createEnemies } from './grid';
-import { BattleState } from './types';
+import { BattleState, SynergyId } from './types';
 
 /**
  * Constrói um BattleState fresco com handlers de sinergia ligados e posições
  * inicializadas.
  * @param opts.rng PRNG a usar — default Math.random para retrocompatibilidade.
+ * @param opts.forceSynergies Hook de teste: quando definido, sobrepõe a
+ *   auto-detecção por getActiveSynergies. [] = NOOP (nenhuma). undefined =
+ *   caminho de produção idêntico ao atual.
  */
 export function initializeBattle(
   heroes: Hero[],
   template: MissionTemplate,
-  opts: { heroPositions?: Record<string, number>; rng?: () => number } = {}
+  opts: { heroPositions?: Record<string, number>; rng?: () => number; forceSynergies?: SynergyId[] } = {}
 ): BattleState {
   const rng = opts.rng ?? Math.random;
   const enemies = createEnemies(template, rng);
@@ -21,8 +24,7 @@ export function initializeBattle(
   enemies.forEach(e => { if (e.position !== undefined) enemyPositions[e.id] = e.position; });
 
   const classIds = heroes.map(h => h.classId).filter(Boolean) as ClassId[];
-  const activeSynergyDefs = getActiveSynergies(classIds);
-  const activeSynergies = activeSynergyDefs.map(s => s.id);
+  const activeSynergies = opts.forceSynergies ?? getActiveSynergies(classIds).map(s => s.id);
   const handlers = createSynergyHandlers(activeSynergies);
 
   const state: BattleState = {

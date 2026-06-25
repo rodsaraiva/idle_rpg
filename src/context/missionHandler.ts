@@ -148,6 +148,11 @@ export function handleStartWeeklyBoss(
   // Gate: boss já derrotado esta semana
   if (state.weeklyState?.bossDefeated) return state;
 
+  // Gate de estrela: o boss semanal exige ≥1 herói com estrela (fecha o loop
+  // recrutar→treinar→fundir→boss). Não desperdiça a tentativa — bloqueia o início.
+  const hasStarred = state.heroes.some(h => (h.stars ?? 0) > 0);
+  if (!hasStarred) return state;
+
   const seed = state.weeklyState?.seed ?? getWeeklySeed();
   const boss = getWeeklyBoss(seed);
 

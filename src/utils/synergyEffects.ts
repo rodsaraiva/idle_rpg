@@ -17,7 +17,7 @@ const NOOP_HANDLERS: SynergyHandlers = {
 };
 
 const SYNERGY_IMPLS: Record<SynergyId, Partial<SynergyHandlers>> = {
-  // Linha de Frente (Furor): curar Guerreiro aplica atkMul 1.30 por 1 turno
+  // Linha de Frente (Furor): curar Guerreiro aplica atkMul 1.40 por 2 turnos
   LINHA_DE_FRENTE: {
     onHealApplied: (state, _healer, target, amount) => {
       if (target.classId !== 'WARRIOR' || amount <= 0) return;
@@ -26,8 +26,8 @@ const SYNERGY_IMPLS: Record<SynergyId, Partial<SynergyHandlers>> = {
       filtered.push({
         source: 'LINHA_DE_FRENTE',
         type: 'atkMul',
-        value: 1.30,
-        expiresAfterRound: state.rounds + 1,
+        value: 1.40,
+        expiresAfterRound: state.rounds + 2,
       });
       state.buffs[target.id] = filtered;
     },
@@ -85,7 +85,7 @@ const SYNERGY_IMPLS: Record<SynergyId, Partial<SynergyHandlers>> = {
     },
   },
 
-  // Caos Arcano (Disjunção): Mago debuffa defesa do alvo
+  // Caos Arcano (Disjunção): Mago debuffa defesa do alvo (50% → 40% de DEF, por 2 turnos)
   CAOS_ARCANO: {
     onAttackResolved: (state, attacker, target, dmg, _distance) => {
       if ((attacker as any).classId !== 'MAGE' || dmg <= 0) return;
@@ -94,17 +94,17 @@ const SYNERGY_IMPLS: Record<SynergyId, Partial<SynergyHandlers>> = {
       filtered.push({
         source: 'CAOS_ARCANO',
         type: 'defDebuffMul',
-        value: 0.5,
-        expiresAfterRound: state.rounds + 1,
+        value: 0.4,
+        expiresAfterRound: state.rounds + 2,
       });
       state.buffs[target.id] = filtered;
     },
   },
 
-  // Emboscada (Surpresa): Guerreiro e Ladino ignoram defesa nos rounds 1-2
+  // Emboscada (Surpresa): Guerreiro e Ladino ignoram defesa nos rounds 1-3
   EMBOSCADA: {
     shouldIgnoreDefense: (state, attacker) => {
-      if (state.rounds > 2) return false;
+      if (state.rounds > 3) return false;
       const cid = (attacker as any).classId;
       return cid === 'WARRIOR' || cid === 'ROGUE';
     },

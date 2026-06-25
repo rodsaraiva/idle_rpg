@@ -6,18 +6,22 @@ import { updateWeeklyProgress } from './weeklyHandler';
 import { emitFirstTierForged } from '../services/milestones';
 import { FORGE_RECIPES, hasEnoughMaterials, deductMaterials, EquipmentType } from '../constants/materials';
 
-function generateEquipment(tier: number, equipmentType?: 'weapon' | 'armor' | 'accessory'): Equipment {
+export function generateEquipment(
+  tier: number,
+  equipmentType?: 'weapon' | 'armor' | 'accessory',
+  rng: () => number = Math.random,
+): Equipment {
   const templates = equipmentType
     ? EQUIPMENT_TEMPLATES.filter(t => t.type === equipmentType)
     : EQUIPMENT_TEMPLATES;
-  const template = templates[Math.floor(Math.random() * templates.length)];
-  const name = template.names[Math.floor(Math.random() * template.names.length)];
+  const template = templates[Math.floor(rng() * templates.length)];
+  const name = template.names[Math.floor(rng() * template.names.length)];
   const tierDef = EQUIPMENT_TIERS.find(t => t.tier === tier)!;
   const statBonus: Record<string, number> = {};
   for (const sr of template.statRange) {
     const tierMin = sr.min * tier;
     const tierMax = sr.max * tier;
-    statBonus[sr.stat] = tierMin + Math.floor(Math.random() * (tierMax - tierMin + 1));
+    statBonus[sr.stat] = tierMin + Math.floor(rng() * (tierMax - tierMin + 1));
   }
   return { id: uuidv4(), name: `${name} ${tierDef.label}`, type: template.type, statBonus, tier };
 }

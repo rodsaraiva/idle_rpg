@@ -11,6 +11,8 @@ export interface TrainingFocus {
   ms?: number;
   focus: 'ATK' | 'HP' | 'MP' | 'BALANCED'; // BALANCED divide o tempo igualmente entre os 3
   personality?: PersonalityId;
+  /** Variância dos stats base. Passe { mean:1, stdDev:0, min:1, max:1 } para heróis determinísticos. */
+  variance?: { mean: number; stdDev: number; min: number; max: number };
 }
 
 /**
@@ -19,7 +21,7 @@ export interface TrainingFocus {
  */
 export function generateTrainedHero(classId: ClassId, training: TrainingFocus): Hero {
   // 1. Gera o herói base com variância e atributos da classe
-  const hero = createHero(classId);
+  const hero = createHero(classId, training.variance);
   const classDef = configProvider.getClassDef(classId);
 
   // Sobrescreve personalidade se fornecida

@@ -64,8 +64,9 @@ export const MISSIONS: MissionTemplate[] = [
     rewardMax: 50,
     statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
     // tuned to saturate around 2h for two-hero teams
+    // ref reduzido de 120→55 para garantir curva gold/hora monotônica com stats base
     scale: 1.15,
-    ref: 120,
+    ref: 55,
     exponent: 1.5,
     synergyK: 0.04,
     enemies: [
@@ -83,8 +84,9 @@ export const MISSIONS: MissionTemplate[] = [
     rewardMax: 100,
     statWeights: { hp: 0.2, atk: 0.3, mp: 0.1 },
     // tuned to avoid saturation in 2h for three-hero teams
+    // ref reduzido de 200→40 para garantir curva gold/hora monotônica com stats base
     scale: 1.08,
-    ref: 200,
+    ref: 40,
     exponent: 1.4,
     synergyK: 0.02,
     enemies: [
@@ -120,8 +122,9 @@ export const MISSIONS: MissionTemplate[] = [
     rewardMin: 25,
     rewardMax: 150,
     statWeights: { hp: 0.2, atk: 0.25, mp: 0.2 },
+    // ref reduzido de 300→50 para garantir curva gold/hora monotônica com stats base
     scale: 1.05,
-    ref: 300,
+    ref: 50,
     exponent: 1.3,
     synergyK: 0.03,
     enemies: [
