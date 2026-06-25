@@ -89,3 +89,4 @@ SPEC5 Task 12: 1ccd8ab
 SPEC5 Task 13: 918ca4b
 SPEC5 Task 14: 898f516
 SPEC5 Task 15: 9268886
+SPEC5 Task 16: (verificação estática — tsc 0, 92 suítes, 569 testes; registerTarget/dicas verificados por grep; deriveStep coberto; smoke visual MANUAL-PENDING sandbox exit 144)
