@@ -24,6 +24,7 @@ import { SYNERGIES, getActiveSynergies } from '../../src/constants/synergies';
 import { EQUIPMENT_TIERS } from '../../src/constants/equipment';
 import { generateEquipment } from '../../src/context/equipmentHandler';
 import { makeRng } from '../../src/utils/math';
+import { GameMath } from '../../src/utils/gameMath';
 
 const ITERATIONS = 2000; // Fast but still statistically meaningful
 const OUTPUT_FILE = 'scripts/simulations/BALANCE_REPORT.md';
@@ -303,6 +304,23 @@ interface SynergyTest {
 
 const SYNERGY_SEED = 12345;
 
+// Interfaces de economia
+interface EconomyRow {
+  missionId: string;
+  missionName: string;
+  stageLabel: string;
+  goldPerRun: number;   // média de calcMissionReward (rng seedado, N amostras)
+  runsPerHour: number;  // 3_600_000 / durationMs
+  goldPerHour: number;
+}
+
+interface EconomyDerived {
+  recruitCumulative: number;   // Σ getRecruitCost(i), i=0..4 (heróis 1→5)
+  runsToFirstForge: number;    // ceil(custo Comum 50 / goldPerRun de M1 HEADROOM)
+  runsToFirstFusion: number;   // 3 recrutamentos em gold-equivalente / goldPerRun de M1
+  bossStatGate: string;        // requisitos de stat do mission_boss_1
+}
+
 function sweepSynergies(): SynergyTest[] {
   console.log('\n[5/6] Synergy validation (A/B por efeito)...');
   const results: SynergyTest[] = [];
@@ -336,6 +354,75 @@ function sweepSynergies(): SynergyTest[] {
 }
 
 // ============================================================================
+// Sweep 6: Economy Pacing
+// ============================================================================
+
+const ECONOMY_SAMPLES = 2000;
+
+function sweepEconomy(): { rows: EconomyRow[]; derived: EconomyDerived } {
+  console.log('\n[6/6] Economy pacing sweep...');
+  const rows: EconomyRow[] = [];
+
+  // gold/hora por missão usando um time representativo treinado em HEADROOM.
+  for (const mission of MISSIONS) {
+    const teamSize = Math.max(1, mission.minHeroes);
+    const team = Array.from({ length: teamSize }, (_, i) => {
+      const cls = (CLASSES[i % CLASSES.length]);
+      const h = generateTrainedHero(cls, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(cls) });
+      h.id = `econ_${mission.id}_${i}`;
+      return h;
+    });
+
+    const rng = makeRng(900 + MISSIONS.indexOf(mission));
+    let totalReward = 0;
+    for (let s = 0; s < ECONOMY_SAMPLES; s++) {
+      totalReward += GameMath.calcMissionReward(mission, team, {
+        rng,
+        ref: mission.ref,
+        exponent: mission.exponent,
+        synergyK: mission.synergyK,
+        scale: mission.scale,
+      });
+    }
+    const goldPerRun = totalReward / ECONOMY_SAMPLES;
+    const runsPerHour = 3_600_000 / mission.durationMs;
+    rows.push({
+      missionId: mission.id,
+      missionName: mission.name,
+      stageLabel: STAGES.HEADROOM.label,
+      goldPerRun: Math.round(goldPerRun * 10) / 10,
+      runsPerHour: Math.round(runsPerHour * 10) / 10,
+      goldPerHour: Math.round(goldPerRun * runsPerHour),
+    });
+    process.stdout.write('.');
+  }
+
+  // Custo cumulativo de recrutamento (heróis 1→5): Σ getRecruitCost(i), i=0..4.
+  let recruitCumulative = 0;
+  for (let i = 0; i < 5; i++) recruitCumulative += GameMath.getRecruitCost(i);
+
+  // Tempo até 1ª forja: custo Comum (50) ÷ goldPerRun da M1.
+  const m1 = rows.find(r => r.missionId === 'mission_1')!;
+  const forgeCostCommon = 50;
+  const runsToFirstForge = Math.ceil(forgeCostCommon / Math.max(0.01, m1.goldPerRun));
+
+  // 1ª fusão: 3 heróis idle. Custo gold-equivalente = recrutar do 1º ao 3º herói.
+  const fusionRecruitGold = GameMath.getRecruitCost(0) + GameMath.getRecruitCost(1) + GameMath.getRecruitCost(2);
+  const runsToFirstFusion = Math.ceil(fusionRecruitGold / Math.max(0.01, m1.goldPerRun));
+
+  const bossTpl = MISSIONS.find(m => m.id === 'mission_boss_1');
+  const bossStatGate = bossTpl
+    ? (bossTpl.requirements ?? []).map(r => r.label).join('; ')
+    : 'N/A';
+
+  console.log(' done');
+  return {
+    rows,
+    derived: { recruitCumulative, runsToFirstForge, runsToFirstFusion, bossStatGate },
+  };
+}
+
+// ============================================================================
 // Insight Generation
 // ============================================================================
 
@@ -345,6 +432,7 @@ function generateReport(
   equipment: EquipmentResult[],
   compositions: CompositionResult[],
   synergies: SynergyTest[],
+  economy: { rows: EconomyRow[]; derived: EconomyDerived },
 ): string {
   const lines: string[] = [];
   const p = (s: string) => lines.push(s);
@@ -562,6 +650,31 @@ function generateReport(
   p('---');
   p('');
 
+  // Ritmo Econômico
+  p('## Ritmo Econômico');
+  p('');
+  p('Gold/hora por missão (math de produção `GameMath.calcMissionReward`, rng seedado).');
+  p('');
+  p('| Missão | Estágio | Gold/run | Runs/hora | Gold/hora |');
+  p('|--------|---------|----------|-----------|-----------|');
+  for (const r of economy.rows) {
+    p(`| ${r.missionName} (${r.missionId}) | ${r.stageLabel} | ${r.goldPerRun} | ${r.runsPerHour} | ${r.goldPerHour} |`);
+  }
+  p('');
+  // Monotonicidade gold/hora entre missões.
+  let monotonic = true;
+  for (let i = 1; i < economy.rows.length; i++) {
+    if (economy.rows[i].goldPerHour < economy.rows[i - 1].goldPerHour) monotonic = false;
+  }
+  p(`- Curva gold/hora monotônica crescente: ${monotonic ? '✅ sim' : '❌ NÃO — revisar ref/scale/rewardMax'}`);
+  p(`- Custo cumulativo de recrutamento (heróis 1→5): **${economy.derived.recruitCumulative} gold**`);
+  p(`- Runs de M1 até 1ª forja (Comum, 50 gold): **${economy.derived.runsToFirstForge}**`);
+  p(`- Runs de M1 até 1ª fusão (3 heróis idle, gold-equiv): **${economy.derived.runsToFirstFusion}**`);
+  p(`- Gate de stat do 1º boss (não parede de gold): ${economy.derived.bossStatGate}`);
+  p('');
+  p('---');
+  p('');
+
   // 7. Key takeaways
   p('## 7. Principais Conclusões');
   p('');
@@ -632,9 +745,10 @@ function main() {
   const equipment = sweepEquipment();
   const compositions = sweepCompositions();
   const synergies = sweepSynergies();
+  const economy = sweepEconomy();
 
   console.log('\n\nGenerating report...');
-  const report = generateReport(classMission, personality, equipment, compositions, synergies);
+  const report = generateReport(classMission, personality, equipment, compositions, synergies, economy);
   fs.writeFileSync(OUTPUT_FILE, report);
 
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
