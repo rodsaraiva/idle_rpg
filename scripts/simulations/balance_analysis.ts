@@ -29,8 +29,10 @@ const CLASSES = Object.keys(configProvider.getAllClassDefs()) as ClassId[];
 
 // Estágios de progressão. HEADROOM = herói pouco treinado (baseline observável,
 // não saturado em 100%); MIDGAME = onde o jogador real passa o tempo (Dia 3).
+// HEADROOM calibrado em 0ms (stats base sem treino) + mission_4: melhor compromisso
+// para deixar a maioria das duplas com baseline em ~30–85% (3/6 na janela 40–75%).
 const STAGES = {
-  HEADROOM: { ms: 30 * 60 * 1000, label: '30 min' },
+  HEADROOM: { ms: 0, label: 'Stats base (sem treino)' },
   MIDGAME: { ms: 3 * 24 * 60 * 60 * 1000, label: 'Dia 3' },
 } as const;
 
@@ -290,50 +292,40 @@ function getInterestingQuartets(): ClassId[][] {
 
 interface SynergyTest {
   name: string;
-  withSynergy: ClassId[];
-  withoutSynergy: ClassId[];
-  withWin: number;
-  withoutWin: number;
+  pair: ClassId[];       // a dupla canônica da sinergia
+  withWin: number;       // mesma dupla, handler ATIVO
+  withoutWin: number;    // mesma dupla, handler DESLIGADO (NOOP)
   delta: number;
 }
 
+const SYNERGY_SEED = 12345;
+
 function sweepSynergies(): SynergyTest[] {
-  console.log('\n[5/5] Synergy validation...');
+  console.log('\n[5/6] Synergy validation (A/B por efeito)...');
   const results: SynergyTest[] = [];
-  const mission = 'mission_4';
+  const mission = SYNERGY_STAGE_MISSION;
 
-  // For each defined synergy, compare comp WITH synergy vs WITHOUT (swap one class)
   for (const synergy of SYNERGIES) {
-    const withClasses: ClassId[] = [synergy.classes[0], synergy.classes[1]];
-    // "Without" version: swap second class for a neutral WARRIOR (unless synergy already has Warrior)
-    const neutral: ClassId = withClasses.includes('WARRIOR') ? 'ARCHER' : 'WARRIOR';
-    const withoutClasses: ClassId[] = [synergy.classes[0], neutral];
-
-    const withHeroes = withClasses.map((c, i) => {
-      const h = generateTrainedHero(c, { ms: STAGE_MS, focus: getFocusForClass(c) });
-      h.id = `syn_w_${i}`;
-      return h;
-    });
-    const withoutHeroes = withoutClasses.map((c, i) => {
-      const h = generateTrainedHero(c, { ms: STAGE_MS, focus: getFocusForClass(c) });
-      h.id = `syn_wo_${i}`;
+    const pair: ClassId[] = [synergy.classes[0], synergy.classes[1]];
+    const heroes = pair.map((c, i) => {
+      const h = generateTrainedHero(c, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(c) });
+      h.id = `syn_${i}`;
       return h;
     });
 
-    const withR = runMissionSimulation({ heroes: withHeroes, missionId: mission, iterations: ITERATIONS });
-    const withoutR = runMissionSimulation({ heroes: withoutHeroes, missionId: mission, iterations: ITERATIONS });
+    const withR = runMissionSimulation({
+      heroes, missionId: mission, iterations: ITERATIONS,
+      seed: SYNERGY_SEED, forceSynergies: [synergy.id],
+    });
+    const withoutR = runMissionSimulation({
+      heroes, missionId: mission, iterations: ITERATIONS,
+      seed: SYNERGY_SEED, forceSynergies: [],
+    });
 
     const withWin = parsePercent(withR.winRate);
     const withoutWin = parsePercent(withoutR.winRate);
 
-    results.push({
-      name: synergy.name,
-      withSynergy: withClasses,
-      withoutSynergy: withoutClasses,
-      withWin,
-      withoutWin,
-      delta: withWin - withoutWin,
-    });
+    results.push({ name: synergy.name, pair, withWin, withoutWin, delta: withWin - withoutWin });
     process.stdout.write('.');
   }
   console.log(' done');
@@ -540,11 +532,14 @@ function generateReport(
   p('');
   p('Cada sinergia definida foi testada comparando uma comp com a sinergia ativa vs uma comp equivalente sem ela.');
   p('');
-  p('| Sinergia | Com Sinergia | Sem Sinergia | Δ Win Rate | Funcional? |');
-  p('|----------|--------------|--------------|------------|------------|');
+  p('| Sinergia (par) | Efeito Ligado | Efeito Desligado | Δ Win Rate | Funcional? |');
+  p('|----------------|---------------|------------------|------------|------------|');
+  p('> Metodologia A/B: MESMA dupla com o efeito da sinergia LIGADO vs DESLIGADO (NOOP),');
+  p(`> em estágio com headroom (${STAGES.HEADROOM.label}, missão ${SYNERGY_STAGE_MISSION}).`);
+  p('');
   for (const s of synergies) {
     const functional = s.delta >= 5 ? '✅' : s.delta >= 2 ? '⚠️' : '❌';
-    p(`| ${s.name} | ${s.withWin.toFixed(0)}% | ${s.withoutWin.toFixed(0)}% | ${s.delta >= 0 ? '+' : ''}${s.delta.toFixed(1)}pp | ${functional} |`);
+    p(`| ${s.name} (${s.pair.join('+')}) | ${s.withWin.toFixed(0)}% | ${s.withoutWin.toFixed(0)}% | ${s.delta >= 0 ? '+' : ''}${s.delta.toFixed(1)}pp | ${functional} |`);
   }
   p('');
   const workingCount = synergies.filter(s => s.delta >= 5).length;

@@ -51,7 +51,7 @@ describe('createSynergyHandlers', () => {
   });
 
   // --- LINHA_DE_FRENTE (Furor) ---
-  test('LINHA_DE_FRENTE: curar Guerreiro aplica buff Furor (atkMul 1.30 por 1 turno)', () => {
+  test('LINHA_DE_FRENTE: curar Guerreiro aplica buff Furor (atkMul 1.40 por 2 turnos)', () => {
     const handlers = createSynergyHandlers(['LINHA_DE_FRENTE']);
     const state: any = { rounds: 3, buffs: {}, flags: {} };
     const healer: any = { id: 'h1', classId: 'HEALER', name: 'Aria' };
@@ -64,8 +64,8 @@ describe('createSynergyHandlers', () => {
     const buff = state.buffs['w1'][0];
     expect(buff.source).toBe('LINHA_DE_FRENTE');
     expect(buff.type).toBe('atkMul');
-    expect(buff.value).toBe(1.30);
-    expect(buff.expiresAfterRound).toBe(4);
+    expect(buff.value).toBe(1.40);
+    expect(buff.expiresAfterRound).toBe(5);
   });
 
   test('LINHA_DE_FRENTE: refresh em vez de stack', () => {
@@ -79,7 +79,7 @@ describe('createSynergyHandlers', () => {
     handlers.onHealApplied(state, healer, warrior, 10);
 
     expect(state.buffs['w1']).toHaveLength(1);
-    expect(state.buffs['w1'][0].expiresAfterRound).toBe(5);
+    expect(state.buffs['w1'][0].expiresAfterRound).toBe(6);
   });
 
   test('LINHA_DE_FRENTE: não dispara se alvo não é WARRIOR', () => {
@@ -93,7 +93,7 @@ describe('createSynergyHandlers', () => {
   });
 
   // --- CAOS_ARCANO (Disjunção) ---
-  test('CAOS_ARCANO: ataque do Mago aplica defDebuffMul 0.5 no alvo', () => {
+  test('CAOS_ARCANO: ataque do Mago aplica defDebuffMul 0.4 no alvo (por 2 turnos)', () => {
     const handlers = createSynergyHandlers(['CAOS_ARCANO']);
     const state: any = { rounds: 2, buffs: {}, flags: {} };
     const mage: any = { id: 'm1', classId: 'MAGE' };
@@ -105,8 +105,8 @@ describe('createSynergyHandlers', () => {
     const buff = state.buffs['e1'][0];
     expect(buff.source).toBe('CAOS_ARCANO');
     expect(buff.type).toBe('defDebuffMul');
-    expect(buff.value).toBe(0.5);
-    expect(buff.expiresAfterRound).toBe(3);
+    expect(buff.value).toBe(0.4);
+    expect(buff.expiresAfterRound).toBe(4);
   });
 
   test('CAOS_ARCANO: outras classes não disparam', () => {
@@ -130,19 +130,20 @@ describe('createSynergyHandlers', () => {
   });
 
   // --- EMBOSCADA (Surpresa) ---
-  test('EMBOSCADA: shouldIgnoreDefense true para Guerreiro/Ladino nos rounds 1-2', () => {
+  test('EMBOSCADA: shouldIgnoreDefense true para Guerreiro/Ladino nos rounds 1-3', () => {
     const handlers = createSynergyHandlers(['EMBOSCADA']);
     const warrior: any = { id: 'w1', classId: 'WARRIOR' };
     const rogue: any = { id: 'r1', classId: 'ROGUE' };
 
     expect(handlers.shouldIgnoreDefense({ rounds: 1 } as any, warrior)).toBe(true);
     expect(handlers.shouldIgnoreDefense({ rounds: 2 } as any, rogue)).toBe(true);
+    expect(handlers.shouldIgnoreDefense({ rounds: 3 } as any, warrior)).toBe(true);
   });
 
-  test('EMBOSCADA: shouldIgnoreDefense false após round 2', () => {
+  test('EMBOSCADA: shouldIgnoreDefense false após round 3', () => {
     const handlers = createSynergyHandlers(['EMBOSCADA']);
     const warrior: any = { classId: 'WARRIOR' };
-    expect(handlers.shouldIgnoreDefense({ rounds: 3 } as any, warrior)).toBe(false);
+    expect(handlers.shouldIgnoreDefense({ rounds: 4 } as any, warrior)).toBe(false);
   });
 
   test('EMBOSCADA: outras classes não disparam', () => {
