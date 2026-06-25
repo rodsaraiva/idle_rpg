@@ -3,7 +3,7 @@ import { GameState } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
 const BACKUP_KEY = '@idle_rpg_game_state.bak';
-const CURRENT_VERSION = 9; // Incremented for migrations
+const CURRENT_VERSION = 10; // Incremented for migrations
 
 interface SaveData extends GameState {
   _version: number;
@@ -83,6 +83,18 @@ const migrations: Record<number, (data: any) => any> = {
         const { remainingMs, ...rest } = m;
         return { ...rest, startedAt: typeof rest.startedAt === 'number' ? rest.startedAt : Date.now() };
       });
+    }
+    return data;
+  },
+  10: (data) => {
+    // Version 10: bloco de onboarding. Save antigo = veterano → tutorial concluído (não re-tutorializa).
+    if (data.onboarding === undefined) {
+      data.onboarding = {
+        version: 1,
+        step: 'done',
+        startedAt: data.lastSavedAt ?? Date.now(),
+        hintsSeen: {},
+      };
     }
     return data;
   },

@@ -14,6 +14,7 @@ import { MissionListItem } from '../components/MissionListItem';
 import { MissionHeroRow } from '../components/MissionHeroRow';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { MissionPlaybackModal } from '../components/MissionPlaybackModal';
+import { registerTarget } from '../onboarding/targetRegistry';
 
 export function MissionsScreen() {
   const {
@@ -31,6 +32,23 @@ export function MissionsScreen() {
     openPlaybackModal,
     closePlaybackModal,
   } = useMissions();
+
+  const mission1Ref = React.useRef<View>(null);
+  const activeMissionRef = React.useRef<View>(null);
+
+  React.useEffect(() => {
+    const measure = (ref: React.RefObject<View | null>) => () =>
+      new Promise<{ x: number; y: number; width: number; height: number } | null>((resolve) => {
+        const node = ref.current as any;
+        if (!node?.measureInWindow) return resolve(null);
+        node.measureInWindow((x: number, y: number, width: number, height: number) =>
+          resolve({ x, y, width, height })
+        );
+      });
+    const un1 = registerTarget('mission-1', measure(mission1Ref));
+    const un2 = registerTarget('active-mission', measure(activeMissionRef));
+    return () => { un1(); un2(); };
+  }, []);
 
   if (!isLoaded) {
     return <LoadingScreen message="Carregando missões..." />;
@@ -56,13 +74,15 @@ export function MissionsScreen() {
               <Text style={styles.activeBadgeText}>{state.activeMissions.length}</Text>
             </View>
           </View>
-          {state.activeMissions.map((m) => (
-            <MissionActiveItem
-              key={m.id}
-              mission={m}
-              onWatch={openPlaybackModal}
-            />
-          ))}
+          {state.activeMissions.map((m, i) =>
+            i === 0 ? (
+              <View key={m.id} ref={activeMissionRef} collapsable={false}>
+                <MissionActiveItem mission={m} onWatch={openPlaybackModal} />
+              </View>
+            ) : (
+              <MissionActiveItem key={m.id} mission={m} onWatch={openPlaybackModal} />
+            )
+          )}
         </View>
       )}
 
@@ -73,14 +93,24 @@ export function MissionsScreen() {
         </View>
 
         <View style={styles.missionList}>
-          {MISSIONS.map((mission) => (
-            <MissionListItem
-              key={mission.id}
-              mission={mission}
-              onSend={openSelectionModal}
-              disabled={availableCount < mission.minHeroes}
-            />
-          ))}
+          {MISSIONS.map((mission) =>
+            mission.id === 'mission_1' ? (
+              <View key={mission.id} ref={mission1Ref} collapsable={false}>
+                <MissionListItem
+                  mission={mission}
+                  onSend={openSelectionModal}
+                  disabled={availableCount < mission.minHeroes}
+                />
+              </View>
+            ) : (
+              <MissionListItem
+                key={mission.id}
+                mission={mission}
+                onSend={openSelectionModal}
+                disabled={availableCount < mission.minHeroes}
+              />
+            )
+          )}
         </View>
       </View>
 

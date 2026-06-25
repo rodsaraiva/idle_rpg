@@ -29,16 +29,25 @@ import { claimDailyQuest } from './dailyQuestHandler';
 import { handleFuseHeroes } from './pantheonHandler';
 import { claimWeeklyQuest } from './weeklyHandler';
 import { TICK_INTERVAL_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
+import { createHero } from '../utils/heroFactory';
+import { handleSetOnboarding } from './onboardingHandler';
 
-/** Estado inicial quando não há save */
+/** Estado inicial quando não há save (boot do FTUE). */
 export const initialGameState: GameState = {
-  gold: 20,
-  heroes: [],
-  heroesRecruited: 0,
+  gold: 25, // cobre 1 recruta extra (15) só depois de a missão render ouro — não trivializa
+  heroes: [createHero('WARRIOR')], // herói semeado determinístico: remove a vila de prédios inúteis
+  heroesRecruited: 1, // o herói grátis conta como o 1º → próximo custa floor(10*1.5)=15 (preço cheio)
+  unlockedAchievements: ['recruit_1'], // pré-creditado: o herói semeado JÁ satisfaz "recrute o 1º" — sem o +20 grátis no boot (sem gold passivo)
   lastSavedAt: Date.now(),
   tickIntervalMs: TICK_INTERVAL_MS,
   trainInflationFactor: TRAIN_INFLATION_FACTOR,
   activeMissions: [],
+  onboarding: {
+    version: 1,
+    step: 'intro',
+    startedAt: Date.now(),
+    hintsSeen: {},
+  },
 };
 
 /** Reducer puro que contém toda a lógica do jogo */
@@ -103,6 +112,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'START_WEEKLY_BOSS':
       return handleStartWeeklyBoss(state, action.heroIds, action.heroPositions, action.now);
+
+    case 'SET_ONBOARDING':
+      return handleSetOnboarding(state, action.patch);
 
     case 'LOAD_STATE':
       try {

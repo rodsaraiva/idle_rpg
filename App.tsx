@@ -4,6 +4,8 @@ import { ThemeProvider } from './src/theme/ThemeProvider';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { FeedbackLayer } from './src/components/FeedbackLayer';
 import { useReinoFonts } from './src/theme/fonts';
+import { OnboardingProvider } from './src/onboarding/OnboardingProvider';
+import { OnboardingOverlay } from './src/onboarding/OnboardingOverlay';
 
 export default function App() {
   // Não bloqueia o boot: com fonte ainda carregando, RN usa o fallback do sistema.
@@ -11,8 +13,11 @@ export default function App() {
   return (
     <ThemeProvider>
       <GameProvider>
-        <AppNavigator />
-        <FeedbackLayer />
+        <OnboardingProvider>
+          <AppNavigator />
+          <FeedbackLayer />
+          <OnboardingOverlay />
+        </OnboardingProvider>
       </GameProvider>
     </ThemeProvider>
   );

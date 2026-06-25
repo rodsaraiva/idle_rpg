@@ -74,3 +74,20 @@ SPEC4 Task 7: a3a5eee
 SPEC4 Task 8: f401aea
 SPEC4 Task 9: b2bffa8
 SPEC4 Task 10: 2e4cc15
+SPEC5 Task 1: 49533d2
+SPEC5 Task 2: 01d2c06
+SPEC5 Task 3: ef1c195
+SPEC5 Task 4: 64f39af
+SPEC5 Task 5: b037715
+SPEC5 Task 6: 78dfabf
+SPEC5 Task 7: 4b99cdc
+SPEC5 Task 8: 9b57a7d
+SPEC5 Task 9: ca8e133
+SPEC5 Task 10: afd6cb4
+SPEC5 Task 11: a1961ff
+SPEC5 Task 12: 1ccd8ab
+SPEC5 Task 13: 918ca4b
+SPEC5 Task 14: 898f516
+SPEC5 Task 15: 9268886
+SPEC5 Task 16: (verificação estática — tsc 0, 92 suítes, 569 testes; registerTarget/dicas verificados por grep; deriveStep coberto; smoke visual MANUAL-PENDING sandbox exit 144)
+SPEC5 fix (revisão final): bb-leak recruit_1 +20 no boot — pré-credita recruit_1 no estado inicial

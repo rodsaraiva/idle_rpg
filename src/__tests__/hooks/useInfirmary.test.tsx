@@ -26,6 +26,10 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
     offlineSummary: null,
     clearOfflineSummary: jest.fn(),
     applyOfflineSummary: jest.fn(),
+    advanceOnboarding: jest.fn(),
+    skipOnboarding: jest.fn(),
+    markHintSeen: jest.fn(),
+    resetOnboarding: jest.fn(),
   }}>
     {children}
   </GameContext.Provider>

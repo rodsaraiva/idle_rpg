@@ -60,6 +60,28 @@ export interface TrainingCount {
   mp: number;
 }
 
+/** Passo guiado do tutorial; 'done' = concluído, 'skipped' = pulado pelo jogador. */
+export type OnboardingStep =
+  | 'intro'
+  | 'recruit'
+  | 'train'
+  | 'mission'
+  | 'collect'
+  | 'done'
+  | 'skipped';
+
+/** Estado do onboarding / FTUE. Bloco isolado e opcional do GameState. */
+export interface OnboardingState {
+  /** Versão do fluxo; permite reexibir se o tutorial mudar muito. */
+  version: number;
+  /** Passo guiado atual. */
+  step: OnboardingStep;
+  /** Epoch ms do começo do tutorial (primeiro boot). Base do elapsedMs até a 1ª missão. */
+  startedAt: number;
+  /** Flags one-shot de dicas contextuais já mostradas (chave -> true). */
+  hintsSeen: Record<string, boolean>;
+}
+
 /** Estado global do jogo */
 export interface GameState {
   gold: number;
@@ -102,6 +124,7 @@ export interface GameState {
     bossDefeated: boolean;
   };
   materials?: Record<string, number>;
+  onboarding?: OnboardingState;
 }
 
 /** Ação disparada para alterar o estado do jogo */
@@ -126,7 +149,8 @@ export type GameAction =
   | { type: 'FUSE_HEROES'; heroIds: [string, string, string] }
   | { type: 'CLAIM_WEEKLY_QUEST'; questId: string }
   | { type: 'START_WEEKLY_BOSS'; heroIds: string[]; heroPositions?: Record<string, number>; now: number }
-  | { type: 'LOAD_STATE'; state: GameState };
+  | { type: 'LOAD_STATE'; state: GameState }
+  | { type: 'SET_ONBOARDING'; patch: Partial<OnboardingState> };
 
 export type MissionActorType = 'hero' | 'enemy';
 export type MissionActionType = 'hit' | 'miss' | 'heal' | 'defeat' | 'victory' | 'move';

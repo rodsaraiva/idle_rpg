@@ -22,6 +22,7 @@ import { CLASS_DEFS } from '../constants/classes';
 import { Equipment } from '../types';
 import { MATERIALS, FORGE_RECIPES, MaterialId, EquipmentType } from '../constants/materials';
 import { LOTTIE_ASSETS } from '../constants/assets';
+import { emitForgeHint } from '../services/milestones';
 
 const STAT_LABELS: Record<string, string> = {
   hp: 'HP',
@@ -51,8 +52,16 @@ function getTierColor(tier: number): string {
 }
 
 export function BlacksmithScreen() {
-  const { state, dispatch } = useGame();
+  const { state, dispatch, markHintSeen } = useGame();
   const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!state.onboarding?.hintsSeen.forge) {
+      emitForgeHint();
+      markHintSeen('forge');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [equipModalItem, setEquipModalItem] = useState<Equipment | null>(null);
   const [selectedTier, setSelectedTier] = useState<number>(1);
   const [selectedEquipmentType, setSelectedEquipmentType] = useState<EquipmentType>('weapon');
