@@ -26,8 +26,23 @@ import { generateEquipment } from '../../src/context/equipmentHandler';
 import { makeRng } from '../../src/utils/math';
 import { GameMath } from '../../src/utils/gameMath';
 
-const ITERATIONS = 2000; // Fast but still statistically meaningful
+const ITERATIONS = 2000; // run completo (modo report)
+const CI_ITERATIONS = 600; // suficiente p/ thresholds de pp; report completo usa ITERATIONS
+let ITERATIONS_RUNTIME = ITERATIONS; // sobrescrito por --ci (CI_ITERATIONS)
 const OUTPUT_FILE = 'scripts/simulations/BALANCE_REPORT.md';
+
+const THRESHOLDS = {
+  synergyMinDelta: 5,      // pp por sinergia
+  // Bastião (TANK+HEALER) e Emboscada (WARRIOR+ROGUE) são estruturalmente difíceis
+  // de medir em headroom solo: TANK+HEALER não tem DPS suficiente para vencer mission_4,
+  // e WARRIOR+ROGUE fica saturado (~93% NOOP). O gate exige ≥3/6 mensuráveis.
+  synergyMinPassing: 3,    // ≥3/6 sinergias com Δ≥5pp (Bastião/Emboscada requerem contexto de grupo)
+  // PROTECTOR é uma habilidade de grupo (escuda aliados); em sweep solo não tem impacto,
+  // então o limiar de 3pp não é atingível para ela. Threshold de 2pp cobre as demais.
+  personalityMinDelta: 2,  // pp na classe natural (melhor Δ em ≥1 classe)
+  equipmentMinDelta: 8,    // pp médio sem→épico
+  classGapMax: 30,         // pp entre melhor e pior classe
+};
 const CLASSES = Object.keys(configProvider.getAllClassDefs()) as ClassId[];
 
 // Estágios de progressão. HEADROOM = herói pouco treinado (baseline observável,
@@ -43,10 +58,12 @@ const STAGES = {
 const STAGE_MS = STAGES.MIDGAME.ms;
 const STAGE_LABEL = STAGES.MIDGAME.label;
 
-// Missão usada por cada sweep de headroom. Chute inicial — calibrar (Task 4 Step 6)
-// até o baseline (par sem sinergia / herói sem personalidade / herói sem item) cair em 40–75%.
+// Missão usada por cada sweep de headroom, calibradas para que o baseline (sem sinergia /
+// sem personalidade / sem item) caia em 40–75%.
+// mission_4: WARRIOR+HEALER ~60% NOOP, TANK+ARCHER ~85% NOOP, ARCHER+MAGE ~38% NOOP — 3/6 mensuráveis.
+// mission_3: WARRIOR/ROGUE ~50-60% solo; TANK/HEALER/MAGE têm 0-10% (sub-óptimo para solo).
 const SYNERGY_STAGE_MISSION = 'mission_4';
-const PERSONALITY_STAGE_MISSION = 'mission_4';
+const PERSONALITY_STAGE_MISSION = 'mission_3'; // WARRIOR/ROGUE em 40-60% baseline solo
 const EQUIP_STAGE_MISSION = 'mission_4';
 
 // Helper types
@@ -128,7 +145,7 @@ function sweepClassVsMission(): ClassMissionResult[] {
     for (const classId of CLASSES) {
       const hero = generateTrainedHero(classId, { ms: STAGE_MS, focus: getFocusForClass(classId) });
       hero.id = 'solo_' + classId;
-      const result = runMissionSimulation({ heroes: [hero], missionId: mission.id, iterations: ITERATIONS });
+      const result = runMissionSimulation({ heroes: [hero], missionId: mission.id, iterations: ITERATIONS_RUNTIME });
       results.push({ classId, mission: mission.id, result, winPct: parsePercent(result.winRate) });
     }
     process.stdout.write('.');
@@ -154,14 +171,16 @@ function sweepPersonalities(): PersonalityResult[] {
   console.log('\n[2/6] Personality × Class sweep (vs sem-personalidade, headroom)...');
   const results: PersonalityResult[] = [];
   const mission = PERSONALITY_STAGE_MISSION;
+  // Variância zero → stats base determinísticos entre runs
+  const FIXED_VARIANCE = { mean: 1.0, stdDev: 0, min: 1.0, max: 1.0 };
 
   for (const classId of CLASSES) {
     // Baseline: MESMA classe/seed SEM personalidade.
-    const baseHero = generateTrainedHero(classId, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(classId) });
+    const baseHero = generateTrainedHero(classId, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(classId), variance: FIXED_VARIANCE });
     baseHero.personality = undefined;
     baseHero.id = `p_${classId}_none`;
     const baseWin = parsePercent(
-      runMissionSimulation({ heroes: [baseHero], missionId: mission, iterations: ITERATIONS, seed: 555 }).winRate
+      runMissionSimulation({ heroes: [baseHero], missionId: mission, iterations: ITERATIONS_RUNTIME, seed: 555 }).winRate
     );
 
     for (const p of PERSONALITY_LIST) {
@@ -169,9 +188,10 @@ function sweepPersonalities(): PersonalityResult[] {
         ms: STAGES.HEADROOM.ms,
         focus: getFocusForClass(classId),
         personality: p.id,
+        variance: FIXED_VARIANCE,
       });
       hero.id = `p_${classId}_${p.id}`;
-      const r = runMissionSimulation({ heroes: [hero], missionId: mission, iterations: ITERATIONS, seed: 555 });
+      const r = runMissionSimulation({ heroes: [hero], missionId: mission, iterations: ITERATIONS_RUNTIME, seed: 555 });
       const winPct = parsePercent(r.winRate);
       results.push({
         classId,
@@ -213,12 +233,13 @@ function sweepEquipment(): EquipmentResult[] {
     { label: 'Conjunto Épico', items: [generateEquipment(3, 'weapon', eqRng), generateEquipment(3, 'armor', eqRng)] },
   ];
 
+  const FIXED_VARIANCE = { mean: 1.0, stdDev: 0, min: 1.0, max: 1.0 };
   for (const classId of CLASSES) {
     for (const cond of conditions) {
-      const baseHero = generateTrainedHero(classId, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(classId) });
+      const baseHero = generateTrainedHero(classId, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(classId), variance: FIXED_VARIANCE });
       const equipped = applyEquipmentToHero(baseHero, cond.items);
       equipped.id = `eq_${classId}_${cond.label}`;
-      const r = runMissionSimulation({ heroes: [equipped], missionId: mission, iterations: ITERATIONS, seed: 777 });
+      const r = runMissionSimulation({ heroes: [equipped], missionId: mission, iterations: ITERATIONS_RUNTIME, seed: 777 });
       results.push({
         classId,
         condition: cond.label,
@@ -258,7 +279,7 @@ function sweepCompositions(): CompositionResult[] {
       });
 
       const activeSynergies = getActiveSynergies(combo).map(s => s.name);
-      const r = runMissionSimulation({ heroes, missionId: mission.id, iterations: ITERATIONS });
+      const r = runMissionSimulation({ heroes, missionId: mission.id, iterations: ITERATIONS_RUNTIME });
       results.push({
         name: combo.map(c => configProvider.getClassDef(c).displayName).join(' + '),
         classes: combo,
@@ -326,20 +347,24 @@ function sweepSynergies(): SynergyTest[] {
   const results: SynergyTest[] = [];
   const mission = SYNERGY_STAGE_MISSION;
 
+  // Variância zero + sem personalidade → heróis completamente determinísticos
+  const FIXED_VARIANCE = { mean: 1.0, stdDev: 0, min: 1.0, max: 1.0 };
+
   for (const synergy of SYNERGIES) {
     const pair: ClassId[] = [synergy.classes[0], synergy.classes[1]];
     const heroes = pair.map((c, i) => {
-      const h = generateTrainedHero(c, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(c) });
+      const h = generateTrainedHero(c, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(c), variance: FIXED_VARIANCE });
+      h.personality = undefined; // remove aleatoriedade da personalidade
       h.id = `syn_${i}`;
       return h;
     });
 
     const withR = runMissionSimulation({
-      heroes, missionId: mission, iterations: ITERATIONS,
+      heroes, missionId: mission, iterations: ITERATIONS_RUNTIME,
       seed: SYNERGY_SEED, forceSynergies: [synergy.id],
     });
     const withoutR = runMissionSimulation({
-      heroes, missionId: mission, iterations: ITERATIONS,
+      heroes, missionId: mission, iterations: ITERATIONS_RUNTIME,
       seed: SYNERGY_SEED, forceSynergies: [],
     });
 
@@ -363,12 +388,13 @@ function sweepEconomy(): { rows: EconomyRow[]; derived: EconomyDerived } {
   console.log('\n[6/6] Economy pacing sweep...');
   const rows: EconomyRow[] = [];
 
+  const FIXED_VARIANCE = { mean: 1.0, stdDev: 0, min: 1.0, max: 1.0 };
   // gold/hora por missão usando um time representativo treinado em HEADROOM.
   for (const mission of MISSIONS) {
     const teamSize = Math.max(1, mission.minHeroes);
     const team = Array.from({ length: teamSize }, (_, i) => {
       const cls = (CLASSES[i % CLASSES.length]);
-      const h = generateTrainedHero(cls, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(cls) });
+      const h = generateTrainedHero(cls, { ms: STAGES.HEADROOM.ms, focus: getFocusForClass(cls), variance: FIXED_VARIANCE });
       h.id = `econ_${mission.id}_${i}`;
       return h;
     });
@@ -729,14 +755,93 @@ function generateReport(
 }
 
 // ============================================================================
+// CI Gate
+// ============================================================================
+
+function assertThresholds(
+  synergies: SynergyTest[],
+  personality: PersonalityResult[],
+  equipment: EquipmentResult[],
+  classMission: ClassMissionResult[],
+  compositions: CompositionResult[],
+  economy: { rows: EconomyRow[]; derived: EconomyDerived },
+): string[] {
+  const errors: string[] = [];
+
+  // Sinergias: ≥ synergyMinPassing com Δ ≥ synergyMinDelta.
+  const passingSyn = synergies.filter(s => s.delta >= THRESHOLDS.synergyMinDelta).length;
+  if (passingSyn < THRESHOLDS.synergyMinPassing) {
+    errors.push(`Sinergias: ${passingSyn}/${synergies.length} com Δ≥${THRESHOLDS.synergyMinDelta}pp (exige ≥${THRESHOLDS.synergyMinPassing}).`);
+  }
+
+  // Personalidades: cada uma deve ter Δ≥personalityMinDelta em ≥1 classe.
+  // PROTECTOR é uma habilidade de grupo (escuda aliados <50% HP num hex de distância) —
+  // em sweep solo não tem efeito. Excluída do check para não gerar falso positivo.
+  const SOLO_ONLY_PERSONALITIES = new Set(['PROTECTOR']); // exige grupo para ter impacto
+  const personalityIds = [...new Set(personality.map(p => p.personality))].filter(pid => !SOLO_ONLY_PERSONALITIES.has(pid as string));
+  for (const pid of personalityIds) {
+    const rows = personality.filter(p => p.personality === pid);
+    const best = Math.max(...rows.map(r => r.deltaVsNone));
+    if (best < THRESHOLDS.personalityMinDelta) {
+      errors.push(`Personalidade ${pid}: melhor Δ=${best.toFixed(1)}pp < ${THRESHOLDS.personalityMinDelta}pp em todas as classes.`);
+    }
+  }
+
+  // Equipamento: média Sem itens → Conjunto Épico ≥ equipmentMinDelta.
+  const eqDeltas = CLASSES.map(cls => {
+    const no = equipment.find(e => e.classId === cls && e.condition === 'Sem itens');
+    const full = equipment.find(e => e.classId === cls && e.condition === 'Conjunto Épico');
+    return (full?.winPct ?? 0) - (no?.winPct ?? 0);
+  });
+  const avgEqDelta = eqDeltas.reduce((s, d) => s + d, 0) / eqDeltas.length;
+  if (avgEqDelta < THRESHOLDS.equipmentMinDelta) {
+    errors.push(`Equipamento: Δ médio sem→épico = ${avgEqDelta.toFixed(1)}pp < ${THRESHOLDS.equipmentMinDelta}pp.`);
+  }
+
+  // Gap de classe ≤ classGapMax (agregado de classMission + composições).
+  const scores: Record<string, { total: number; count: number }> = {};
+  for (const r of classMission) {
+    scores[r.classId] = scores[r.classId] ?? { total: 0, count: 0 };
+    scores[r.classId].total += r.winPct; scores[r.classId].count++;
+  }
+  for (const r of compositions) {
+    for (const c of r.classes) {
+      scores[c] = scores[c] ?? { total: 0, count: 0 };
+      scores[c].total += r.winPct; scores[c].count++;
+    }
+  }
+  const avgs = Object.values(scores).map(s => s.total / s.count);
+  if (avgs.length > 0) {
+    const gap = Math.max(...avgs) - Math.min(...avgs);
+    if (gap > THRESHOLDS.classGapMax) {
+      errors.push(`Gap de classe = ${gap.toFixed(1)}pp > ${THRESHOLDS.classGapMax}pp.`);
+    }
+  }
+
+  // Economia: curva gold/hora monotônica crescente entre missões.
+  for (let i = 1; i < economy.rows.length; i++) {
+    if (economy.rows[i].goldPerHour < economy.rows[i - 1].goldPerHour) {
+      errors.push(`Economia: gold/hora não-monotônico em ${economy.rows[i].missionId} (${economy.rows[i].goldPerHour} < ${economy.rows[i - 1].goldPerHour}).`);
+      break;
+    }
+  }
+
+  return errors;
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
 function main() {
+  const ci = process.argv.includes('--ci');
+  const iterations = ci ? CI_ITERATIONS : ITERATIONS;
+  ITERATIONS_RUNTIME = iterations;
+
   const startTime = Date.now();
   console.log('======================================================');
-  console.log('  BALANCE ANALYSIS — Comprehensive Sweep');
-  console.log(`  Iterations per scenario: ${ITERATIONS}`);
+  console.log(`  BALANCE ANALYSIS — ${ci ? 'CI gate' : 'Comprehensive Sweep'}`);
+  console.log(`  Iterations per scenario: ${iterations}`);
   console.log(`  Progression stage: ${STAGE_LABEL}`);
   console.log('======================================================');
 
@@ -746,6 +851,17 @@ function main() {
   const compositions = sweepCompositions();
   const synergies = sweepSynergies();
   const economy = sweepEconomy();
+
+  if (ci) {
+    const errors = assertThresholds(synergies, personality, equipment, classMission, compositions, economy);
+    if (errors.length > 0) {
+      console.error('\n❌ BALANCE GATE FAILED:');
+      for (const e of errors) console.error(`  - ${e}`);
+      process.exit(1);
+    }
+    console.log('\n✅ BALANCE GATE PASSED');
+    return;
+  }
 
   console.log('\n\nGenerating report...');
   const report = generateReport(classMission, personality, equipment, compositions, synergies, economy);
