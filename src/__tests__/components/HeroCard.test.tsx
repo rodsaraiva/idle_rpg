@@ -29,6 +29,8 @@ function wrap(children: React.ReactNode) {
       state: initialGameState as any, dispatch: jest.fn(), isLoaded: true,
       setHeroTask: jest.fn(), recruitHero: jest.fn(), offlineSummary: null,
       clearOfflineSummary: jest.fn(), applyOfflineSummary: jest.fn(),
+      advanceOnboarding: jest.fn(), skipOnboarding: jest.fn(),
+      markHintSeen: jest.fn(), resetOnboarding: jest.fn(),
     }}>{children}</GameContext.Provider>
   );
 }

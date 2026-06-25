@@ -7,7 +7,7 @@ import React, {
   ReactNode,
   useState,
 } from 'react';
-import { GameState, GameAction, HeroTask, OfflineSummaryFull } from '../types';
+import { GameState, GameAction, HeroTask, OfflineSummaryFull, OnboardingStep } from '../types';
 import { gameReducer, initialGameState } from './gameReducer';
 import { loadGameState, saveGameState, CorruptSaveError } from '../services/storage';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
@@ -27,6 +27,10 @@ interface GameContextValue {
   applyOfflineSummary: () => Promise<void>;
   setTickInterval?: (ms: number) => void;
   setTrainInflationFactor?: (inflation: number) => void;
+  advanceOnboarding: (step: OnboardingStep) => void;
+  skipOnboarding: () => void;
+  markHintSeen: (key: string) => void;
+  resetOnboarding: () => void;
 }
 
 export const GameContext = createContext<GameContextValue>({
@@ -40,6 +44,10 @@ export const GameContext = createContext<GameContextValue>({
   applyOfflineSummary: async () => {},
   setTickInterval: () => {},
   setTrainInflationFactor: () => {},
+  advanceOnboarding: () => {},
+  skipOnboarding: () => {},
+  markHintSeen: () => {},
+  resetOnboarding: () => {},
 });
 
 export function GameProvider({ children }: GameProviderProps) {
@@ -118,6 +126,22 @@ export function GameProvider({ children }: GameProviderProps) {
     dispatch({ type: 'RECRUIT_HERO' });
   }, [dispatch]);
 
+  const advanceOnboarding = useCallback((step: OnboardingStep) => {
+    dispatch({ type: 'SET_ONBOARDING', patch: { step } });
+  }, [dispatch]);
+
+  const skipOnboarding = useCallback(() => {
+    dispatch({ type: 'SET_ONBOARDING', patch: { step: 'skipped' } });
+  }, [dispatch]);
+
+  const markHintSeen = useCallback((key: string) => {
+    dispatch({ type: 'SET_ONBOARDING', patch: { hintsSeen: { [key]: true } } });
+  }, [dispatch]);
+
+  const resetOnboarding = useCallback(() => {
+    dispatch({ type: 'SET_ONBOARDING', patch: { step: 'intro', startedAt: Date.now(), hintsSeen: {} } });
+  }, [dispatch]);
+
   const setTickInterval = useCallback((ms: number) => {
     dispatch({ type: 'SET_TICK_INTERVAL', ms });
   }, [dispatch]);
@@ -156,6 +180,10 @@ export function GameProvider({ children }: GameProviderProps) {
         applyOfflineSummary,
         setTickInterval,
         setTrainInflationFactor,
+        advanceOnboarding,
+        skipOnboarding,
+        markHintSeen,
+        resetOnboarding,
       }}
     >
       {children}

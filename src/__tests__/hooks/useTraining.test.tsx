@@ -25,6 +25,10 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
     offlineSummary: { ticks: 10, goldGained: 100 } as any,
     clearOfflineSummary: mockClearOfflineSummary,
     applyOfflineSummary: mockApplyOfflineSummary,
+    advanceOnboarding: jest.fn(),
+    skipOnboarding: jest.fn(),
+    markHintSeen: jest.fn(),
+    resetOnboarding: jest.fn(),
   }}>
     {children}
   </GameContext.Provider>
