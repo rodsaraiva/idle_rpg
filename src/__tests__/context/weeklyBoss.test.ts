@@ -35,7 +35,7 @@ function makeHero(overrides: Partial<Hero> = {}): Hero {
  */
 function makeState(heroCount: number = 5): GameState {
   const heroes = Array.from({ length: heroCount }, (_, i) =>
-    makeHero({ id: `h${i + 1}`, name: `Hero ${i + 1}` })
+    makeHero({ id: `h${i + 1}`, name: `Hero ${i + 1}`, stars: i === 0 ? 1 : 0 })
   );
   const currentSeed = getWeeklySeed();
   const base: GameState = {
@@ -322,5 +322,33 @@ describe('tick — recompensa de equipamento do boss', () => {
     const next = handleTick(makeFinishedBossMission(state, true, lich), Date.now());
 
     expect((next.inventory ?? []).length).toBe(inventoryBefore);
+  });
+});
+
+// ── F4-6: gate de estrela ─────────────────────────────────────────────────────
+
+describe('handleStartWeeklyBoss — gate de estrela', () => {
+  test('sem nenhum herói estrelado, retorna estado inalterado', () => {
+    const base = makeState(5);
+    const state = { ...base, heroes: base.heroes.map(h => ({ ...h, stars: 0 })) };
+    const boss = getWeeklyBoss(state.weeklyState!.seed);
+    const heroIds = state.heroes.slice(0, boss.minHeroes).map(h => h.id);
+
+    const next = handleStartWeeklyBoss(state, heroIds, undefined, Date.now());
+    expect(next).toBe(state);
+    expect(next.activeMissions ?? []).toHaveLength(0);
+  });
+
+  test('com ≥1 herói estrelado, o boss inicia normalmente', () => {
+    const base = makeState(5);
+    const boss = getWeeklyBoss(base.weeklyState!.seed);
+    // Marca o primeiro herói com 1 estrela.
+    const heroes = base.heroes.map((h, i) => (i === 0 ? { ...h, stars: 1 } : h));
+    const state = { ...base, heroes };
+    const heroIds = state.heroes.slice(0, boss.minHeroes).map(h => h.id);
+
+    const next = handleStartWeeklyBoss(state, heroIds, undefined, Date.now());
+    expect(next.activeMissions).toHaveLength(1);
+    expect(next.activeMissions![0].isWeeklyBoss).toBe(true);
   });
 });
