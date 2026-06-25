@@ -31,3 +31,15 @@ export const emitFirstTierForged = (tierName: string) => {
 export const emitRareMaterialDrop = (materialName: string) => {
   emitMilestone(`💎 ${materialName} obtida!`);
 };
+
+export const emitForgeHint = () => {
+  emitMilestone('🔨 Forje equipamentos com o ouro das missões para fortalecer a guilda.');
+};
+
+export const emitInfirmaryHint = () => {
+  emitMilestone('🩺 Heróis feridos se recuperam na Enfermaria.');
+};
+
+export const emitSecondRecruitHint = () => {
+  emitMilestone('Complete missões para juntar ouro e recrutar mais heróis.');
+};
