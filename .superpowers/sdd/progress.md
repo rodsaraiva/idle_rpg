@@ -85,3 +85,4 @@ SPEC5 Task 8: 9b57a7d
 SPEC5 Task 9: ca8e133
 SPEC5 Task 10: afd6cb4
 SPEC5 Task 11: a1961ff
+SPEC5 Task 12: 1ccd8ab
