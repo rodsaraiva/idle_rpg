@@ -97,7 +97,8 @@ describe('gameReducer — additional action cases', () => {
 
   test('CONFIRM_CHEST_REVEAL adds hero and increments heroesRecruited', () => {
     const hero = createHero({ id: 'new-hero', name: 'Revealed' });
-    const state = { ...initialGameState, heroesRecruited: 3 };
+    // heroes: [] explícito — baseline do FTUE tem 1 herói semeado (SPEC 5 Task 3)
+    const state = { ...initialGameState, heroesRecruited: 3, heroes: [] };
     const next = gameReducer(state, { type: 'CONFIRM_CHEST_REVEAL', hero });
     expect(next.heroes.length).toBe(1);
     expect(next.heroes[0].id).toBe('new-hero');

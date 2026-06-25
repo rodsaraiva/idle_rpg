@@ -69,14 +69,16 @@ describe('gameReducer', () => {
   });
 
   test('RECRUIT_HERO does nothing when not enough gold', () => {
-    const state = { ...initialGameState, gold: 0, heroesRecruited: 0 };
+    // heroes: [] explícito — baseline do FTUE tem 1 herói semeado (SPEC 5 Task 3)
+    const state = { ...initialGameState, gold: 0, heroesRecruited: 0, heroes: [] };
     const next = gameReducer(state, { type: 'RECRUIT_HERO' });
     expect(next.heroes.length).toBe(0);
     expect(next.gold).toBe(0);
   });
 
   test('RECRUIT_HERO spends gold and increases heroesRecruited when affordable', () => {
-    const state = { ...initialGameState, gold: 10000, heroesRecruited: 0 };
+    // heroes: [] explícito — testa só a ação de recrutar partindo do zero
+    const state = { ...initialGameState, gold: 10000, heroesRecruited: 0, heroes: [] };
     const next = gameReducer(state, { type: 'RECRUIT_HERO' });
     expect(next.heroes.length).toBe(1);
     expect(next.heroesRecruited).toBe(1);

@@ -345,7 +345,9 @@ describe('tickHandler — processMissions branches', () => {
       scheduledActions: [],
     };
 
-    const state = { ...initialGameState, heroes: [hero], gold: 0, activeMissions: [mission] };
+    // heroesRecruited: 0 e unlockedAchievements: [] explícitos — baseline do FTUE tem heroesRecruited: 1
+    // o que dispararia a conquista recruit_1 (+20 gold); isolamos o efeito da missão inválida (SPEC 5 Task 3)
+    const state = { ...initialGameState, heroes: [hero], gold: 0, activeMissions: [mission], heroesRecruited: 0, unlockedAchievements: [] };
     const next = handleTick(state, FIXED_NOW);
 
     // Mission kept, no gold, no completion since template lookup skipped it
