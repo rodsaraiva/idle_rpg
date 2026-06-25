@@ -1,4 +1,4 @@
-import { BattleEngine, BattleState } from '../../src/utils/battleEngine';
+import { BattleEngine, BattleState, SynergyId } from '../../src/utils/battleEngine';
 import { MISSIONS, MissionTemplate } from '../../src/constants/missions';
 import { MAX_BATTLE_ROUNDS, HERO_ROWS, GRID_COLUMNS } from '../../src/constants/game';
 import { Hero } from '../../src/types/index';
@@ -12,6 +12,8 @@ export interface SimulationParams {
   iterations: number;
   /** Quando presente, cada iteração usa makeRng(seed + iterIdx) — reprodutível. */
   seed?: number;
+  /** Hook de teste: força as sinergias ativas (sobrepõe auto-detecção). [] = nenhuma. */
+  forceSynergies?: SynergyId[];
 }
 
 export interface SimulationResult {
@@ -27,7 +29,7 @@ export interface SimulationResult {
  * Roda N iterações de uma missão com um grupo específico de heróis.
  */
 export function runMissionSimulation(params: SimulationParams): SimulationResult {
-  const { heroes, missionId, iterations, seed } = params;
+  const { heroes, missionId, iterations, seed, forceSynergies } = params;
 
   const mission = MISSIONS.find(m => m.id === missionId);
   if (!mission) throw new Error(`Missão ${missionId} não encontrada.`);
@@ -56,7 +58,7 @@ export function runMissionSimulation(params: SimulationParams): SimulationResult
     const iterRng = seed != null ? makeRng(seed + i) : Math.random;
 
     // 2. Inicializa estado via BattleEngine.initializeBattle
-    const state = BattleEngine.initializeBattle(activeHeroes, mission as MissionTemplate, { rng: iterRng });
+    const state = BattleEngine.initializeBattle(activeHeroes, mission as MissionTemplate, { rng: iterRng, forceSynergies });
 
     // Override hero positions to the simulator's preferred bottom-row layout
     activeHeroes.forEach((h, idx) => {
