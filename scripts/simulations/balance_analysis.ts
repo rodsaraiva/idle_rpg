@@ -27,9 +27,22 @@ const ITERATIONS = 2000; // Fast but still statistically meaningful
 const OUTPUT_FILE = 'scripts/simulations/BALANCE_REPORT.md';
 const CLASSES = Object.keys(configProvider.getAllClassDefs()) as ClassId[];
 
-// Progression stage — all tests use the same stage for fair comparison
-const STAGE_MS = 3 * 24 * 60 * 60 * 1000; // Day 3
-const STAGE_LABEL = 'Dia 3';
+// Estágios de progressão. HEADROOM = herói pouco treinado (baseline observável,
+// não saturado em 100%); MIDGAME = onde o jogador real passa o tempo (Dia 3).
+const STAGES = {
+  HEADROOM: { ms: 30 * 60 * 1000, label: '30 min' },
+  MIDGAME: { ms: 3 * 24 * 60 * 60 * 1000, label: 'Dia 3' },
+} as const;
+
+// Compat: tier-list de classe e composições seguem medindo em MIDGAME.
+const STAGE_MS = STAGES.MIDGAME.ms;
+const STAGE_LABEL = STAGES.MIDGAME.label;
+
+// Missão usada por cada sweep de headroom. Chute inicial — calibrar (Task 4 Step 6)
+// até o baseline (par sem sinergia / herói sem personalidade / herói sem item) cair em 40–75%.
+const SYNERGY_STAGE_MISSION = 'mission_4';
+const PERSONALITY_STAGE_MISSION = 'mission_4';
+const EQUIP_STAGE_MISSION = 'mission_4';
 
 // Helper types
 interface ClassMissionResult {
