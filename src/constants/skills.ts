@@ -208,7 +208,7 @@ export const SKILL_DEFS: SkillDef[] = [
     id: 'COMMANDER_CARGA_FINAL',
     classId: 'COMMANDER',
     name: 'Carga Final',
-    description: 'Uma vez por batalha com 2+ aliados vivos, o time todo ataca simultaneamente no próximo round.',
+    description: 'Uma vez por batalha (2+ aliados vivos), o time ganha +30% ATK por 1 round.',
     icon: '🚩',
     cooldownRounds: -1,
     unlockThreshold: { stat: 'atk', value: 100 },

@@ -381,6 +381,59 @@ function tryRessurreicao(hero: Hero, state: BattleState): boolean {
   return true;
 }
 
+/**
+ * COMMANDER_FORMACAO (cooldown 4 rounds, unlock atk 50):
+ * A cada 4 rounds, aliados ADJACENTES ao Comandante (distância ≤ 1) ganham +15% ATK por 2 rounds.
+ * Não consome o turno — buff passivo de posicionamento.
+ */
+function tryFormacao(hero: Hero, state: BattleState): void {
+  const skill = { id: 'COMMANDER_FORMACAO', cooldownRounds: 4 } as SkillDef;
+  if (!isSkillReady(state, hero.id, skill)) return;
+
+  const commanderPos = state.heroPositions[hero.id] ?? 0;
+  const adjacentAllies = state.heroes.filter(h =>
+    h.id !== hero.id &&
+    h.hpCurrent > 0 &&
+    GameMath.getHexDistance(commanderPos, state.heroPositions[h.id] ?? 99) <= 1
+  );
+  if (adjacentAllies.length === 0) return;
+
+  for (const ally of adjacentAllies) {
+    addBuff(state, ally.id, {
+      source: 'COMMANDER_FORMACAO',
+      type: 'atkMul',
+      value: 1.15,
+      expiresAfterRound: state.rounds + 2,
+    });
+  }
+  markSkillUsed(state, hero.id, skill);
+  logSkill(state, hero, 'Formação de Combate', `${adjacentAllies.length} aliado(s) adjacente(s) +15% ATK por 2 rounds`);
+}
+
+/**
+ * COMMANDER_CARGA_FINAL (once-per-battle, unlock atk 100):
+ * Uma vez por batalha com 2+ aliados vivos, todos ganham +30% ATK (atkMul 1.30) por 1 round.
+ * Não consome o turno — burst passivo antes do ataque.
+ */
+function tryCargaFinal(hero: Hero, state: BattleState): void {
+  const skill = { id: 'COMMANDER_CARGA_FINAL', cooldownRounds: -1 } as SkillDef;
+  if (!isSkillReady(state, hero.id, skill)) return;
+
+  const aliveAllies = state.heroes.filter(h => h.id !== hero.id && h.hpCurrent > 0);
+  if (aliveAllies.length < 2) return;
+
+  for (const ally of aliveAllies) {
+    addBuff(state, ally.id, {
+      source: 'COMMANDER_CARGA_FINAL',
+      type: 'atkMul',
+      value: 1.30,
+      expiresAfterRound: state.rounds + 1,
+    });
+  }
+  markSkillUsed(state, hero.id, skill);
+  logSkill(state, hero, 'Carga Final', `${aliveAllies.length} aliado(s) +30% ATK por 1 round`);
+}
+
 // ─── Public API ───
 
 /**
@@ -436,6 +489,12 @@ export function executePreAttackSkills(
   if (hero.classId === 'MAGE') {
     if (skillIds.has('MAGE_METEORO') && tryMeteoro(hero, state, onEnemyDamagedSkills)) return true;
     if (skillIds.has('MAGE_BOLA_DE_FOGO') && tryBolaDeFogo(hero, target, state, onEnemyDamagedSkills)) return true;
+  }
+
+  // Commander passive skills (não consomem turno — amplificam aliados antes do ataque do Comandante)
+  if (hero.classId === 'COMMANDER') {
+    if (skillIds.has('COMMANDER_CARGA_FINAL')) tryCargaFinal(hero, state);
+    if (skillIds.has('COMMANDER_FORMACAO')) tryFormacao(hero, state);
   }
 
   return false;
