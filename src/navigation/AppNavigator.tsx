@@ -15,6 +15,7 @@ import { GuildScreen } from '../screens/GuildScreen';
 import { LegacyScreen } from '../screens/LegacyScreen';
 import { ZoneMapScreen } from '../screens/ZoneMapScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { CollectionScreen } from '../screens/CollectionScreen';
 import { theme } from '../theme';
 import { Icon, IconName } from '../components/ui/Icon';
 
@@ -143,6 +144,14 @@ export function AppNavigator() {
         <Tab.Screen
           name="Configuracoes"
           component={SettingsScreen}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Colecao"
+          component={CollectionScreen}
           options={{
             tabBarButton: () => null,
             tabBarItemStyle: { display: 'none' },
