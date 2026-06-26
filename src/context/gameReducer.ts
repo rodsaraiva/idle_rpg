@@ -32,6 +32,7 @@ import { buyLegacyUpgrade } from './legacyHandler';
 import { TICK_INTERVAL_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 import { createHero } from '../utils/heroFactory';
 import { handleSetOnboarding } from './onboardingHandler';
+import { claimLoginReward } from './loginStreakHandler';
 
 /** Estado inicial quando não há save (boot do FTUE). */
 export const initialGameState: GameState = {
@@ -119,6 +120,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BUY_LEGACY_UPGRADE':
       return buyLegacyUpgrade(state, action.upgradeId);
+
+    case 'CLAIM_LOGIN_REWARD':
+      return claimLoginReward(state);
 
     case 'LOAD_STATE':
       try {
