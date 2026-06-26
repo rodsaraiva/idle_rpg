@@ -132,6 +132,19 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'EQUIP_COSMETIC':
       return handleEquipCosmetic(state, action.slot, action.cosmeticId);
 
+    case 'SET_NOTIFICATION_PREFS':
+      return {
+        ...state,
+        notificationPrefs: {
+          ...(state.notificationPrefs ?? {
+            optedIn: false,
+            categories: { missionReady: false, bossReady: false, dailyReset: false, idle: false },
+            quietHours: { start: 22, end: 9 },
+          }),
+          ...action.prefs,
+        },
+      };
+
     case 'LOAD_STATE':
       try {
         return validateShape({ ...action.state });
