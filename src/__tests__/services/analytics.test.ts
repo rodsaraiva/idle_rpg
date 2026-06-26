@@ -1,6 +1,10 @@
-import { analytics, AnalyticsEvent } from '../../services/analytics';
+import { analytics, AnalyticsEvent, setAnalyticsConsent } from '../../services/analytics';
 
 describe('analytics (sink default)', () => {
+  afterEach(() => {
+    setAnalyticsConsent(false); // reset após cada teste para não vazar estado
+  });
+
   test('track aceita evento sem props sem lançar', () => {
     expect(() => analytics.track('ftue_started')).not.toThrow();
   });
@@ -10,7 +14,8 @@ describe('analytics (sink default)', () => {
     expect(() => analytics.track(ev, { elapsedMs: 4200 })).not.toThrow();
   });
 
-  test('em dev (__DEV__ true no jest) loga no console', () => {
+  test('em dev (__DEV__ true no jest) loga no console quando consent concedido', () => {
+    setAnalyticsConsent(true);
     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
     analytics.track('ftue_completed', { elapsedMs: 12000 });
     expect(spy).toHaveBeenCalledWith('[analytics]', 'ftue_completed', { elapsedMs: 12000 });
