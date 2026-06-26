@@ -31,13 +31,67 @@ Os items abaixo foram conscientemente excluídos do SPEC 8 por serem device-boun
 - **IAP/billing (RevenueCat/StoreKit/Play):** loja premium com dinheiro real para cosméticos premium, restore purchases, receipt validation, tela de paywall real. O `CollectionScreen` mostra "Em breve" como placeholder; nenhum billing foi integrado.
 - **Validação visual de SettingsScreen/CollectionScreen/HeroCard cosmético:** as três telas foram implementadas mas não validadas em emulador/device — UX, contraste, layout em telas pequenas. MANUAL-PENDING sandbox.
 
-## D. Não-executados (design-only, sem plano ainda)
+## D. Débito device-bound do SPEC 9 (store readiness)
 
-O SPEC 9 do roadmap (`store-readiness`) tem spec de design mas **não tem plano de execução** — "plans when we get there" (ver [`ROADMAP-2026-H2.md`](ROADMAP-2026-H2.md)). Próximo passo natural quando a base estiver validada no device.
+Registrado em 2026-06-26. O SPEC 9 entregou toda a infraestrutura codável
+(bundleId, eas.json, analytics consent-gated, migração v13, gate LGPD,
+telas de Privacidade/Termos, SOUND_KEYS, checklist de submissão). O que
+**não pode ser feito no sandbox de CI** ficou como débito explícito:
+
+- **EAS Build real:** executar `eas build --platform all --profile production`
+  (requer conta Expo paga ou free tier com tempo de build). Credenciais iOS via
+  `eas credentials` (Apple Certificate + Provisioning Profile).
+
+- **Arquivos de áudio licenciados:** popular `SOUND_ASSETS` em
+  `src/constants/assets.ts` com os 9 arquivos correspondentes a `SOUND_KEYS`
+  (`chest_suspense`, `chest_open`, `chest_reveal`, `battle_hit`, `death`,
+  `forge_craft`, `mission_reward`, `level_up`, `ambient`). Os arquivos de áudio
+  precisam de licença compatível (CC0, comprado em marketplace, ou produzido).
+
+- **Chave e SDK PostHog real:** instalar `posthog-react-native`, obter chave de
+  projeto em `app.posthog.com`, injetar no sink via `setAnalyticsSink(...)` em
+  `App.tsx` (o contrato já existe em `src/services/analytics.ts` — só substituir
+  o console.log pelo cliente real).
+
+- **Contas de loja:**
+  - Apple Developer: $99/ano em `developer.apple.com`
+  - Google Play: $25 taxa única em `play.google.com/console`
+
+- **Keystore Android:** deixar o EAS gerenciar (`eas credentials`) ou guardar
+  fora do repo em local seguro (nunca commitar).
+
+- **Arte final:**
+  - Ícone iOS: 1024×1024 px sem canal alpha
+  - Ícone Android: 512×512 px (Play Store), adaptive icon (foreground/background)
+  - Splash screen: design final substituindo o placeholder atual em `app.json`
+  - Screenshots: mínimo iPhone 6.9" (3 imagens) + Android 16:9 (3 imagens)
+  - Feature Graphic Google Play: 1024×500 px
+
+- **Formulários de loja (preenchimento manual):**
+  - Apple: App Privacy (Usage Data), age rating (IARC-style)
+  - Google: Data Safety, IARC questionnaire, Content Rating
+
+- **Hospedagem de URLs legais:**
+  - Hospedar conteúdo de `src/constants/legalContent.ts` em URLs públicas
+    (ex.: `https://v4smc.com/idlerpg/privacy` e `.../terms`)
+  - Atualizar `legalContent.ts` com as URLs reais
+  - Revisão jurídica do texto (advogado ou especialista LGPD/GDPR)
+
+- **Validação visual em emulador/device das telas novas do SPEC 9:**
+  - `ConsentGate` (modal de 1º boot): layout, botões Aceitar/Recusar, links
+  - `PrivacyScreen` e `TermsScreen`: ScrollView, tokens do DS "Reino"
+  - Toggle de consentimento na `SettingsScreen`: sincroniza com estado real
+
+Referência completa: `docs/store/SUBMISSION-CHECKLIST.md`.
+
+## E. Não-executados (design-only, sem plano ainda)
+
+SPECs 10+ do roadmap H2 2026 não têm plano de execução ainda —
+"plans when we get there" (ver [`ROADMAP-2026-H2.md`](ROADMAP-2026-H2.md)).
 
 ## Como retomar
 
-1. Subir o Expo localmente (`npx expo start --web --port 8081` ou emulador) e varrer o item A + validação visual do SPEC 8 (item C).
+1. Subir o Expo localmente (`npx expo start --web --port 8081` ou emulador) e varrer o item A + validação visual do SPEC 8 (item C) e SPEC 9 (item D).
 2. Cada item de B é uma tarefa pequena e isolada — bom candidato a `/plan` curto ou fix direto.
 3. Débito device-bound do SPEC 8 (item C) exige emulador com expo-notifications habilitado e conta de billing de teste.
-4. Item D (SPEC 9) exige brainstorming → writing-plans antes de executar.
+4. Débito device-bound do SPEC 9 (item D): seguir a "Ordem recomendada de execução" em `docs/store/SUBMISSION-CHECKLIST.md`.

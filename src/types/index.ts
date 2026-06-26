@@ -140,6 +140,8 @@ export interface GameState {
   keys?: Record<'bronze' | 'silver' | 'gold', number>;
   cosmetics?: { owned: string[]; equipped: { frame?: string; seal?: string; theme?: string } };
   notificationPrefs?: NotificationPrefs;
+  // SPEC 9 — consentimento LGPD (analytics opt-in, off por default)
+  consent?: { analytics: boolean; decided: boolean; decidedAt: number };
 }
 
 /** Ação disparada para alterar o estado do jogo */
@@ -170,7 +172,8 @@ export type GameAction =
   | { type: 'CLAIM_LOGIN_REWARD' }
   | { type: 'OPEN_KEY_CHEST'; chestType: 'bronze' | 'silver' | 'gold' }
   | { type: 'EQUIP_COSMETIC'; slot: 'frame' | 'seal' | 'theme'; cosmeticId: string }
-  | { type: 'SET_NOTIFICATION_PREFS'; prefs: Partial<NotificationPrefs> };
+  | { type: 'SET_NOTIFICATION_PREFS'; prefs: Partial<NotificationPrefs> }
+  | { type: 'SET_CONSENT'; analytics: boolean };
 
 export type MissionActorType = 'hero' | 'enemy';
 export type MissionActionType = 'hit' | 'miss' | 'heal' | 'defeat' | 'victory' | 'move';

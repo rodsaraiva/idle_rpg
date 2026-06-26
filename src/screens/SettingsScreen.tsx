@@ -1,5 +1,5 @@
 /**
- * SettingsScreen — Preferências de Notificação
+ * SettingsScreen — Preferências de Notificação + Consentimento LGPD
  *
  * DÉBITO (device-bound, SPEC 9): agendamento real de push via expo-notifications,
  * quiet-hours no SO, cap de ≤2 notif/dia, cancelamento ao fechar app.
@@ -7,13 +7,20 @@
  * Nenhuma chamada a expo-notifications ocorre aqui.
  */
 import React from 'react';
-import { View, Text, Switch, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  Switch,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
 import { ScreenContainer } from '../components/ui/ScreenContainer';
 import { Banner } from '../components/ui/Banner';
 import { Card } from '../components/ui/Card';
-import { NotificationPrefs } from '../types';
+import { NotificationPrefs, GameAction } from '../types';
 
 type CategoryKey = keyof NotificationPrefs['categories'];
 
@@ -24,14 +31,25 @@ const CATEGORY_LABELS: Record<CategoryKey, string> = {
   idle: 'Herói ocioso por mais de 1h',
 };
 
+/** Cria o handler de consentimento analytics — testável de forma isolada. */
+export function buildConsentHandler(dispatch: React.Dispatch<GameAction>) {
+  return (analytics: boolean) => {
+    dispatch({ type: 'SET_CONSENT', analytics });
+  };
+}
+
 export function SettingsScreen() {
   const { state, dispatch } = useGame();
+  const nav = useNavigation<any>();
 
   const prefs: NotificationPrefs = state.notificationPrefs ?? {
     optedIn: false,
     categories: { missionReady: false, bossReady: false, dailyReset: false, idle: false },
     quietHours: { start: 22, end: 9 },
   };
+
+  const consentAnalytics = state.consent?.analytics ?? false;
+  const setConsentAnalytics = buildConsentHandler(dispatch);
 
   function setOptIn(value: boolean) {
     dispatch({ type: 'SET_NOTIFICATION_PREFS', prefs: { optedIn: value } });
@@ -48,8 +66,43 @@ export function SettingsScreen() {
 
   return (
     <ScreenContainer
-      banner={<Banner title="Configurações" subtitle="Preferências de Notificação" />}
+      banner={<Banner title="Configurações" subtitle="Preferências e Privacidade" />}
     >
+      {/* Seção de consentimento LGPD */}
+      <Card elevation="e1" padding="md">
+        <View style={styles.row}>
+          <View style={styles.labelBlock}>
+            <Text style={styles.title}>Analytics anônimo</Text>
+            <Text style={styles.subtitle}>
+              Compartilhar dados anônimos de uso para melhorar o jogo.
+            </Text>
+          </View>
+          <Switch
+            testID="consent-analytics-toggle"
+            value={consentAnalytics}
+            onValueChange={setConsentAnalytics}
+            trackColor={{ false: theme.colors.border, true: theme.colors.gold }}
+            thumbColor={consentAnalytics ? theme.colors.goldBright : theme.colors.textMuted}
+          />
+        </View>
+        <View style={styles.legalLinks}>
+          <TouchableOpacity
+            testID="link-privacy"
+            onPress={() => nav.navigate('Privacidade')}
+          >
+            <Text style={styles.link}>Política de Privacidade</Text>
+          </TouchableOpacity>
+          <Text style={styles.linkSep}> · </Text>
+          <TouchableOpacity
+            testID="link-terms"
+            onPress={() => nav.navigate('Termos')}
+          >
+            <Text style={styles.link}>Termos de Uso</Text>
+          </TouchableOpacity>
+        </View>
+      </Card>
+
+      {/* Seção de notificações */}
       <Card elevation="e1" padding="md">
         <View style={styles.row}>
           <View style={styles.labelBlock}>
@@ -88,7 +141,7 @@ export function SettingsScreen() {
 
       <Text style={styles.disclaimer}>
         Horário silencioso: {prefs.quietHours.start}h – {prefs.quietHours.end}h
-        {'\n'}O envio real de notificações push será implementado na SPEC 9 (device-bound).
+        {'\n'}O envio real de notificações push é device-bound e está registrado como débito.
       </Text>
     </ScreenContainer>
   );
@@ -104,6 +157,20 @@ const styles = StyleSheet.create({
   labelBlock: { flex: 1 },
   title: { ...theme.type.body, color: theme.colors.textPrimary, fontWeight: 'bold' },
   subtitle: { ...theme.type.caption, color: theme.colors.textSecondary },
+  legalLinks: {
+    flexDirection: 'row',
+    marginTop: theme.spacing.sm,
+    alignItems: 'center',
+  },
+  link: {
+    ...theme.type.caption,
+    color: theme.colors.gold,
+    textDecorationLine: 'underline',
+  },
+  linkSep: {
+    ...theme.type.caption,
+    color: theme.colors.textMuted,
+  },
   categoryLabel: { ...theme.type.body, color: theme.colors.textPrimary, flex: 1 },
   dimmed: { color: theme.colors.textMuted },
   disclaimer: {

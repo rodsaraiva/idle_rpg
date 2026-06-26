@@ -111,3 +111,12 @@ SPEC8 Task 6: 8a3fa84
 SPEC8 Task 7: 618f612
 SPEC8 Task 8: 2c2bd29
 SPEC8 Task 9: (verificação estática — tsc 0, 113 suítes, 666 testes, 3 snapshots verdes; balance gate passou; visual SettingsScreen/CollectionScreen/HeroCard cosmético MANUAL-PENDING sandbox)
+SPEC9 Task 1: ecead8a
+SPEC9 Task 2: 57df0fe
+SPEC9 Task 3: 7e9d3cb
+SPEC9 Task 4: ca157e4
+SPEC9 Task 5: 8aafb8d
+SPEC9 Task 6: dc9b0c4
+SPEC9 Task 7: 410e4b1
+SPEC9 Task 8: 7add18f
+SPEC9 Task 9: (verificação estática — tsc 0, 121 suítes, 700 testes, 3 snapshots verdes; analytics consent-gated; checklist de submissão criado; débito device/externo registrado; visual ConsentGate/PrivacyScreen/TermsScreen/SettingsToggle MANUAL-PENDING sandbox)

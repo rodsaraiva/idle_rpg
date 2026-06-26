@@ -35,6 +35,7 @@ import { createHero } from '../utils/heroFactory';
 import { handleSetOnboarding } from './onboardingHandler';
 import { claimLoginReward } from './loginStreakHandler';
 import { handleEquipCosmetic } from './cosmeticHandler';
+import { setAnalyticsConsent } from '../services/analytics';
 
 /** Estado inicial quando não há save (boot do FTUE). */
 export const initialGameState: GameState = {
@@ -131,6 +132,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'EQUIP_COSMETIC':
       return handleEquipCosmetic(state, action.slot, action.cosmeticId);
+
+    case 'SET_CONSENT': {
+      setAnalyticsConsent(action.analytics);
+      return {
+        ...state,
+        consent: {
+          analytics: action.analytics,
+          decided: true,
+          decidedAt: Date.now(),
+        },
+      };
+    }
 
     case 'SET_NOTIFICATION_PREFS': {
       const basePrefs = state.notificationPrefs ?? {

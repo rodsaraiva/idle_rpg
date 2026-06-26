@@ -9,6 +9,6 @@ test('save v10 migra para versão atual com legacy/activeEvent default', () => {
   expect(migrated.gold).toBe(100); // progresso preservado
 });
 
-test('CURRENT_VERSION avançou para 12', () => {
-  expect(CURRENT_VERSION).toBe(12);
+test('CURRENT_VERSION avançou para 13', () => {
+  expect(CURRENT_VERSION).toBe(13);
 });

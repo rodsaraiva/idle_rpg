@@ -7,6 +7,7 @@ import { SHOP_ITEMS } from '../constants/shop';
 import { updateDailyProgress } from './dailyQuestHandler';
 import { KEY_CHEST_REWARDS, ChestTier } from '../constants/keyChests';
 import { generateEquipment } from './equipmentHandler';
+import { analytics } from '../services/analytics';
 
 export function handleRecruitHero(state: GameState): GameState {
   const cost = getRecruitCost(state.heroesRecruited);
@@ -22,6 +23,7 @@ export function handleRecruitHero(state: GameState): GameState {
     heroes: [...state.heroes, newHero],
     heroesRecruited: state.heroesRecruited + 1,
   };
+  analytics.track('hero_recruited');
   return updateDailyProgress(newState, 'heroesRecruited', 1);
 }
 

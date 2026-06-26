@@ -1,4 +1,5 @@
 import { GameState, HeroTask, Hero, ActiveMission, MissionOutcome, MissionResult, ClassId } from '../types';
+import { analytics } from '../services/analytics';
 import {
   MISSION_FINISH_DELAY_MS,
   MISSION_START_DELAY_MS,
@@ -274,4 +275,17 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
     weeklyBossDefeated: weeklyBossCompletedThisTick,
     weeklyBossTemplateId,
   };
+}
+
+/**
+ * Emite analytics.track('mission_completed') para cada resultado bem-sucedido.
+ * Consent-gated via o gate de módulo de analytics — no-op sem aceite.
+ * Chamado pelo tickHandler após processMissions.
+ */
+export function trackMissionCompletions(results: MissionResult[]): void {
+  for (const r of results) {
+    if (r.success) {
+      analytics.track('mission_completed', { goldEarned: r.reward });
+    }
+  }
 }

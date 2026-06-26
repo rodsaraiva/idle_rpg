@@ -19,7 +19,7 @@ import { refreshWeeklyState, updateWeeklyProgress, markWeeklyBossDefeated } from
 import { refreshActiveEvent } from './eventHandler';
 import { WEEKLY_BOSS_POOL } from '../constants/weeklyBosses';
 import { applyTickProgress } from './progressTrackers';
-import { processMissions } from './missionTickHandler';
+import { processMissions, trackMissionCompletions } from './missionTickHandler';
 import { getUnlockedSkills } from '../constants/skills';
 import { emitSkillUnlocked, emitRareMaterialDrop } from '../services/milestones';
 
@@ -154,6 +154,8 @@ export function handleTick(state: GameState, now: number): GameState {
     weeklyBossDefeated,
     weeklyBossTemplateId,
   } = processMissions(currentState, heroesAfterRegen, now);
+
+  trackMissionCompletions(newResults);
 
   const existingResults = currentState.recentMissionResults ? [...currentState.recentMissionResults] : [];
   const updatedResults = [...newResults, ...existingResults].slice(0, 10);
