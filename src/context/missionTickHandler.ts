@@ -13,6 +13,7 @@ import { WEEKLY_BOSS_POOL } from '../constants/weeklyBosses';
 import { computeBattleOutcome } from '../utils/battleSim';
 import { BattleEngine } from '../utils/battleEngine';
 import { getEffectiveStats, applyGoldBonus } from '../utils/heroUtils';
+import { legacyRewardMultiplier } from '../constants/legacyUpgrades';
 import { getActiveSynergies } from '../constants/synergies';
 import { bossToMissionTemplate } from './bossTemplate';
 import { v4 as uuidv4 } from 'uuid';
@@ -164,7 +165,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
 
     // Check if looping mission should restart
     if (c.mission.looping && c.outcome.success) {
-      goldGained += applyGoldBonus(c.reward, state);
+      goldGained += Math.floor(applyGoldBonus(c.reward, state) * legacyRewardMultiplier(state));
       const tpl = MISSIONS.find(t => t.id === c.mission.templateId);
       if (tpl) {
         // Get the surviving heroes for the next cycle
@@ -236,7 +237,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
       }
 
       // Normal completion: release heroes to IDLE
-      goldGained += applyGoldBonus(c.reward, state);
+      goldGained += Math.floor(applyGoldBonus(c.reward, state) * legacyRewardMultiplier(state));
       c.mission.heroIds.forEach((hid: string) => {
         const idx = currentHeroes.findIndex((hh) => hh.id === hid);
         if (idx >= 0) {

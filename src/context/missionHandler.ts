@@ -19,6 +19,7 @@ import { isHeroAvailableForMission, getEffectiveStats, applyGoldBonus } from '..
 import { getActiveSynergies } from '../constants/synergies';
 import { ClassId } from '../types';
 import { checkLegacySeals } from './legacyHandler';
+import { legacyRewardMultiplier } from '../constants/legacyUpgrades';
 
 export function validateMissionRequirements(template: MissionTemplate, heroes: Hero[], state?: GameState): string | null {
   if (!template.requirements) return null;
@@ -264,11 +265,15 @@ export function handleCompleteMission(state: GameState, missionId: string, rewar
   const completedIds = state.completedMissionIds ?? [];
   const newCompletedIds = completedIds.includes(templateId) ? completedIds : [...completedIds, templateId];
 
+  // Recompensa: pantheon (applyGoldBonus) → Legado (legacyRewardMultiplier) — stacking multiplicativo
+  const pantheonGold = applyGoldBonus(reward, state);
+  const finalGold = Math.floor(pantheonGold * legacyRewardMultiplier(state));
+
   const nextState: GameState = {
     ...state,
     heroes: newHeroesState,
     activeMissions: newMissions,
-    gold: state.gold + applyGoldBonus(reward, state),
+    gold: state.gold + finalGold,
     completedMissionIds: newCompletedIds,
   };
 

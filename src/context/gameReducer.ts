@@ -28,6 +28,7 @@ import {
 import { claimDailyQuest } from './dailyQuestHandler';
 import { handleFuseHeroes } from './pantheonHandler';
 import { claimWeeklyQuest } from './weeklyHandler';
+import { buyLegacyUpgrade } from './legacyHandler';
 import { TICK_INTERVAL_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 import { createHero } from '../utils/heroFactory';
 import { handleSetOnboarding } from './onboardingHandler';
@@ -115,6 +116,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'SET_ONBOARDING':
       return handleSetOnboarding(state, action.patch);
+
+    case 'BUY_LEGACY_UPGRADE':
+      return buyLegacyUpgrade(state, action.upgradeId);
 
     case 'LOAD_STATE':
       try {

@@ -1,5 +1,6 @@
 import { GameState } from '../types';
 import { LEGACY_SEALS, legacyExpThreshold } from '../constants/legacy';
+import { availableLegacyPoints, LEGACY_UPGRADES } from '../constants/legacyUpgrades';
 
 /**
  * Verifica os Selos de Legado e promove o nível quando o limiar de exp é cruzado.
@@ -38,5 +39,28 @@ export function checkLegacySeals(state: GameState): GameState {
       sealsEarned: [...earned, ...newSeals],
     },
     // gold intencionalmente preservado — Selos não creditam gold
+  };
+}
+
+/**
+ * Compra um upgrade da árvore de Legado, gastando 1 ponto disponível.
+ * Guarda: nunca altera state.gold (upgrade é meta-progressão, não economia direta).
+ */
+export function buyLegacyUpgrade(state: GameState, upgradeId: string): GameState {
+  if (availableLegacyPoints(state) <= 0) return state;
+
+  const upg = LEGACY_UPGRADES.find(u => u.id === upgradeId);
+  if (!upg) return state;
+
+  const currentRank = (state.legacyUpgrades ?? {})[upgradeId] ?? 0;
+  if (currentRank >= upg.maxRank) return state;
+
+  return {
+    ...state,
+    legacyUpgrades: {
+      ...(state.legacyUpgrades ?? {}),
+      [upgradeId]: currentRank + 1,
+    },
+    // gold intencionalmente preservado — compra de upgrade não credita nem debita gold
   };
 }

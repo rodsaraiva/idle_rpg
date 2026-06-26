@@ -1,5 +1,6 @@
 import { Hero, HeroTask, GameState } from '../types';
 import { INCAPACITATED_HP_THRESHOLD } from '../constants/game';
+import { legacyTrainSpeedFactor } from '../constants/legacyUpgrades';
 
 /** HP is below the incapacitation threshold (< 3). */
 export function isHeroIncapacitated(hero: Hero): boolean {
@@ -115,3 +116,10 @@ export function applyGoldBonus(reward: number, state: GameState): number {
   if (goldPercent <= 0) return reward;
   return Math.floor(reward * (1 + goldPercent / 100));
 }
+
+/**
+ * Fator de velocidade de treino derivado dos upgrades de Legado.
+ * Multiplica o classSpeed no cálculo de timePerPoint em processTraining.
+ * Exportado de heroUtils para que tickHandler o importe de um único lugar.
+ */
+export { legacyTrainSpeedFactor };
