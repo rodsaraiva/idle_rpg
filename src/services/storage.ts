@@ -3,7 +3,7 @@ import { GameState } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
 const BACKUP_KEY = '@idle_rpg_game_state.bak';
-export const CURRENT_VERSION = 12; // Incremented for migrations
+export const CURRENT_VERSION = 13; // Incremented for migrations
 
 interface SaveData extends GameState {
   _version: number;
@@ -115,6 +115,11 @@ const migrations: Record<number, (data: any) => any> = {
       categories: { missionReady: false, bossReady: false, dailyReset: false, idle: false },
       quietHours: { start: 22, end: 9 },
     };
+    return data;
+  },
+  13: (data) => {
+    // Version 13: consentimento LGPD. Analytics opt-in, indeciso por default (SPEC 9).
+    if (data.consent === undefined) data.consent = { analytics: false, decided: false, decidedAt: 0 };
     return data;
   },
 };
