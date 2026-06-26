@@ -49,6 +49,14 @@ export function legacyTrainSpeedFactor(state: GameState): number {
   return 1 + sumEffect(state, 'trainSpeedPct') / 100;
 }
 
+/**
+ * Número de slots de missão extra concedidos pelo Legado.
+ * Some ao BASE_MISSION_SLOTS (game.ts) para definir o limite de missões ativas.
+ */
+export function legacyMissionSlotBonus(state: GameState): number {
+  return sumEffect(state, 'missionSlot');
+}
+
 /** Pontos de Legado disponíveis para gastar (nível − Σ ranks já comprados). */
 export function availableLegacyPoints(state: GameState): number {
   const level = state.legacy?.level ?? 0;

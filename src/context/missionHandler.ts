@@ -14,12 +14,13 @@ import {
   ROGUE_RNG_BONUS_CAP,
   MISSION_START_DELAY_MS,
   MISSION_ACTION_INTERVAL_MS,
+  BASE_MISSION_SLOTS,
 } from '../constants/game';
 import { isHeroAvailableForMission, getEffectiveStats, applyGoldBonus } from '../utils/heroUtils';
 import { getActiveSynergies } from '../constants/synergies';
 import { ClassId } from '../types';
 import { checkLegacySeals } from './legacyHandler';
-import { legacyRewardMultiplier } from '../constants/legacyUpgrades';
+import { legacyRewardMultiplier, legacyDurationMultiplier, legacyMissionSlotBonus } from '../constants/legacyUpgrades';
 
 export function validateMissionRequirements(template: MissionTemplate, heroes: Hero[], state?: GameState): string | null {
   if (!template.requirements) return null;
@@ -53,6 +54,10 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
   const template = MISSIONS.find((t) => t.id === templateId);
   if (!template) return state;
   if ((heroIds?.length ?? 0) < template.minHeroes) return state;
+
+  // Gate de slots: limite de missões ativas = base + bônus de Legado (slot_1)
+  const maxSlots = BASE_MISSION_SLOTS + legacyMissionSlotBonus(state);
+  if ((state.activeMissions || []).length >= maxSlots) return state;
 
   const heroesMap = new Map(state.heroes.map((h) => [h.id, h]));
   const timestamp = now ?? Date.now();
@@ -108,8 +113,9 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     });
     
     const missionEnemies = BattleEngine.createEnemies(template);
+    const durationFactor = legacyDurationMultiplier(state);
     const scheduled = (outcome.actions || []).map((a, i) => ({
-      atMsFromStart: MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS,
+      atMsFromStart: Math.floor((MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS) * durationFactor),
       action: a,
       applied: false,
     }));

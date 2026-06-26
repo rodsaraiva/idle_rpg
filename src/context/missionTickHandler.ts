@@ -13,7 +13,7 @@ import { WEEKLY_BOSS_POOL } from '../constants/weeklyBosses';
 import { computeBattleOutcome } from '../utils/battleSim';
 import { BattleEngine } from '../utils/battleEngine';
 import { getEffectiveStats, applyGoldBonus } from '../utils/heroUtils';
-import { legacyRewardMultiplier } from '../constants/legacyUpgrades';
+import { legacyRewardMultiplier, legacyDurationMultiplier } from '../constants/legacyUpgrades';
 import { getActiveSynergies } from '../constants/synergies';
 import { bossToMissionTemplate } from './bossTemplate';
 import { v4 as uuidv4 } from 'uuid';
@@ -191,8 +191,9 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
               rogueRngBonus,
               heroPositions: c.mission.heroPositions,
             });
+            const loopDurationFactor = legacyDurationMultiplier(state);
             const newScheduled = (newOutcome.actions || []).map((a, i) => ({
-              atMsFromStart: MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS,
+              atMsFromStart: Math.floor((MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS) * loopDurationFactor),
               action: a,
               applied: false,
             }));
