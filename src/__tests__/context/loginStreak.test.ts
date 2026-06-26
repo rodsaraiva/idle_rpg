@@ -22,6 +22,18 @@ test('claim concede recompensa não-gold e NÃO mexe em gold', () => {
 });
 
 test('streak reseta ao pular um dia', () => {
-  // lastSeenSeed de 2 dias atrás → count volta a 1
-  // (montar com seed anterior e checar count)
+  // lastSeenSeed de 2 dias atrás → nem ontem nem hoje → count volta a 1
+  const d = new Date();
+  d.setDate(d.getDate() - 2);
+  const twoDaysAgoSeed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+
+  const base: any = {
+    gold: 0,
+    heroes: [],
+    loginStreak: { count: 5, lastClaimedSeed: 0, lastSeenSeed: twoDaysAgoSeed },
+  };
+
+  const s = refreshLoginStreak(base);
+  expect(s.loginStreak!.count).toBe(1); // streak resetado porque pulou um dia
+  expect(s.loginStreak!.lastSeenSeed).toBe(getDailySeed()); // dia atual marcado
 });
