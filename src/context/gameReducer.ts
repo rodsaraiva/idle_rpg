@@ -13,7 +13,8 @@ import {
   handleReleaseFromInfirmary,
   handleSetHeroTask,
   handleBuyChest,
-  handleConfirmChestReveal
+  handleConfirmChestReveal,
+  handleOpenKeyChest,
 } from './heroHandler';
 import {
   handleSetTickInterval,
@@ -123,6 +124,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'CLAIM_LOGIN_REWARD':
       return claimLoginReward(state);
+
+    case 'OPEN_KEY_CHEST':
+      return handleOpenKeyChest(state, action.chestType);
 
     case 'LOAD_STATE':
       try {

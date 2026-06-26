@@ -5,6 +5,8 @@ import { CLASS_DEFS } from '../constants/classes';
 import { isHeroInMission, isHeroInjured } from '../utils/heroUtils';
 import { SHOP_ITEMS } from '../constants/shop';
 import { updateDailyProgress } from './dailyQuestHandler';
+import { KEY_CHEST_REWARDS, ChestTier } from '../constants/keyChests';
+import { generateEquipment } from './equipmentHandler';
 
 export function handleRecruitHero(state: GameState): GameState {
   const cost = getRecruitCost(state.heroesRecruited);
@@ -81,4 +83,40 @@ export function handleSetHeroTask(state: GameState, heroId: string, task: HeroTa
       hero.id === heroId ? { ...hero, currentTask: task } : hero
     ),
   };
+}
+
+/**
+ * Abre um baú consumindo 1 chave do tier indicado.
+ * Concede materiais e/ou equipamento — NUNCA gold (invariante anti-P2W).
+ * No-op se o jogador não tiver chave suficiente.
+ */
+export function handleOpenKeyChest(
+  state: GameState,
+  tier: ChestTier,
+  rng: () => number = Math.random,
+): GameState {
+  const keys = state.keys ?? { bronze: 0, silver: 0, gold: 0 };
+  if (keys[tier] <= 0) return state;
+
+  const pool = KEY_CHEST_REWARDS[tier];
+  const entry = pool[Math.floor(rng() * pool.length)];
+
+  let next: GameState = {
+    ...state,
+    keys: { ...keys, [tier]: keys[tier] - 1 },
+  };
+
+  if (entry.kind === 'material') {
+    const materials = { ...(next.materials ?? {}) };
+    materials[entry.id] = (materials[entry.id] ?? 0) + entry.qty;
+    next = { ...next, materials };
+  } else if (entry.kind === 'equipment') {
+    const equipment = generateEquipment(entry.tier, undefined, rng);
+    next = {
+      ...next,
+      inventory: [...(next.inventory ?? []), equipment],
+    };
+  }
+
+  return next;
 }
