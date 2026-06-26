@@ -14,7 +14,7 @@ jest.mock('../../services/analytics', () => ({
 }));
 
 import { needsConsentDecision, ConsentGate } from '../../components/ConsentGate';
-import { setAnalyticsConsent } from '../../services/analytics';
+import { setAnalyticsConsent, trackAppOpen } from '../../services/analytics';
 import { GameContext } from '../../context/GameContext';
 import { initialGameState } from '../../context/gameReducer';
 import type { GameState } from '../../types';
@@ -96,4 +96,34 @@ test('sem decisão (decided=false), setAnalyticsConsent NÃO é chamado ao monta
   );
 
   expect(setAnalyticsConsent).not.toHaveBeenCalled();
+});
+
+// ── trackAppOpen: disparo no boot ──────────────────────────────────────────────
+
+test('com consent.analytics=true (decided), trackAppOpen é chamado exatamente uma vez no boot', () => {
+  (trackAppOpen as jest.Mock).mockClear();
+
+  render(
+    React.createElement(
+      GameContext.Provider,
+      { value: makeContextValue({ consent: { analytics: true, decided: true, decidedAt: 1 } }) },
+      React.createElement(ConsentGate),
+    ),
+  );
+
+  expect(trackAppOpen).toHaveBeenCalledTimes(1);
+});
+
+test('com consent.analytics=false (decided), trackAppOpen NÃO é chamado no boot', () => {
+  (trackAppOpen as jest.Mock).mockClear();
+
+  render(
+    React.createElement(
+      GameContext.Provider,
+      { value: makeContextValue({ consent: { analytics: false, decided: true, decidedAt: 1 } }) },
+      React.createElement(ConsentGate),
+    ),
+  );
+
+  expect(trackAppOpen).not.toHaveBeenCalled();
 });

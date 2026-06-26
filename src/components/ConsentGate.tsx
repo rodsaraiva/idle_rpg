@@ -7,11 +7,11 @@
  *
  * Visual: manual-pending (validar no emulador/device após Task 7 adicionar links legais).
  */
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { View, Text, Modal, Pressable, StyleSheet } from 'react-native';
 import { GameContext } from '../context/GameContext';
 import { GameState } from '../types';
-import { setAnalyticsConsent } from '../services/analytics';
+import { setAnalyticsConsent, trackAppOpen } from '../services/analytics';
 
 // ── Lógica pura ──────────────────────────────────────────────────────────────
 
@@ -35,11 +35,17 @@ export function needsConsentDecision(state: Pick<GameState, 'consent'>): boolean
  */
 export function ConsentGate(): React.ReactElement | null {
   const { state, dispatch, isLoaded } = useContext(GameContext);
+  // Guarda de sessão: garante que trackAppOpen dispara no máximo uma vez por boot.
+  const hasTrackedOpen = useRef(false);
 
   // Sincroniza o gate de módulo quando o estado carrega do save (boot subsequente)
   useEffect(() => {
     if (isLoaded && state.consent?.decided) {
       setAnalyticsConsent(state.consent.analytics);
+      if (state.consent.analytics && !hasTrackedOpen.current) {
+        hasTrackedOpen.current = true;
+        trackAppOpen();
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, state.consent]);
