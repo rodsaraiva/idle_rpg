@@ -71,7 +71,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
   COMMANDER: {
     id: 'COMMANDER',
     displayName: 'Comandante',
-    baseStatDelta: { atk: 4, hp: 6, mp: 4 },
+    baseStatDelta: { atk: 2, hp: 5, mp: 4 },
     // Suporte ofensivo: treina apenas hp/atk/mp — sem DEF/CRIT/AGI (invariante)
     trainSpeed: { hp: 1.0, atk: 1.1, mp: 0.8 },
     ability: 'COMMANDER_RALLY',

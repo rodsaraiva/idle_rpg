@@ -297,17 +297,20 @@ function sweepCompositions(): CompositionResult[] {
 
 function getInterestingQuartets(): ClassId[][] {
   // Hand-picked quartets: balanced, tank-heavy, dps-heavy, synergy-focused
+  // COMMANDER incluso para garantir exposição às missões de zona (gates de difficulty 6-10)
   return [
-    ['TANK', 'WARRIOR', 'HEALER', 'ARCHER'],     // Classic balanced
-    ['TANK', 'TANK', 'HEALER', 'MAGE'],          // Defensive
-    ['WARRIOR', 'ROGUE', 'ARCHER', 'MAGE'],      // All DPS
-    ['TANK', 'HEALER', 'HEALER', 'ARCHER'],      // Sustain
-    ['WARRIOR', 'WARRIOR', 'HEALER', 'HEALER'],  // Bruiser duo
-    ['TANK', 'ARCHER', 'MAGE', 'HEALER'],        // Backline with tank
-    ['ROGUE', 'ROGUE', 'HEALER', 'TANK'],        // Flanker focus
-    ['WARRIOR', 'HEALER', 'ARCHER', 'MAGE'],     // No tank glass cannon
-    ['TANK', 'TANK', 'WARRIOR', 'HEALER'],       // Frontline wall
-    ['ARCHER', 'ARCHER', 'HEALER', 'HEALER'],    // Ranged sustain
+    ['TANK', 'WARRIOR', 'HEALER', 'ARCHER'],        // Classic balanced
+    ['TANK', 'TANK', 'HEALER', 'MAGE'],             // Defensive
+    ['WARRIOR', 'ROGUE', 'ARCHER', 'MAGE'],         // All DPS
+    ['TANK', 'HEALER', 'HEALER', 'ARCHER'],         // Sustain
+    ['WARRIOR', 'WARRIOR', 'HEALER', 'HEALER'],     // Bruiser duo
+    ['TANK', 'ARCHER', 'MAGE', 'HEALER'],           // Backline with tank
+    ['ROGUE', 'ROGUE', 'HEALER', 'TANK'],           // Flanker focus
+    ['WARRIOR', 'HEALER', 'ARCHER', 'MAGE'],        // No tank glass cannon
+    ['TANK', 'TANK', 'WARRIOR', 'HEALER'],          // Frontline wall
+    ['ARCHER', 'ARCHER', 'HEALER', 'HEALER'],       // Ranged sustain
+    ['TANK', 'COMMANDER', 'HEALER', 'ARCHER'],      // Comandante suporte (rally + cura + ranged)
+    ['WARRIOR', 'COMMANDER', 'ROGUE', 'HEALER'],    // Comandante ofensivo (rally + burst)
   ];
 }
 

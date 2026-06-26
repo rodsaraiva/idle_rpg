@@ -11,6 +11,9 @@ O sandbox de execução **não sobe o Expo** (exit 144), então toda validação
 - **SPEC 3 — Vila-mapa:** calibrar as coordenadas dos 8 hotspots sobre `village_map.png` (foram estimadas, não medidas no device).
 - **SPEC 3 — Lottie:** há placeholders de animação a trocar por assets finais.
 - **SPEC 5 — funil FTUE (Task 16):** rodar o fluxo recrutar → treinar → 1ª missão → coletar; confirmar spotlight/coach mark alinhando com os alvos reais (`registerTarget`) e o cronômetro `ftue_first_mission_started`.
+- **SPEC 7 — tela de Legado (`LegacyScreen`):** confirmar no emulador que a árvore de upgrades renderiza com tokens do DS "Reino", pontos disponíveis calculados corretamente e botão de compra desabilitado sem pontos.
+- **SPEC 7 — mapa de zonas (`ZoneMapScreen`):** validar desbloqueio visual (Z2/Z3/Z4 travadas/liberadas) e que os gates `mission_cleared` refletem o estado real de `completedMissionIds`.
+- **SPEC 7 — banner de evento (`EventBanner`):** confirmar que o banner aparece/desaparece conforme `activeEvent` e troca de janela mensal; testar no emulador com data mockada.
 
 ## B. Débito de código / NITs (por SPEC)
 
