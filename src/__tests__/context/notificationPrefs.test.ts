@@ -28,6 +28,25 @@ test('SET_NOTIFICATION_PREFS mantém categories quando não especificado', () =>
   expect(s.notificationPrefs!.categories.dailyReset).toBe(true);
 });
 
+test('SET_NOTIFICATION_PREFS dispatch parcial de categories preserva as irmãs', () => {
+  const base: any = {
+    heroes: [],
+    notificationPrefs: {
+      optedIn: true,
+      categories: { missionReady: true, bossReady: true, dailyReset: true, idle: true },
+      quietHours: { start: 22, end: 9 },
+    },
+  };
+  const s = gameReducer(base, {
+    type: 'SET_NOTIFICATION_PREFS',
+    prefs: { categories: { missionReady: false } },
+  } as any);
+  expect(s.notificationPrefs!.categories.missionReady).toBe(false); // alterada
+  expect(s.notificationPrefs!.categories.bossReady).toBe(true);    // preservada
+  expect(s.notificationPrefs!.categories.dailyReset).toBe(true);   // preservada
+  expect(s.notificationPrefs!.categories.idle).toBe(true);         // preservada
+});
+
 test('SET_NOTIFICATION_PREFS não mexe em gold', () => {
   const base: any = {
     gold: 42,

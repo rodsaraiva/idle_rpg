@@ -132,18 +132,25 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'EQUIP_COSMETIC':
       return handleEquipCosmetic(state, action.slot, action.cosmeticId);
 
-    case 'SET_NOTIFICATION_PREFS':
+    case 'SET_NOTIFICATION_PREFS': {
+      const basePrefs = state.notificationPrefs ?? {
+        optedIn: false,
+        categories: { missionReady: false, bossReady: false, dailyReset: false, idle: false },
+        quietHours: { start: 22, end: 9 },
+      };
       return {
         ...state,
         notificationPrefs: {
-          ...(state.notificationPrefs ?? {
-            optedIn: false,
-            categories: { missionReady: false, bossReady: false, dailyReset: false, idle: false },
-            quietHours: { start: 22, end: 9 },
-          }),
+          ...basePrefs,
           ...action.prefs,
+          // Merge profundo: dispatch parcial de categories não descarta as irmãs
+          categories: {
+            ...basePrefs.categories,
+            ...(action.prefs.categories ?? {}),
+          },
         },
       };
+    }
 
     case 'LOAD_STATE':
       try {
