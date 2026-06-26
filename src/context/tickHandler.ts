@@ -15,6 +15,7 @@ import { checkAchievements } from './achievementHandler';
 import { createGuaranteedEquipment } from './equipmentHandler';
 import { refreshDailyQuests } from './dailyQuestHandler';
 import { refreshWeeklyState, updateWeeklyProgress, markWeeklyBossDefeated } from './weeklyHandler';
+import { refreshActiveEvent } from './eventHandler';
 import { WEEKLY_BOSS_POOL } from '../constants/weeklyBosses';
 import { applyTickProgress } from './progressTrackers';
 import { processMissions } from './missionTickHandler';
@@ -113,9 +114,10 @@ export function handleTick(state: GameState, now: number): GameState {
   const tickMs = state.tickIntervalMs ?? TICK_INTERVAL_MS;
   const inflation = state.trainInflationFactor ?? TRAIN_INFLATION_FACTOR;
 
-  // 0. Refresh daily quests if seed changed (new day) + weekly state
+  // 0. Refresh daily quests if seed changed (new day) + weekly state + seasonal event
   let currentState = refreshDailyQuests(state);
   currentState = refreshWeeklyState(currentState);
+  currentState = refreshActiveEvent(currentState, now);
 
   // 1. Process Training
   const trainFactor = legacyTrainSpeedFactor(currentState);

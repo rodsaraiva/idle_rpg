@@ -21,6 +21,7 @@ import { getActiveSynergies } from '../constants/synergies';
 import { ClassId } from '../types';
 import { checkLegacySeals } from './legacyHandler';
 import { legacyRewardMultiplier, legacyDurationMultiplier, legacyMissionSlotBonus } from '../constants/legacyUpgrades';
+import { activeEventRewardMultiplier } from './eventHandler';
 
 export function validateMissionRequirements(template: MissionTemplate, heroes: Hero[], state?: GameState): string | null {
   if (!template.requirements) return null;
@@ -271,9 +272,9 @@ export function handleCompleteMission(state: GameState, missionId: string, rewar
   const completedIds = state.completedMissionIds ?? [];
   const newCompletedIds = completedIds.includes(templateId) ? completedIds : [...completedIds, templateId];
 
-  // Recompensa: pantheon (applyGoldBonus) → Legado (legacyRewardMultiplier) — stacking multiplicativo
+  // Recompensa: pantheon (applyGoldBonus) → Legado → Evento — stacking multiplicativo
   const pantheonGold = applyGoldBonus(reward, state);
-  const finalGold = Math.floor(pantheonGold * legacyRewardMultiplier(state));
+  const finalGold = Math.floor(pantheonGold * legacyRewardMultiplier(state) * activeEventRewardMultiplier(state));
 
   const nextState: GameState = {
     ...state,
