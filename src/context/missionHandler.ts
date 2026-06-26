@@ -18,6 +18,7 @@ import {
 import { isHeroAvailableForMission, getEffectiveStats, applyGoldBonus } from '../utils/heroUtils';
 import { getActiveSynergies } from '../constants/synergies';
 import { ClassId } from '../types';
+import { checkLegacySeals } from './legacyHandler';
 
 export function validateMissionRequirements(template: MissionTemplate, heroes: Hero[], state?: GameState): string | null {
   if (!template.requirements) return null;
@@ -263,11 +264,14 @@ export function handleCompleteMission(state: GameState, missionId: string, rewar
   const completedIds = state.completedMissionIds ?? [];
   const newCompletedIds = completedIds.includes(templateId) ? completedIds : [...completedIds, templateId];
 
-  return {
+  const nextState: GameState = {
     ...state,
     heroes: newHeroesState,
     activeMissions: newMissions,
     gold: state.gold + applyGoldBonus(reward, state),
     completedMissionIds: newCompletedIds,
   };
+
+  // Verifica e concede Selos de Legado por marco atingido (sem tocar em gold)
+  return checkLegacySeals(nextState);
 }
