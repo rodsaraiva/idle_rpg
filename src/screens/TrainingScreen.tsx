@@ -51,6 +51,7 @@ export function TrainingScreen() {
       actions={getHeroActions(item)}
       showSecondaryStats={false}
       onPress={setSelectedHero}
+      equippedCosmetics={state.cosmetics?.equipped}
     />
   );
 

@@ -74,6 +74,7 @@ export function GuildScreen() {
     <HeroCard
       hero={item}
       actions={getHeroActions(item)}
+      equippedCosmetics={state.cosmetics?.equipped}
     />
   );
 

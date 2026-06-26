@@ -31,11 +31,12 @@ export function EnfermariaScreen() {
   }
 
   const renderSelectable = ({ item }: { item: Hero }) => (
-    <HeroCard 
-      hero={item} 
-      variant="compact" 
-      selected={selectedIds.includes(item.id)} 
-      onToggle={toggleSelection} 
+    <HeroCard
+      hero={item}
+      variant="compact"
+      selected={selectedIds.includes(item.id)}
+      onToggle={toggleSelection}
+      equippedCosmetics={state.cosmetics?.equipped}
     />
   );
 
@@ -74,6 +75,7 @@ export function EnfermariaScreen() {
                     onPress: () => releaseFromInfirmary(h.id),
                   },
                 ]}
+                equippedCosmetics={state.cosmetics?.equipped}
               />
             ))
           )}
