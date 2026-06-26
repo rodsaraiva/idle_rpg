@@ -17,7 +17,7 @@ import { theme } from '../theme';
 import { ScreenContainer } from '../components/ui/ScreenContainer';
 import { Banner } from '../components/ui/Banner';
 import { Card } from '../components/ui/Card';
-import { Icon } from '../components/ui/Icon';
+import { Icon, IconName } from '../components/ui/Icon';
 // Re-exporta para facilitar imports de testes que preferem importar do screen
 export { collectionView } from '../utils/collectionUtils';
 
@@ -25,8 +25,8 @@ export { collectionView } from '../utils/collectionUtils';
 // Componente de item de cosmético
 // ---------------------------------------------------------------------------
 
-const SLOT_ICONS: Record<Cosmetic['slot'], string> = {
-  frame: 'picture-frame',
+const SLOT_ICONS: Record<Cosmetic['slot'], IconName> = {
+  frame: 'image-frame',
   seal: 'seal',
   theme: 'palette',
 };
@@ -48,7 +48,7 @@ function CosmeticCard({ cosmetic, isOwned, isEquipped, onEquip }: CosmeticCardPr
         {/* Ícone do slot */}
         <View style={[styles.iconContainer, { backgroundColor: isOwned ? theme.colors.surface : theme.colors.bgDeep }]}>
           <Icon
-            name={SLOT_ICONS[cosmetic.slot] as any}
+            name={SLOT_ICONS[cosmetic.slot]}
             size={28}
             color={isOwned ? rarityToken.color : theme.colors.textMuted}
           />

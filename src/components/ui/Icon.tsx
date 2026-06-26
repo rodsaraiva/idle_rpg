@@ -12,7 +12,8 @@ export type IconName =
   | 'check' | 'star' | 'close'
   | 'crit' | 'agility' | 'accessory' | 'unharmed' | 'merge' | 'bow' | 'eye'
   | 'stat-hp' | 'stat-atk' | 'stat-mp' | 'stat-def'
-  | 'class-warrior' | 'class-tank' | 'class-rogue' | 'class-archer' | 'class-mage' | 'class-healer';
+  | 'class-warrior' | 'class-tank' | 'class-rogue' | 'class-archer' | 'class-mage' | 'class-healer'
+  | 'image-frame' | 'seal' | 'palette' | 'cog';
 
 export interface IconProps {
   name: IconName;
@@ -49,6 +50,10 @@ const MCI_MAP: Record<string, React.ComponentProps<typeof MaterialCommunityIcons
   merge: 'plus',
   bow: 'bow-arrow',
   eye: 'eye',
+  'image-frame': 'image-frame',
+  seal: 'seal',
+  palette: 'palette',
+  cog: 'cog',
 };
 
 const STAT_MAP: Record<string, (p: SvgIconProps) => React.JSX.Element> = {
