@@ -38,6 +38,8 @@ export const HOTSPOTS: Hotspot[] = [
   { screen: 'Guilda', icon: 'shield', label: 'Guilda', x: 0.65, y: 0.5 },
   { screen: 'Legado', icon: 'trophy', label: 'Legado', x: 0.45, y: 0.85 },
   { screen: 'MapaZonas', icon: 'map-marker-path', label: 'Zonas', x: 0.7, y: 0.85 },
+  { screen: 'Configuracoes', icon: 'cog', label: 'Configurações', x: 0.08, y: 0.18 },
+  { screen: 'Colecao', icon: 'palette', label: 'Coleção', x: 0.92, y: 0.18 },
 ];
 
 export function VillageScreen() {
