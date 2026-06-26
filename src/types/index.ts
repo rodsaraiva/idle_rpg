@@ -82,6 +82,12 @@ export interface OnboardingState {
   hintsSeen: Record<string, boolean>;
 }
 
+export interface NotificationPrefs {
+  optedIn: boolean;
+  categories: { missionReady: boolean; bossReady: boolean; dailyReset: boolean; idle: boolean };
+  quietHours: { start: number; end: number };
+}
+
 /** Estado global do jogo */
 export interface GameState {
   gold: number;
@@ -129,6 +135,11 @@ export interface GameState {
   legacy?: { level: number; totalExp: number; sealsEarned: string[] };
   activeEvent?: { id: string; startedAt: number; endsAt: number; seed: number } | null;
   legacyUpgrades?: Record<string, number>; // upgradeId -> ranks comprados
+  // SPEC 8 — campos de retenção (nunca creditam gold passivo)
+  loginStreak?: { count: number; lastClaimedSeed: number; lastSeenSeed: number };
+  keys?: Record<'bronze' | 'silver' | 'gold', number>;
+  cosmetics?: { owned: string[]; equipped: { frame?: string; seal?: string; theme?: string } };
+  notificationPrefs?: NotificationPrefs;
 }
 
 /** Ação disparada para alterar o estado do jogo */
@@ -155,7 +166,11 @@ export type GameAction =
   | { type: 'START_WEEKLY_BOSS'; heroIds: string[]; heroPositions?: Record<string, number>; now: number }
   | { type: 'LOAD_STATE'; state: GameState }
   | { type: 'SET_ONBOARDING'; patch: Partial<OnboardingState> }
-  | { type: 'BUY_LEGACY_UPGRADE'; upgradeId: string };
+  | { type: 'BUY_LEGACY_UPGRADE'; upgradeId: string }
+  | { type: 'CLAIM_LOGIN_REWARD' }
+  | { type: 'OPEN_KEY_CHEST'; chestType: 'bronze' | 'silver' | 'gold' }
+  | { type: 'EQUIP_COSMETIC'; slot: 'frame' | 'seal' | 'theme'; cosmeticId: string }
+  | { type: 'SET_NOTIFICATION_PREFS'; prefs: Partial<NotificationPrefs> };
 
 export type MissionActorType = 'hero' | 'enemy';
 export type MissionActionType = 'hit' | 'miss' | 'heal' | 'defeat' | 'victory' | 'move';
