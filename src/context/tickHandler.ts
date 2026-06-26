@@ -14,6 +14,7 @@ import { legacyTrainSpeedFactor } from '../utils/heroUtils';
 import { checkAchievements } from './achievementHandler';
 import { createGuaranteedEquipment } from './equipmentHandler';
 import { refreshDailyQuests } from './dailyQuestHandler';
+import { refreshLoginStreak } from './loginStreakHandler';
 import { refreshWeeklyState, updateWeeklyProgress, markWeeklyBossDefeated } from './weeklyHandler';
 import { refreshActiveEvent } from './eventHandler';
 import { WEEKLY_BOSS_POOL } from '../constants/weeklyBosses';
@@ -114,8 +115,9 @@ export function handleTick(state: GameState, now: number): GameState {
   const tickMs = state.tickIntervalMs ?? TICK_INTERVAL_MS;
   const inflation = state.trainInflationFactor ?? TRAIN_INFLATION_FACTOR;
 
-  // 0. Refresh daily quests if seed changed (new day) + weekly state + seasonal event
+  // 0. Refresh daily quests if seed changed (new day) + login streak + weekly state + seasonal event
   let currentState = refreshDailyQuests(state);
+  currentState = refreshLoginStreak(currentState);
   currentState = refreshWeeklyState(currentState);
   currentState = refreshActiveEvent(currentState, now);
 

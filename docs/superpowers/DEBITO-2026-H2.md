@@ -23,12 +23,21 @@ O sandbox de execução **não sobe o Expo** (exit 144), então toda validação
 - **SPEC 4/6 — adaptador de boss duplicado:** `bossToMissionTemplate` ainda existe em `src/constants/weeklyBosses.ts` (importado por `src/utils/offlineProgress.ts`), apesar do `bossTemplate.ts` ter centralizado o adaptador. Bodies idênticos (zero impacto), mas o comentário "único adaptador" em `bossTemplate.ts` superestima. Deduplicar quando mexer em offline.
 - **SPEC 5 — `resetOnboarding` (NIT):** dispara `patch.hintsSeen:{}`, mas `handleSetOnboarding` faz merge profundo (`{...base, ...{}}`), então flags antigas sobrevivem ao "reset". Caminho dev/debug, inofensivo em produção. Para um reset real, substituir `hintsSeen` inteiro em vez de mesclar.
 
-## C. Não-executados (design-only, sem plano ainda)
+## C. Débito device-bound do SPEC 8 (monetização & retenção)
 
-Os SPECs 7-9 do roadmap (`conteudo-endgame`, `monetizacao-retencao`, `store-readiness`) têm spec de design mas **não têm plano de execução** — "plans when we get there" (ver [`ROADMAP-2026-H2.md`](ROADMAP-2026-H2.md)). Próximo passo natural quando a base estiver validada no device.
+Os items abaixo foram conscientemente excluídos do SPEC 8 por serem device-bound (não rodam no sandbox de CI) ou exigirem billing real. Registrado na Task 9 de verificação.
+
+- **Push real (`expo-notifications`):** agendamento efetivo de notificações locais/remotas, respeito às quiet-hours (`start`/`end` em `NotificationPrefs`), cap de ≤2 notificações/dia, cancelamento ao opt-out. A lógica de prefs existe; o sink real é débito.
+- **IAP/billing (RevenueCat/StoreKit/Play):** loja premium com dinheiro real para cosméticos premium, restore purchases, receipt validation, tela de paywall real. O `CollectionScreen` mostra "Em breve" como placeholder; nenhum billing foi integrado.
+- **Validação visual de SettingsScreen/CollectionScreen/HeroCard cosmético:** as três telas foram implementadas mas não validadas em emulador/device — UX, contraste, layout em telas pequenas. MANUAL-PENDING sandbox.
+
+## D. Não-executados (design-only, sem plano ainda)
+
+O SPEC 9 do roadmap (`store-readiness`) tem spec de design mas **não tem plano de execução** — "plans when we get there" (ver [`ROADMAP-2026-H2.md`](ROADMAP-2026-H2.md)). Próximo passo natural quando a base estiver validada no device.
 
 ## Como retomar
 
-1. Subir o Expo localmente (`npx expo start --web --port 8081` ou emulador) e varrer o item A.
+1. Subir o Expo localmente (`npx expo start --web --port 8081` ou emulador) e varrer o item A + validação visual do SPEC 8 (item C).
 2. Cada item de B é uma tarefa pequena e isolada — bom candidato a `/plan` curto ou fix direto.
-3. Itens C exigem brainstorming → writing-plans antes de executar.
+3. Débito device-bound do SPEC 8 (item C) exige emulador com expo-notifications habilitado e conta de billing de teste.
+4. Item D (SPEC 9) exige brainstorming → writing-plans antes de executar.

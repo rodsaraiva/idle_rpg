@@ -325,6 +325,28 @@ describe('tick — recompensa de equipamento do boss', () => {
   });
 });
 
+// ── F4-5b: equipamentos aplicados antes da batalha ───────────────────────────
+
+describe('handleStartWeeklyBoss — bônus de equipamento', () => {
+  test('herói com equippedItems inicia a missão normalmente', () => {
+    const base = makeState(5);
+    const boss = getWeeklyBoss(base.weeklyState!.seed);
+    const heroIds = base.heroes.slice(0, boss.minHeroes).map(h => h.id);
+
+    const equip = { id: 'eq_test', name: 'Espada de Ferro', type: 'weapon' as const, tier: 1, statBonus: { atk: 10 } };
+    const heroWithEquip = { ...base.heroes[0], equippedItems: ['eq_test'] };
+    const state = {
+      ...base,
+      heroes: [heroWithEquip, ...base.heroes.slice(1)],
+      inventory: [equip],
+    };
+
+    const next = handleStartWeeklyBoss(state, heroIds, undefined, Date.now());
+    expect(next.activeMissions).toHaveLength(1);
+    expect(next.activeMissions![0].isWeeklyBoss).toBe(true);
+  });
+});
+
 // ── F4-6: gate de estrela ─────────────────────────────────────────────────────
 
 describe('handleStartWeeklyBoss — gate de estrela', () => {

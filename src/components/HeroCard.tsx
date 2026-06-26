@@ -12,6 +12,8 @@ import { useGame } from '../hooks/useGame';
 import { HPBar } from './HPBar';
 import { Icon, IconName } from './ui/Icon';
 import { Card } from './ui/Card';
+import { OrnateFrame } from './ui/OrnateFrame';
+import { resolveCosmetic, toOrnateFrameCorner } from '../utils/cosmeticUtils';
 
 export interface HeroCardAction {
   label: string;
@@ -30,6 +32,8 @@ interface HeroCardProps {
   onToggle?: (id: string) => void;
   onSetTask?: (heroId: string, task: HeroTask) => void;
   onPress?: (hero: Hero) => void;
+  /** Cosméticos equipados no estado do jogador — usado para render condicional de moldura/selo. */
+  equippedCosmetics?: { frame?: string; seal?: string; theme?: string };
 }
 
 const TASK_LABEL_MAP: Record<HeroTask, { icon: IconName; label: string }> = {
@@ -50,6 +54,7 @@ export function HeroCard({
   onToggle,
   onSetTask,
   onPress,
+  equippedCosmetics,
 }: HeroCardProps) {
   const { state } = useGame();
   const inventory = state.inventory ?? [];
@@ -131,13 +136,33 @@ export function HeroCard({
     return (BASE_TRAIN_TIME_MS * Math.pow(1 + TRAIN_INFLATION_FACTOR, count)) / classSpeed;
   };
 
-  const CardContent = (
-    <View style={styles.card}>
-    <Card elevation="e1">
+  // Resolução do cosmético de moldura — sem cor hardcoded; usa tokens via corner prop.
+  const frameCosmetic = equippedCosmetics?.frame
+    ? resolveCosmetic(equippedCosmetics.frame)
+    : undefined;
+  const ornateCorner = frameCosmetic?.corner
+    ? toOrnateFrameCorner(frameCosmetic.corner)
+    : undefined;
+
+  // Resolução do cosmético de selo — exibe badge colorido pela raridade do item.
+  const sealCosmetic = equippedCosmetics?.seal
+    ? resolveCosmetic(equippedCosmetics.seal)
+    : undefined;
+  const sealColor = sealCosmetic ? theme.rarity[sealCosmetic.rarity].color : undefined;
+
+  // Conteúdo interno do card — independente do wrapper (Card ou OrnateFrame).
+  const innerCardContent = (
+    <>
       <View style={styles.header}>
         <View>
           <View style={styles.nameRow}>
             <Text style={styles.name}>{hero.name}</Text>
+            {sealCosmetic && sealColor && (
+              <View
+                style={[styles.sealDot, { backgroundColor: sealColor }]}
+                accessibilityLabel={`Selo: ${sealCosmetic.name}`}
+              />
+            )}
           </View>
           <Text style={styles.classLabel}>
             {(hero.classId ? CLASS_DEFS[hero.classId] : undefined)?.displayName ?? ''}
@@ -232,7 +257,17 @@ export function HeroCard({
           />
         ))}
       </View>
-    </Card>
+    </>
+  );
+
+  // Render condicional: OrnateFrame quando há moldura equipada, Card padrão caso contrário.
+  const CardContent = (
+    <View style={styles.card}>
+      {ornateCorner ? (
+        <OrnateFrame corner={ornateCorner}>{innerCardContent}</OrnateFrame>
+      ) : (
+        <Card elevation="e1">{innerCardContent}</Card>
+      )}
     </View>
   );
 
@@ -266,6 +301,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  sealDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   personalityBadge: {
     fontSize: 14,

@@ -3,7 +3,7 @@ import { GameState } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
 const BACKUP_KEY = '@idle_rpg_game_state.bak';
-export const CURRENT_VERSION = 11; // Incremented for migrations
+export const CURRENT_VERSION = 12; // Incremented for migrations
 
 interface SaveData extends GameState {
   _version: number;
@@ -103,6 +103,18 @@ const migrations: Record<number, (data: any) => any> = {
     if (data.legacy === undefined) data.legacy = { level: 0, totalExp: 0, sealsEarned: [] };
     if (data.activeEvent === undefined) data.activeEvent = null;
     if (data.legacyUpgrades === undefined) data.legacyUpgrades = {};
+    return data;
+  },
+  12: (data) => {
+    // Version 12: campos de retenção SPEC 8. Push opt-out por default (ético).
+    if (data.loginStreak === undefined) data.loginStreak = { count: 0, lastClaimedSeed: 0, lastSeenSeed: 0 };
+    if (data.keys === undefined) data.keys = { bronze: 0, silver: 0, gold: 0 };
+    if (data.cosmetics === undefined) data.cosmetics = { owned: [], equipped: {} };
+    if (data.notificationPrefs === undefined) data.notificationPrefs = {
+      optedIn: false,
+      categories: { missionReady: false, bossReady: false, dailyReset: false, idle: false },
+      quietHours: { start: 22, end: 9 },
+    };
     return data;
   },
 };

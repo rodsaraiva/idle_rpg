@@ -13,7 +13,8 @@ import {
   handleReleaseFromInfirmary,
   handleSetHeroTask,
   handleBuyChest,
-  handleConfirmChestReveal
+  handleConfirmChestReveal,
+  handleOpenKeyChest,
 } from './heroHandler';
 import {
   handleSetTickInterval,
@@ -32,6 +33,8 @@ import { buyLegacyUpgrade } from './legacyHandler';
 import { TICK_INTERVAL_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 import { createHero } from '../utils/heroFactory';
 import { handleSetOnboarding } from './onboardingHandler';
+import { claimLoginReward } from './loginStreakHandler';
+import { handleEquipCosmetic } from './cosmeticHandler';
 
 /** Estado inicial quando não há save (boot do FTUE). */
 export const initialGameState: GameState = {
@@ -119,6 +122,35 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BUY_LEGACY_UPGRADE':
       return buyLegacyUpgrade(state, action.upgradeId);
+
+    case 'CLAIM_LOGIN_REWARD':
+      return claimLoginReward(state);
+
+    case 'OPEN_KEY_CHEST':
+      return handleOpenKeyChest(state, action.chestType);
+
+    case 'EQUIP_COSMETIC':
+      return handleEquipCosmetic(state, action.slot, action.cosmeticId);
+
+    case 'SET_NOTIFICATION_PREFS': {
+      const basePrefs = state.notificationPrefs ?? {
+        optedIn: false,
+        categories: { missionReady: false, bossReady: false, dailyReset: false, idle: false },
+        quietHours: { start: 22, end: 9 },
+      };
+      return {
+        ...state,
+        notificationPrefs: {
+          ...basePrefs,
+          ...action.prefs,
+          // Merge profundo: dispatch parcial de categories não descarta as irmãs
+          categories: {
+            ...basePrefs.categories,
+            ...(action.prefs.categories ?? {}),
+          },
+        },
+      };
+    }
 
     case 'LOAD_STATE':
       try {
