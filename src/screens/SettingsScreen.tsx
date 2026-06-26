@@ -141,7 +141,7 @@ export function SettingsScreen() {
 
       <Text style={styles.disclaimer}>
         Horário silencioso: {prefs.quietHours.start}h – {prefs.quietHours.end}h
-        {'\n'}O envio real de notificações push será implementado na SPEC 9 (device-bound).
+        {'\n'}O envio real de notificações push é device-bound e está registrado como débito.
       </Text>
     </ScreenContainer>
   );
