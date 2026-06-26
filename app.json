@@ -13,9 +13,11 @@
       "backgroundColor": "#15100B"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.v4smc.idlerpg"
     },
     "android": {
+      "package": "com.v4smc.idlerpg",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#15100B"
