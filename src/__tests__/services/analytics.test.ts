@@ -1,8 +1,8 @@
-import { analytics, AnalyticsEvent, setAnalyticsConsent } from '../../services/analytics';
+import { analytics, AnalyticsEvent, setAnalyticsConsent, resetAnalytics } from '../../services/analytics';
 
 describe('analytics (sink default)', () => {
   afterEach(() => {
-    setAnalyticsConsent(false); // reset após cada teste para não vazar estado
+    resetAnalytics(); // restaura sink default + consent off — não vaza estado global
   });
 
   test('track aceita evento sem props sem lançar', () => {

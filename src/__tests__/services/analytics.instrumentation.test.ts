@@ -3,7 +3,7 @@
  * Verifica que cada "ponto de disparo" emite o evento correto ao sink
  * quando o consentimento está ativo, e permanece silencioso sem ele.
  */
-import { setAnalyticsConsent, setAnalyticsSink, trackAppOpen } from '../../services/analytics';
+import { setAnalyticsConsent, setAnalyticsSink, trackAppOpen, resetAnalytics } from '../../services/analytics';
 import { handleRecruitHero } from '../../context/heroHandler';
 import { handleFuseHeroes } from '../../context/pantheonHandler';
 import { handleForgeEquipment } from '../../context/equipmentHandler';
@@ -91,7 +91,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  setAnalyticsConsent(false);
+  resetAnalytics(); // restaura sink default + consent off — não vaza sink/consent a outros arquivos
 });
 
 // ---------------------------------------------------------------------------

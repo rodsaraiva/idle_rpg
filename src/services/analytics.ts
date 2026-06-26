@@ -33,9 +33,10 @@ let consentGranted = false;
 
 /** Sink injetável. PostHog real = débito SPEC 9 device-bound. */
 type Sink = (event: AnalyticsEvent, props?: Record<string, unknown>) => void;
-let sink: Sink = __DEV__
+const defaultSink: Sink = __DEV__
   ? (event, props) => console.log('[analytics]', event, props ?? {})
   : () => {};
+let sink: Sink = defaultSink;
 
 export function setAnalyticsConsent(granted: boolean): void {
   consentGranted = granted;
@@ -45,10 +46,22 @@ export function setAnalyticsSink(s: Sink): void {
   sink = s;
 }
 
+/** Restaura sink default + consentimento off. Usado por testes para não vazar estado global. */
+export function resetAnalytics(): void {
+  consentGranted = false;
+  sink = defaultSink;
+}
+
 export const analytics: Analytics = {
   track(event, props) {
     if (!consentGranted) return;
-    sink(event, props);
+    // Analytics é um efeito em fronteira de confiança (sink futuro = PostHog):
+    // nunca pode lançar e quebrar um reducer/gameplay.
+    try {
+      sink(event, props);
+    } catch {
+      /* engole erro do sink — telemetria jamais derruba o jogo */
+    }
   },
 };
 

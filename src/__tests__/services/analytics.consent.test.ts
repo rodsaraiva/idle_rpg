@@ -1,4 +1,6 @@
-import { analytics, setAnalyticsConsent, setAnalyticsSink } from '../../services/analytics';
+import { analytics, setAnalyticsConsent, setAnalyticsSink, resetAnalytics } from '../../services/analytics';
+
+afterEach(resetAnalytics); // restaura sink default + consent off — não vaza estado global entre arquivos
 
 test('track é no-op sem consentimento', () => {
   const calls: string[] = [];
