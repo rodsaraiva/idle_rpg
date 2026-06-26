@@ -71,12 +71,14 @@ describe('COMMANDER_RALLY', () => {
     // Flag de controle está setada para não repetir
     expect(state.flags[`commander_rallied_${commander.id}`]).toBeTruthy();
 
-    // Warrior recebeu buff atkMul da source COMMANDER_RALLY
+    // Warrior recebeu buff atkFlat da source COMMANDER_RALLY (≈20% ATK do Comandante, ≥1)
     const rallyBuff = (state.buffs[warrior.id] ?? []).find(
-      b => b.type === 'atkMul' && b.source === 'COMMANDER_RALLY',
+      b => b.type === 'atkFlat' && b.source === 'COMMANDER_RALLY',
     );
     expect(rallyBuff).toBeDefined();
-    expect(rallyBuff!.value).toBeGreaterThan(1);
+    // commander ATK=20 → flatBonus = max(1, floor(20*0.2)) = 4
+    expect(rallyBuff!.value).toBe(Math.max(1, Math.floor(commander.atk * 0.2)));
+    expect(rallyBuff!.value).toBeGreaterThanOrEqual(1);
 
     // Buff expira após 3 turnos (state.rounds + 2 para durar rounds 1, 2 e 3)
     expect(rallyBuff!.expiresAfterRound).toBe(state.rounds + 2);
@@ -93,6 +95,35 @@ describe('COMMANDER_RALLY', () => {
       () => 0.1,
     );
     expect(buffed!.dmg).toBeGreaterThan(clean!.dmg);
+  });
+
+  test('COMMANDER_RALLY buff é proporcional ao ATK do Comandante — commander forte dá bônus maior', () => {
+    // Commander fraco: ATK 5 → flatBonus = max(1, floor(5*0.2)) = 1
+    const stateWeak = makeState();
+    const commanderWeak = makeCommander(5);
+    const warriorWeak = makeWarrior();
+    stateWeak.heroes = [commanderWeak, warriorWeak];
+    BattleEngine.executeClassAbility(commanderWeak, stateWeak);
+    const buffWeak = (stateWeak.buffs[warriorWeak.id] ?? []).find(
+      b => b.type === 'atkFlat' && b.source === 'COMMANDER_RALLY',
+    );
+
+    // Commander forte: ATK 100 → flatBonus = max(1, floor(100*0.2)) = 20
+    const stateStrong = makeState();
+    const commanderStrong = makeCommander(100);
+    const warriorStrong = makeWarrior();
+    stateStrong.heroes = [commanderStrong, warriorStrong];
+    BattleEngine.executeClassAbility(commanderStrong, stateStrong);
+    const buffStrong = (stateStrong.buffs[warriorStrong.id] ?? []).find(
+      b => b.type === 'atkFlat' && b.source === 'COMMANDER_RALLY',
+    );
+
+    expect(buffWeak).toBeDefined();
+    expect(buffStrong).toBeDefined();
+    // Valores devem ser distintos e refletir a diferença de ATK
+    expect(buffStrong!.value).toBeGreaterThan(buffWeak!.value);
+    expect(buffWeak!.value).toBe(1);   // floor(5*0.2)=1, max(1,1)=1
+    expect(buffStrong!.value).toBe(20); // floor(100*0.2)=20
   });
 
   test('COMMANDER_RALLY não ativa duas vezes na mesma batalha', () => {

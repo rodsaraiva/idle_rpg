@@ -53,11 +53,13 @@ export function calculateAttack(
 
   // Lê buffs do atacante
   let atkMul = 1;
+  let atkFlat = 0;
   let critFlat = 0;
   if (state) {
     const attackerBuffs = state.buffs[attacker.id] ?? [];
     for (const b of attackerBuffs) {
       if (b.type === 'atkMul') atkMul *= b.value;
+      else if (b.type === 'atkFlat') atkFlat += b.value;
       else if (b.type === 'critFlat') critFlat += b.value;
     }
   }
@@ -77,7 +79,7 @@ export function calculateAttack(
 
   const critChance = GameMath.calcCritChance(attacker.classId, (attacker.crit ?? 0) + critFlat);
   const isCrit = rng() < critChance;
-  const effectiveAtk = Math.floor(attacker.atk * atkMul);
+  const effectiveAtk = Math.floor(attacker.atk * atkMul) + atkFlat;
   const dmg = GameMath.calcDamage(effectiveAtk, effectiveDef, isCrit);
 
   return {

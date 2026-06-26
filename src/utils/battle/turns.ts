@@ -91,13 +91,14 @@ export function executeClassAbility(hero: Hero, state: BattleState): boolean {
     const aliveAllies = state.heroes.filter(h => h.id !== hero.id && h.hpCurrent > 0);
     if (aliveAllies.length === 0) return false;
 
-    // Buff de ATK: 20% multiplicativo sobre o ATK de cada aliado, por 3 turnos
+    // Buff de ATK: bônus plano = 20% do ATK do Comandante, mínimo 1 — proporcional ao stat escalado
+    const rallyFlatBonus = Math.max(1, Math.floor(hero.atk * 0.2));
     for (const ally of aliveAllies) {
       if (!state.buffs[ally.id]) state.buffs[ally.id] = [];
       const buff: Buff = {
         source: 'COMMANDER_RALLY',
-        type: 'atkMul',
-        value: 1.2,
+        type: 'atkFlat',
+        value: rallyFlatBonus,
         expiresAfterRound: state.rounds + 2,
       };
       const existing = state.buffs[ally.id].findIndex(
@@ -112,7 +113,7 @@ export function executeClassAbility(hero: Hero, state: BattleState): boolean {
 
     state.flags[flagKey] = true;
 
-    const rallyTxt = `${hero.name} usa Rally! Aliados ganham +20% ATK por 3 turnos`;
+    const rallyTxt = `${hero.name} usa Rally! Aliados ganham +${rallyFlatBonus} ATK por 3 turnos`;
     state.log.push(rallyTxt);
     state.actions.push({
       round: state.rounds,

@@ -10,6 +10,7 @@ export type SynergyId =
 
 export type BuffType =
   | 'atkMul'
+  | 'atkFlat'
   | 'critFlat'
   | 'rangeFlat'
   | 'defDebuffMul'
