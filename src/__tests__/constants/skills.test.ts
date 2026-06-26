@@ -25,8 +25,8 @@ describe('skills', () => {
     }
   });
 
-  test('total skills is 18', () => {
-    expect(SKILL_DEFS).toHaveLength(18);
+  test('total skills is 21 (3 per class × 7 classes)', () => {
+    expect(SKILL_DEFS).toHaveLength(21);
   });
 
   test('getUnlockedSkills returns empty for untrained hero', () => {

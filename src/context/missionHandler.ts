@@ -14,12 +14,16 @@ import {
   ROGUE_RNG_BONUS_CAP,
   MISSION_START_DELAY_MS,
   MISSION_ACTION_INTERVAL_MS,
+  BASE_MISSION_SLOTS,
 } from '../constants/game';
 import { isHeroAvailableForMission, getEffectiveStats, applyGoldBonus } from '../utils/heroUtils';
 import { getActiveSynergies } from '../constants/synergies';
 import { ClassId } from '../types';
+import { checkLegacySeals } from './legacyHandler';
+import { legacyRewardMultiplier, legacyDurationMultiplier, legacyMissionSlotBonus } from '../constants/legacyUpgrades';
+import { activeEventRewardMultiplier } from './eventHandler';
 
-function validateMissionRequirements(template: MissionTemplate, heroes: Hero[]): string | null {
+export function validateMissionRequirements(template: MissionTemplate, heroes: Hero[], state?: GameState): string | null {
   if (!template.requirements) return null;
 
   for (const req of template.requirements) {
@@ -38,6 +42,10 @@ function validateMissionRequirements(template: MissionTemplate, heroes: Hero[]):
       if (avg < req.value!) {
         return req.label;
       }
+    } else if (req.type === 'mission_cleared') {
+      if (!(state?.completedMissionIds ?? []).includes(req.missionId!)) {
+        return req.label;
+      }
     }
   }
   return null;
@@ -47,6 +55,10 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
   const template = MISSIONS.find((t) => t.id === templateId);
   if (!template) return state;
   if ((heroIds?.length ?? 0) < template.minHeroes) return state;
+
+  // Gate de slots: limite de missões ativas = base + bônus de Legado (slot_1)
+  const maxSlots = BASE_MISSION_SLOTS + legacyMissionSlotBonus(state);
+  if ((state.activeMissions || []).length >= maxSlots) return state;
 
   const heroesMap = new Map(state.heroes.map((h) => [h.id, h]));
   const timestamp = now ?? Date.now();
@@ -61,7 +73,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
   }
 
   // Validação de requisitos da missão
-  const error = validateMissionRequirements(template, heroesForMission);
+  const error = validateMissionRequirements(template, heroesForMission, state);
   if (error) {
     emit(FEEDBACK_EVENTS.TOAST, { text: `Requisito não atendido: ${error}` });
     return state;
@@ -102,8 +114,9 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     });
     
     const missionEnemies = BattleEngine.createEnemies(template);
+    const durationFactor = legacyDurationMultiplier(state);
     const scheduled = (outcome.actions || []).map((a, i) => ({
-      atMsFromStart: MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS,
+      atMsFromStart: Math.floor((MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS) * durationFactor),
       action: a,
       applied: false,
     }));
@@ -254,10 +267,23 @@ export function handleCompleteMission(state: GameState, missionId: string, rewar
     mission.heroIds.includes(h.id) ? { ...h, currentTask: HeroTask.IDLE } : h
   );
 
-  return {
+  // Rastreio idempotente do templateId completado
+  const templateId = mission.templateId;
+  const completedIds = state.completedMissionIds ?? [];
+  const newCompletedIds = completedIds.includes(templateId) ? completedIds : [...completedIds, templateId];
+
+  // Recompensa: pantheon (applyGoldBonus) → Legado → Evento — stacking multiplicativo
+  const pantheonGold = applyGoldBonus(reward, state);
+  const finalGold = Math.floor(pantheonGold * legacyRewardMultiplier(state) * activeEventRewardMultiplier(state));
+
+  const nextState: GameState = {
     ...state,
     heroes: newHeroesState,
     activeMissions: newMissions,
-    gold: state.gold + applyGoldBonus(reward, state),
+    gold: state.gold + finalGold,
+    completedMissionIds: newCompletedIds,
   };
+
+  // Verifica e concede Selos de Legado por marco atingido (sem tocar em gold)
+  return checkLegacySeals(nextState);
 }

@@ -8,7 +8,7 @@ export enum HeroTask {
   MISSION = 'MISSION',
 }
 
-export type ClassId = 'WARRIOR' | 'TANK' | 'ROGUE' | 'ARCHER' | 'MAGE' | 'HEALER';
+export type ClassId = 'WARRIOR' | 'TANK' | 'ROGUE' | 'ARCHER' | 'MAGE' | 'HEALER' | 'COMMANDER';
 
 export interface Equipment {
   id: string;
@@ -125,6 +125,10 @@ export interface GameState {
   };
   materials?: Record<string, number>;
   onboarding?: OnboardingState;
+  // meta-progressão de Legado (sem reset)
+  legacy?: { level: number; totalExp: number; sealsEarned: string[] };
+  activeEvent?: { id: string; startedAt: number; endsAt: number; seed: number } | null;
+  legacyUpgrades?: Record<string, number>; // upgradeId -> ranks comprados
 }
 
 /** Ação disparada para alterar o estado do jogo */
@@ -150,7 +154,8 @@ export type GameAction =
   | { type: 'CLAIM_WEEKLY_QUEST'; questId: string }
   | { type: 'START_WEEKLY_BOSS'; heroIds: string[]; heroPositions?: Record<string, number>; now: number }
   | { type: 'LOAD_STATE'; state: GameState }
-  | { type: 'SET_ONBOARDING'; patch: Partial<OnboardingState> };
+  | { type: 'SET_ONBOARDING'; patch: Partial<OnboardingState> }
+  | { type: 'BUY_LEGACY_UPGRADE'; upgradeId: string };
 
 export type MissionActorType = 'hero' | 'enemy';
 export type MissionActionType = 'hit' | 'miss' | 'heal' | 'defeat' | 'victory' | 'move';

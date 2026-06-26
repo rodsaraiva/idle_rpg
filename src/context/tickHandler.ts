@@ -10,10 +10,12 @@ import {
   TRAIN_INFLATION_FACTOR,
 } from '../constants/game';
 import { configProvider } from '../services/configProvider';
+import { legacyTrainSpeedFactor } from '../utils/heroUtils';
 import { checkAchievements } from './achievementHandler';
 import { createGuaranteedEquipment } from './equipmentHandler';
 import { refreshDailyQuests } from './dailyQuestHandler';
 import { refreshWeeklyState, updateWeeklyProgress, markWeeklyBossDefeated } from './weeklyHandler';
+import { refreshActiveEvent } from './eventHandler';
 import { WEEKLY_BOSS_POOL } from '../constants/weeklyBosses';
 import { applyTickProgress } from './progressTrackers';
 import { processMissions } from './missionTickHandler';
@@ -22,7 +24,7 @@ import { emitSkillUnlocked, emitRareMaterialDrop } from '../services/milestones'
 
 
 /** Processa o treinamento de todos os heróis, returns updated heroes and total points trained */
-function processTraining(heroes: Hero[], tickMs: number, inflation: number): { heroes: Hero[]; totalPointsTrained: number } {
+function processTraining(heroes: Hero[], tickMs: number, inflation: number, trainFactor: number): { heroes: Hero[]; totalPointsTrained: number } {
   let totalPointsTrained = 0;
   const updatedHeroes = heroes.map((hero) => {
     let newHero = { ...hero };
@@ -38,7 +40,8 @@ function processTraining(heroes: Hero[], tickMs: number, inflation: number): { h
         let count = (hero.trainingCount?.[statKey] ?? 0);
 
         const classDef = hero.classId ? configProvider.getClassDef(hero.classId) : undefined;
-        const classSpeed = classDef?.trainSpeed?.[statKey] ?? 1;
+        // trainFactor (Legado train_1): multiplica a velocidade efetiva de treino
+        const classSpeed = (classDef?.trainSpeed?.[statKey] ?? 1) * trainFactor;
         let timePerPoint = (BASE_TRAIN_TIME_MS * (1 + inflation * Math.log(count + 1))) / classSpeed;
 
         let pointsGained = 0;
@@ -111,12 +114,14 @@ export function handleTick(state: GameState, now: number): GameState {
   const tickMs = state.tickIntervalMs ?? TICK_INTERVAL_MS;
   const inflation = state.trainInflationFactor ?? TRAIN_INFLATION_FACTOR;
 
-  // 0. Refresh daily quests if seed changed (new day) + weekly state
+  // 0. Refresh daily quests if seed changed (new day) + weekly state + seasonal event
   let currentState = refreshDailyQuests(state);
   currentState = refreshWeeklyState(currentState);
+  currentState = refreshActiveEvent(currentState, now);
 
   // 1. Process Training
-  const { heroes: heroesAfterTraining, totalPointsTrained } = processTraining(currentState.heroes, tickMs, inflation);
+  const trainFactor = legacyTrainSpeedFactor(currentState);
+  const { heroes: heroesAfterTraining, totalPointsTrained } = processTraining(currentState.heroes, tickMs, inflation, trainFactor);
   // Skills só mudam quando algum trainingCount sobe → totalPointsTrained > 0.
   // processTraining retorna o herói pela MESMA referência quando não treina
   // (case default), então só reavalia quem mudou de referência.

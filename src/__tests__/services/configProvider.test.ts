@@ -26,13 +26,13 @@ describe('configProvider', () => {
     expect(def.attackType).toBe('RANGED');
   });
 
-  test('getAllClassDefs returns all 6 classes', () => {
+  test('getAllClassDefs returns all 7 classes (including COMMANDER)', () => {
     const all = configProvider.getAllClassDefs();
     const ids = Object.keys(all).sort();
     expect(ids).toEqual(
-      ['ARCHER', 'HEALER', 'MAGE', 'ROGUE', 'TANK', 'WARRIOR'].sort()
+      ['ARCHER', 'COMMANDER', 'HEALER', 'MAGE', 'ROGUE', 'TANK', 'WARRIOR'].sort()
     );
-    expect(Object.keys(all)).toHaveLength(6);
+    expect(Object.keys(all)).toHaveLength(7);
   });
 
   test('getPersonalityDef returns correct personality', () => {

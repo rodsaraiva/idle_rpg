@@ -39,6 +39,8 @@ export const INCAPACITATED_DURATION_MS = 30 * 60 * 1000; // 30 minutes (mantido 
 export const MISSION_START_DELAY_MS = 2000;
 export const MISSION_ACTION_INTERVAL_MS = 1800;
 export const MISSION_FINISH_DELAY_MS = 2000;
+/** Número base de missões simultâneas antes de upgrades de Legado */
+export const BASE_MISSION_SLOTS = 3;
 
 /** Grid constants for mission positioning */
 export const GRID_COLUMNS = 5;

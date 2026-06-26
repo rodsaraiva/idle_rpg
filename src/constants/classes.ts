@@ -8,8 +8,8 @@ export interface ClassDef {
   trainSpeed?: { hp?: number; atk?: number; mp?: number };
   // passive multipliers for mission calculation
   missionMultiplier?: { hp?: number; atk?: number; mp?: number; scale?: number };
-  // ability only for chosen classes (ROGUE, HEALER)
-  ability?: 'ROGUE_BONUS' | 'HEALER_BUFF';
+  // ability only for chosen classes (ROGUE, HEALER, COMMANDER)
+  ability?: 'ROGUE_BONUS' | 'HEALER_BUFF' | 'COMMANDER_RALLY';
   attackType?: 'MELEE' | 'RANGED';
   range: number;
 }
@@ -67,6 +67,16 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     ability: 'HEALER_BUFF',
     attackType: 'RANGED',
     range: 2,
+  },
+  COMMANDER: {
+    id: 'COMMANDER',
+    displayName: 'Comandante',
+    baseStatDelta: { atk: 2, hp: 5, mp: 4 },
+    // Suporte ofensivo: treina apenas hp/atk/mp — sem DEF/CRIT/AGI (invariante)
+    trainSpeed: { hp: 1.0, atk: 1.1, mp: 0.8 },
+    ability: 'COMMANDER_RALLY',
+    attackType: 'MELEE',
+    range: 1,
   },
 };
 

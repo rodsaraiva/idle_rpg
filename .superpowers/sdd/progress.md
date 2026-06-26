@@ -91,3 +91,14 @@ SPEC5 Task 14: 898f516
 SPEC5 Task 15: 9268886
 SPEC5 Task 16: (verificação estática — tsc 0, 92 suítes, 569 testes; registerTarget/dicas verificados por grep; deriveStep coberto; smoke visual MANUAL-PENDING sandbox exit 144)
 SPEC5 fix (revisão final): bb-leak recruit_1 +20 no boot — pré-credita recruit_1 no estado inicial
+SPEC7 Task 1: 604519b
+SPEC7 Task 2: e2b8a7f
+SPEC7 Task 3: c7db096
+SPEC7 Task 4: 70c8363
+SPEC7 Task 5: 6d64c17
+SPEC7 Task 6: 08afd6b
+SPEC7 Task 7: 24f8077
+SPEC7 Task 8: 552e20e
+SPEC7 Task 9: b808cea
+SPEC7 Task 10: 8935976
+SPEC7 Task 11: (balance 7 classes — gate CI passou; tsc 0, 614 testes, 3 snapshots verdes; visual das 3 telas MANUAL-PENDING sandbox)

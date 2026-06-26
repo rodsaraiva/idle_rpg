@@ -17,6 +17,7 @@ const GLYPHS: Record<ClassId, string> = {
   ARCHER: 'M4 20 20 4M14 4h6v6M9 15l-5 5',
   MAGE: 'M12 2 9 9l-7 1 5 5-1 7 6-3 6 3-1-7 5-5-7-1-3-7z',
   HEALER: 'M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4z',
+  COMMANDER: 'M12 3l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4z M8 14h8v1H8z M9 16h6v4H9z',
 };
 
 export function ClassSeal({ classId, size = 24, color = theme.colors.gold }: ClassSealProps) {

@@ -57,10 +57,10 @@ function wrapper(children: React.ReactNode) {
 beforeEach(() => mockNavigate.mockClear());
 
 describe('VillageScreen', () => {
-  const ROTAS = ['Treinamento', 'Enfermaria', 'Ferreiro', 'MissoesDiarias', 'Conquistas', 'Panteao', 'Semanal', 'Guilda'];
+  const ROTAS = ['Treinamento', 'Enfermaria', 'Ferreiro', 'MissoesDiarias', 'Conquistas', 'Panteao', 'Semanal', 'Guilda', 'Legado', 'MapaZonas'];
 
-  test('define exatamente 8 hotspots com o conjunto de rotas esperado', () => {
-    expect(HOTSPOTS).toHaveLength(8);
+  test('define exatamente 10 hotspots com o conjunto de rotas esperado', () => {
+    expect(HOTSPOTS).toHaveLength(10);
     expect(HOTSPOTS.map((h) => h.screen).sort()).toEqual([...ROTAS].sort());
   });
 
@@ -95,7 +95,7 @@ describe('VillageScreen', () => {
     const { getByTestId, getAllByTestId } = render(wrapper(<VillageScreen />));
     fireEvent(getByTestId('village-map-image'), 'error');
     // fallback expõe um botão por rota
-    expect(getAllByTestId(/^fallback-/)).toHaveLength(8);
+    expect(getAllByTestId(/^fallback-/)).toHaveLength(10);
     fireEvent.press(getByTestId('fallback-Ferreiro'));
     expect(mockNavigate).toHaveBeenCalledWith('Ferreiro');
   });
