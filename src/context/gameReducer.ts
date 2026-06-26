@@ -34,6 +34,7 @@ import { TICK_INTERVAL_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
 import { createHero } from '../utils/heroFactory';
 import { handleSetOnboarding } from './onboardingHandler';
 import { claimLoginReward } from './loginStreakHandler';
+import { handleEquipCosmetic } from './cosmeticHandler';
 
 /** Estado inicial quando não há save (boot do FTUE). */
 export const initialGameState: GameState = {
@@ -127,6 +128,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'OPEN_KEY_CHEST':
       return handleOpenKeyChest(state, action.chestType);
+
+    case 'EQUIP_COSMETIC':
+      return handleEquipCosmetic(state, action.slot, action.cosmeticId);
 
     case 'LOAD_STATE':
       try {
