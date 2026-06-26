@@ -5,6 +5,7 @@ import { updateDailyProgress } from './dailyQuestHandler';
 import { updateWeeklyProgress } from './weeklyHandler';
 import { emitFirstTierForged } from '../services/milestones';
 import { FORGE_RECIPES, hasEnoughMaterials, deductMaterials, EquipmentType } from '../constants/materials';
+import { analytics } from '../services/analytics';
 
 export function generateEquipment(
   tier: number,
@@ -56,6 +57,7 @@ export function handleForgeEquipment(state: GameState, tier: number, equipmentTy
     forgingQueue: [...(state.forgingQueue || []), { equipmentId: equipment.id, finishAt }],
     inventory: [...(state.inventory || []), equipment],
   };
+  analytics.track('equipment_crafted');
   const afterDaily = updateDailyProgress(newState, 'itemsForged', 1);
   return updateWeeklyProgress(afterDaily, 'itemsForged', 1);
 }

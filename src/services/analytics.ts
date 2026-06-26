@@ -51,3 +51,12 @@ export const analytics: Analytics = {
     sink(event, props);
   },
 };
+
+/**
+ * Dispara o evento de sessão 'app_open' uma vez por boot, após consentimento.
+ * Chamado pelo ConsentGate (Task 6) quando o usuário aceita ou quando
+ * consent já foi concedido em boot anterior.
+ */
+export function trackAppOpen(): void {
+  analytics.track('app_open');
+}

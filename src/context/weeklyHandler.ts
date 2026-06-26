@@ -1,6 +1,7 @@
 import { GameState } from '../types';
 import { getWeeklySeed, pickWeeklyQuests, WEEKLY_QUEST_POOL, WEEKLY_BONUS_REWARD } from '../constants/weeklyQuests';
 import { emitWeeklyQuestComplete, emitWeeklyBossDefeated } from '../services/milestones';
+import { analytics } from '../services/analytics';
 
 export function refreshWeeklyState(state: GameState): GameState {
   const currentSeed = getWeeklySeed();
@@ -71,6 +72,7 @@ export function claimWeeklyQuest(state: GameState, questId: string): GameState {
 export function markWeeklyBossDefeated(state: GameState): GameState {
   if (!state.weeklyState) return state;
   emitWeeklyBossDefeated();
+  analytics.track('boss_defeated');
   return {
     ...state,
     weeklyState: { ...state.weeklyState, bossDefeated: true },

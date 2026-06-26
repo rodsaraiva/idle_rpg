@@ -5,6 +5,7 @@ import { PERSONALITY_LIST } from '../constants/personalities';
 import { ClassId } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { updateWeeklyProgress } from './weeklyHandler';
+import { analytics } from '../services/analytics';
 
 /**
  * Calculate pantheon bonuses based on heroes with stars.
@@ -112,6 +113,7 @@ export function handleFuseHeroes(state: GameState, heroIds: [string, string, str
     emitFirstFusion();
   }
   emitFusionResult(fusedHero.name, fusedHero.stars ?? 1);
+  analytics.track('hero_fused');
 
   const remainingHeroes = state.heroes.filter(h => !heroIds.includes(h.id));
 
