@@ -31,6 +31,7 @@ const CLASS_EMOJI: Record<ClassId, string> = {
   ARCHER: '🏹',
   MAGE: '🔮',
   HEALER: '💚',
+  COMMANDER: '📯',
 };
 
 interface ChestRevealModalProps {

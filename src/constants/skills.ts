@@ -184,6 +184,35 @@ export const SKILL_DEFS: SkillDef[] = [
     cooldownRounds: -1,
     unlockThreshold: { stat: 'mp', value: 100 },
   },
+
+  // === COMMANDER (stat-chave: atk) ===
+  {
+    id: 'COMMANDER_RALLY',
+    classId: 'COMMANDER',
+    name: 'Rally',
+    description: 'Uma vez por batalha, todos os aliados vivos ganham +20% do ATK do Comandante por 3 rounds.',
+    icon: '📯',
+    cooldownRounds: -1,
+    unlockThreshold: { stat: 'atk', value: 20 },
+  },
+  {
+    id: 'COMMANDER_FORMACAO',
+    classId: 'COMMANDER',
+    name: 'Formação de Combate',
+    description: 'A cada 4 rounds, reorganiza aliados adjacentes: cada um ganha +15% ATK por 2 rounds.',
+    icon: '⚜️',
+    cooldownRounds: 4,
+    unlockThreshold: { stat: 'atk', value: 50 },
+  },
+  {
+    id: 'COMMANDER_CARGA_FINAL',
+    classId: 'COMMANDER',
+    name: 'Carga Final',
+    description: 'Uma vez por batalha com 2+ aliados vivos, o time todo ataca simultaneamente no próximo round.',
+    icon: '🚩',
+    cooldownRounds: -1,
+    unlockThreshold: { stat: 'atk', value: 100 },
+  },
 ];
 
 /** Returns skills for a given class */

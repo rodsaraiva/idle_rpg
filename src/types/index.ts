@@ -8,7 +8,7 @@ export enum HeroTask {
   MISSION = 'MISSION',
 }
 
-export type ClassId = 'WARRIOR' | 'TANK' | 'ROGUE' | 'ARCHER' | 'MAGE' | 'HEALER';
+export type ClassId = 'WARRIOR' | 'TANK' | 'ROGUE' | 'ARCHER' | 'MAGE' | 'HEALER' | 'COMMANDER';
 
 export interface Equipment {
   id: string;
