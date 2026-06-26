@@ -19,7 +19,7 @@ import { isHeroAvailableForMission, getEffectiveStats, applyGoldBonus } from '..
 import { getActiveSynergies } from '../constants/synergies';
 import { ClassId } from '../types';
 
-function validateMissionRequirements(template: MissionTemplate, heroes: Hero[]): string | null {
+export function validateMissionRequirements(template: MissionTemplate, heroes: Hero[], state?: GameState): string | null {
   if (!template.requirements) return null;
 
   for (const req of template.requirements) {
@@ -36,6 +36,10 @@ function validateMissionRequirements(template: MissionTemplate, heroes: Hero[]):
       const statKey = req.stat === 'hp' ? 'hpMax' : req.stat!;
       const avg = heroes.reduce((acc, h) => acc + (h[statKey as keyof Hero] as number), 0) / heroes.length;
       if (avg < req.value!) {
+        return req.label;
+      }
+    } else if (req.type === 'mission_cleared') {
+      if (!(state?.completedMissionIds ?? []).includes(req.missionId!)) {
         return req.label;
       }
     }
@@ -61,7 +65,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
   }
 
   // Validação de requisitos da missão
-  const error = validateMissionRequirements(template, heroesForMission);
+  const error = validateMissionRequirements(template, heroesForMission, state);
   if (error) {
     emit(FEEDBACK_EVENTS.TOAST, { text: `Requisito não atendido: ${error}` });
     return state;
@@ -254,10 +258,16 @@ export function handleCompleteMission(state: GameState, missionId: string, rewar
     mission.heroIds.includes(h.id) ? { ...h, currentTask: HeroTask.IDLE } : h
   );
 
+  // Rastreio idempotente do templateId completado
+  const templateId = mission.templateId;
+  const completedIds = state.completedMissionIds ?? [];
+  const newCompletedIds = completedIds.includes(templateId) ? completedIds : [...completedIds, templateId];
+
   return {
     ...state,
     heroes: newHeroesState,
     activeMissions: newMissions,
     gold: state.gold + applyGoldBonus(reward, state),
+    completedMissionIds: newCompletedIds,
   };
 }
