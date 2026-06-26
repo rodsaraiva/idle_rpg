@@ -1,4 +1,32 @@
-export const SOUND_ASSETS: Record<string, any> = {};
+/**
+ * Contrato de chaves de áudio do app.
+ * SOUND_ASSETS permanece vazio até os arquivos licenciados serem adquiridos (débito).
+ * O tipo SoundKey fixa o contrato e permite auditoria estática dos call sites.
+ */
+export type SoundKey =
+  | 'chest_suspense'
+  | 'chest_open'
+  | 'chest_reveal'
+  | 'battle_hit'
+  | 'death'
+  | 'forge_craft'
+  | 'mission_reward'
+  | 'level_up'
+  | 'ambient';
+
+export const SOUND_KEYS: SoundKey[] = [
+  'chest_suspense',
+  'chest_open',
+  'chest_reveal',
+  'battle_hit',
+  'death',
+  'forge_craft',
+  'mission_reward',
+  'level_up',
+  'ambient',
+];
+
+export const SOUND_ASSETS: Partial<Record<SoundKey, any>> = {};
 
 export const LOTTIE_ASSETS = {
   CHEST_PULSE: require('../../assets/lottie/chest_pulse.json'),
