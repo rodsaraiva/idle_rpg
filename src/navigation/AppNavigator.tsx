@@ -16,6 +16,8 @@ import { LegacyScreen } from '../screens/LegacyScreen';
 import { ZoneMapScreen } from '../screens/ZoneMapScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { CollectionScreen } from '../screens/CollectionScreen';
+import { PrivacyScreen } from '../screens/PrivacyScreen';
+import { TermsScreen } from '../screens/TermsScreen';
 import { theme } from '../theme';
 import { Icon, IconName } from '../components/ui/Icon';
 
@@ -152,6 +154,23 @@ export function AppNavigator() {
         <Tab.Screen
           name="Colecao"
           component={CollectionScreen}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
+        />
+        {/* Hidden legal screens — linked from SettingsScreen */}
+        <Tab.Screen
+          name="Privacidade"
+          component={PrivacyScreen}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Termos"
+          component={TermsScreen}
           options={{
             tabBarButton: () => null,
             tabBarItemStyle: { display: 'none' },
