@@ -14,7 +14,7 @@ import {
   onEnemyHitSkills,
   onEnemyDamagedSkills,
 } from '../enemySkillEffects';
-import { BattleState, BattleEnemy } from './types';
+import { BattleState, BattleEnemy, Buff } from './types';
 import { selectTarget } from './targeting';
 import { calculateAttack } from './resolution';
 import { findMovePath } from './grid';
@@ -84,6 +84,48 @@ export function executeClassAbility(hero: Hero, state: BattleState): boolean {
       return true; // Consome o turno do Healer
     }
   }
+  if (hero.classId === 'COMMANDER') {
+    const flagKey = `commander_rallied_${hero.id}`;
+    if (state.flags[flagKey]) return false; // Rally já usado nesta batalha
+
+    const aliveAllies = state.heroes.filter(h => h.id !== hero.id && h.hpCurrent > 0);
+    if (aliveAllies.length === 0) return false;
+
+    // Buff de ATK: 20% multiplicativo sobre o ATK de cada aliado, por 3 turnos
+    for (const ally of aliveAllies) {
+      if (!state.buffs[ally.id]) state.buffs[ally.id] = [];
+      const buff: Buff = {
+        source: 'COMMANDER_RALLY',
+        type: 'atkMul',
+        value: 1.2,
+        expiresAfterRound: state.rounds + 2,
+      };
+      const existing = state.buffs[ally.id].findIndex(
+        b => b.source === buff.source && b.type === buff.type,
+      );
+      if (existing >= 0) {
+        state.buffs[ally.id][existing] = buff;
+      } else {
+        state.buffs[ally.id].push(buff);
+      }
+    }
+
+    state.flags[flagKey] = true;
+
+    const rallyTxt = `${hero.name} usa Rally! Aliados ganham +20% ATK por 3 turnos`;
+    state.log.push(rallyTxt);
+    state.actions.push({
+      round: state.rounds,
+      actorType: 'hero',
+      actorId: hero.id,
+      actorName: hero.name,
+      actionType: 'heal', // ação de suporte — tipo mais próximo disponível
+      text: rallyTxt,
+    });
+
+    return true; // Consome o turno do Comandante
+  }
+
   return false; // Não consumiu o turno
 }
 
