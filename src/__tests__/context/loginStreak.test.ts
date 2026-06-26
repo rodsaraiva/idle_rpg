@@ -37,3 +37,65 @@ test('streak reseta ao pular um dia', () => {
   expect(s.loginStreak!.count).toBe(1); // streak resetado porque pulou um dia
   expect(s.loginStreak!.lastSeenSeed).toBe(getDailySeed()); // dia atual marcado
 });
+
+test('refresh inicializa streak ausente (state.loginStreak undefined)', () => {
+  const s = refreshLoginStreak({ heroes: [] } as any);
+  expect(s.loginStreak!.count).toBe(1);
+  expect(s.loginStreak!.lastSeenSeed).toBe(getDailySeed());
+});
+
+test('streak incrementa em dia consecutivo (ontem → hoje)', () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const yesterdaySeed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+
+  const base: any = {
+    heroes: [],
+    loginStreak: { count: 3, lastClaimedSeed: 0, lastSeenSeed: yesterdaySeed },
+  };
+
+  const s = refreshLoginStreak(base);
+  expect(s.loginStreak!.count).toBe(4); // consecutivo: incrementa
+});
+
+test('no-op em claimLoginReward se não há loginStreak', () => {
+  const b: any = { heroes: [] };
+  expect(claimLoginReward(b)).toBe(b);
+});
+
+test('claim key concede chave bronze (count=3)', () => {
+  const seed = getDailySeed();
+  const base: any = {
+    gold: 100,
+    heroes: [],
+    keys: { bronze: 0, silver: 0, gold: 0 },
+    loginStreak: { count: 3, lastClaimedSeed: 0, lastSeenSeed: seed },
+  };
+  const s = claimLoginReward(base);
+  expect(s.loginStreak!.lastClaimedSeed).toBe(seed);
+  expect(s.keys!.bronze).toBe(1); // count=3 → bronze key
+});
+
+test('claim cosmético adiciona ao owned (count=6)', () => {
+  const seed = getDailySeed();
+  const base: any = {
+    gold: 100,
+    heroes: [],
+    cosmetics: { owned: [], equipped: {} },
+    loginStreak: { count: 6, lastClaimedSeed: 0, lastSeenSeed: seed },
+  };
+  const s = claimLoginReward(base);
+  expect(s.cosmetics!.owned).toContain('frame_bronze');
+});
+
+test('claim cosmético já possuído não duplica', () => {
+  const seed = getDailySeed();
+  const base: any = {
+    gold: 100,
+    heroes: [],
+    cosmetics: { owned: ['frame_bronze'], equipped: {} },
+    loginStreak: { count: 6, lastClaimedSeed: 0, lastSeenSeed: seed },
+  };
+  const s = claimLoginReward(base);
+  expect(s.cosmetics!.owned.filter((x: string) => x === 'frame_bronze')).toHaveLength(1);
+});
