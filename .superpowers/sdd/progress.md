@@ -102,3 +102,12 @@ SPEC7 Task 8: 552e20e
 SPEC7 Task 9: b808cea
 SPEC7 Task 10: 8935976
 SPEC7 Task 11: (balance 7 classes — gate CI passou; tsc 0, 614 testes, 3 snapshots verdes; visual das 3 telas MANUAL-PENDING sandbox)
+SPEC8 Task 1: 69e1dd7
+SPEC8 Task 2: 3d1ef36
+SPEC8 Task 3: 3677295
+SPEC8 Task 4: d1cc8cc
+SPEC8 Task 5: be94666
+SPEC8 Task 6: 8a3fa84
+SPEC8 Task 7: 618f612
+SPEC8 Task 8: 2c2bd29
+SPEC8 Task 9: (verificação estática — tsc 0, 113 suítes, 666 testes, 3 snapshots verdes; balance gate passou; visual SettingsScreen/CollectionScreen/HeroCard cosmético MANUAL-PENDING sandbox)
