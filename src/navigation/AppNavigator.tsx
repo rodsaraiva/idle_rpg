@@ -13,6 +13,7 @@ import { DailyQuestsScreen } from '../screens/DailyQuestsScreen';
 import { WeeklyScreen } from '../screens/WeeklyScreen';
 import { GuildScreen } from '../screens/GuildScreen';
 import { LegacyScreen } from '../screens/LegacyScreen';
+import { ZoneMapScreen } from '../screens/ZoneMapScreen';
 import { theme } from '../theme';
 import { Icon, IconName } from '../components/ui/Icon';
 
@@ -125,6 +126,14 @@ export function AppNavigator() {
         <Tab.Screen
           name="Legado"
           component={LegacyScreen}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="MapaZonas"
+          component={ZoneMapScreen}
           options={{
             tabBarButton: () => null,
             tabBarItemStyle: { display: 'none' },
