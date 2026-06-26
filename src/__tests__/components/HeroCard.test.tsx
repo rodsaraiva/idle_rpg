@@ -11,6 +11,9 @@ jest.mock('../../components/ui/Icon', () => ({
 jest.mock('../../components/ui/Card', () => ({
   Card: (props: any) => require('react').createElement('Card', props, props.children),
 }));
+jest.mock('../../components/ui/OrnateFrame', () => ({
+  OrnateFrame: (props: any) => require('react').createElement('OrnateFrame', props, props.children),
+}));
 
 function makeHero(overrides: Partial<Hero> = {}): Hero {
   return {
@@ -34,6 +37,60 @@ function wrap(children: React.ReactNode) {
     }}>{children}</GameContext.Provider>
   );
 }
+
+describe('HeroCard — render condicional de cosméticos', () => {
+  test('usa OrnateFrame quando equippedCosmetics.frame está setado', () => {
+    const { UNSAFE_queryAllByType } = render(
+      wrap(
+        <HeroCard
+          hero={makeHero()}
+          equippedCosmetics={{ frame: 'frame_gold' }}
+        />
+      )
+    );
+    expect(UNSAFE_queryAllByType('OrnateFrame' as any).length).toBeGreaterThan(0);
+  });
+
+  test('usa Card padrão quando equippedCosmetics.frame não está setado', () => {
+    const { UNSAFE_queryAllByType } = render(
+      wrap(<HeroCard hero={makeHero()} />)
+    );
+    expect(UNSAFE_queryAllByType('Card' as any).length).toBeGreaterThan(0);
+    expect(UNSAFE_queryAllByType('OrnateFrame' as any).length).toBe(0);
+  });
+
+  test('exibe badge de selo quando equippedCosmetics.seal está setado', () => {
+    const { getByLabelText } = render(
+      wrap(
+        <HeroCard
+          hero={makeHero()}
+          equippedCosmetics={{ seal: 'seal_flame' }}
+        />
+      )
+    );
+    expect(getByLabelText('Selo: Selo da Chama')).toBeTruthy();
+  });
+
+  test('não exibe badge de selo quando equippedCosmetics.seal não está setado', () => {
+    const { queryByLabelText } = render(
+      wrap(<HeroCard hero={makeHero()} />)
+    );
+    expect(queryByLabelText(/^Selo:/)).toBeNull();
+  });
+
+  test('frame e seal podem coexistir no mesmo render', () => {
+    const { UNSAFE_queryAllByType, getByLabelText } = render(
+      wrap(
+        <HeroCard
+          hero={makeHero()}
+          equippedCosmetics={{ frame: 'frame_silver', seal: 'seal_void' }}
+        />
+      )
+    );
+    expect(UNSAFE_queryAllByType('OrnateFrame' as any).length).toBeGreaterThan(0);
+    expect(getByLabelText('Selo: Selo do Vazio')).toBeTruthy();
+  });
+});
 
 describe('HeroCard — regra DEF/CRIT/AGI não-treináveis', () => {
   test('defaultActions só tem treino de HP/ATK/MP (+ Descansar), nunca DEF/CRIT/AGI', () => {

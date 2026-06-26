@@ -144,6 +144,12 @@ export function HeroCard({
     ? toOrnateFrameCorner(frameCosmetic.corner)
     : undefined;
 
+  // Resolução do cosmético de selo — exibe badge colorido pela raridade do item.
+  const sealCosmetic = equippedCosmetics?.seal
+    ? resolveCosmetic(equippedCosmetics.seal)
+    : undefined;
+  const sealColor = sealCosmetic ? theme.rarity[sealCosmetic.rarity].color : undefined;
+
   // Conteúdo interno do card — independente do wrapper (Card ou OrnateFrame).
   const innerCardContent = (
     <>
@@ -151,6 +157,12 @@ export function HeroCard({
         <View>
           <View style={styles.nameRow}>
             <Text style={styles.name}>{hero.name}</Text>
+            {sealCosmetic && sealColor && (
+              <View
+                style={[styles.sealDot, { backgroundColor: sealColor }]}
+                accessibilityLabel={`Selo: ${sealCosmetic.name}`}
+              />
+            )}
           </View>
           <Text style={styles.classLabel}>
             {(hero.classId ? CLASS_DEFS[hero.classId] : undefined)?.displayName ?? ''}
@@ -289,6 +301,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  sealDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   personalityBadge: {
     fontSize: 14,
