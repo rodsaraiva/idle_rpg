@@ -18,7 +18,6 @@ module.exports = {
     '/dist/',
     '/.worktrees/',
   ],
-  collectCoverage: true,
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.stories.tsx',

@@ -28,5 +28,6 @@ jobs:
 
       # --runInBand expõe vazamento de estado global entre arquivos de teste
       # (foi assim que um teste flaky de analytics chegou à main antes do gate).
+      # --coverage garante que o gate de branches seja verificado no CI.
       - name: Unit tests
-        run: npm run test:unit
+        run: npx jest --config jest.unit.config.js --runInBand --coverage
