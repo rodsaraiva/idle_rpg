@@ -16,12 +16,12 @@ import {
   MISSION_ACTION_INTERVAL_MS,
   BASE_MISSION_SLOTS,
 } from '../constants/game';
-import { isHeroAvailableForMission, getEffectiveStats, applyGoldBonus } from '../utils/heroUtils';
+import { isHeroAvailableForMission, getEffectiveStats } from '../utils/heroUtils';
 import { getActiveSynergies } from '../constants/synergies';
 import { ClassId } from '../types';
 import { checkLegacySeals } from './legacyHandler';
-import { legacyRewardMultiplier, legacyDurationMultiplier, legacyMissionSlotBonus } from '../constants/legacyUpgrades';
-import { activeEventRewardMultiplier } from './eventHandler';
+import { legacyDurationMultiplier, legacyMissionSlotBonus } from '../constants/legacyUpgrades';
+import { computeFinalGold } from '../utils/rewards';
 
 export function validateMissionRequirements(template: MissionTemplate, heroes: Hero[], state?: GameState): string | null {
   if (!template.requirements) return null;
@@ -49,6 +49,87 @@ export function validateMissionRequirements(template: MissionTemplate, heroes: H
     }
   }
   return null;
+}
+
+function buildBattleMission(params: {
+  state: GameState;
+  runTemplate: MissionTemplate;
+  missionTemplateId: string;
+  heroIds: string[];
+  heroPositions?: Record<string, number>;
+  heroesForMission: Hero[];
+  timestamp: number;
+  looping: boolean;
+  isWeeklyBoss: boolean;
+  durationFactor: number;
+  onBattleError: (err: unknown) => void;
+}): GameState {
+  const {
+    state, runTemplate, missionTemplateId, heroIds, heroPositions,
+    heroesForMission, timestamp, looping, isWeeklyBoss, durationFactor, onBattleError,
+  } = params;
+
+  const missionId = uuidv4();
+  const countHealers = heroesForMission.filter((h) => h.classId === 'HEALER').length;
+  const countRogues = heroesForMission.filter((h) => h.classId === 'ROGUE').length;
+  const healerBuffMultiplier = 1 + Math.min(HEALER_BUFF_CAP, countHealers * HEALER_BUFF_PER_HERO);
+  const rogueRngBonus = Math.min(ROGUE_RNG_BONUS_CAP, countRogues * ROGUE_RNG_BONUS_PER_HERO);
+
+  const teamClassIds = heroesForMission.map(h => h.classId).filter(Boolean) as ClassId[];
+  const activeSynergyNames = getActiveSynergies(teamClassIds).map(s => s.name);
+
+  const newMission: ActiveMission = {
+    id: missionId,
+    templateId: missionTemplateId,
+    heroIds,
+    heroPositions,
+    startedAt: timestamp,
+    healerBuffMultiplier,
+    rogueRngBonus,
+    activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,
+    looping,
+    ...(isWeeklyBoss ? { isWeeklyBoss: true } : {}),
+  };
+
+  // Apply all stat bonuses (equipment + permanentBonuses + pantheonBonuses) via central helper
+  const heroesWithEquipment = heroesForMission.map(h => {
+    const eff = getEffectiveStats(h, state);
+    return { ...h, hpMax: eff.hpMax, hpCurrent: eff.hpCurrent, atk: eff.atk, mp: eff.mp, defense: eff.defense, crit: eff.crit, agility: eff.agility };
+  });
+
+  try {
+    const outcome = computeBattleOutcome(runTemplate, heroesWithEquipment, {
+      healerBuffMultiplier,
+      rogueRngBonus,
+      heroPositions,
+    });
+
+    const missionEnemies = BattleEngine.createEnemies(runTemplate);
+    const scheduled = (outcome.actions || []).map((a, i) => ({
+      atMsFromStart: Math.floor((MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS) * durationFactor),
+      action: a,
+      applied: false,
+    }));
+
+    newMission.scheduledActions = scheduled;
+    newMission.enemiesState = missionEnemies;
+    newMission.precomputedOutcome = outcome;
+  } catch (err) {
+    onBattleError(err);
+    newMission.scheduledActions = [];
+  }
+
+  const newHeroesState = state.heroes.map((h) =>
+    heroIds.includes(h.id)
+      ? { ...h, currentTask: HeroTask.MISSION }
+      : h
+  );
+
+  return {
+    ...state,
+    heroes: newHeroesState,
+    activeMissions: [...(state.activeMissions || []), newMission],
+  };
 }
 
 export function handleStartMission(state: GameState, templateId: string, heroIds: string[], heroPositions?: Record<string, number>, now?: number, looping?: boolean): GameState {
@@ -79,70 +160,13 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
     return state;
   }
 
-  const missionId = uuidv4();
-  const countHealers = heroesForMission.filter((h) => h.classId === 'HEALER').length;
-  const countRogues = heroesForMission.filter((h) => h.classId === 'ROGUE').length;
-  const healerBuffMultiplier = 1 + Math.min(HEALER_BUFF_CAP, countHealers * HEALER_BUFF_PER_HERO);
-  const rogueRngBonus = Math.min(ROGUE_RNG_BONUS_CAP, countRogues * ROGUE_RNG_BONUS_PER_HERO);
-
-  const teamClassIds = heroesForMission.map(h => h.classId).filter(Boolean) as ClassId[];
-  const activeSynergyNames = getActiveSynergies(teamClassIds).map(s => s.name);
-
-  const newMission: ActiveMission = {
-    id: missionId,
-    templateId: template.id,
-    heroIds: heroIds,
-    heroPositions,
-    startedAt: timestamp,
-    healerBuffMultiplier,
-    rogueRngBonus,
-    activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,
-    looping: looping ?? false,
-  };
-
-  // Apply all stat bonuses (equipment + permanentBonuses + pantheonBonuses) via central helper
-  const heroesWithEquipment = heroesForMission.map(h => {
-    const eff = getEffectiveStats(h, state);
-    return { ...h, hpMax: eff.hpMax, hpCurrent: eff.hpCurrent, atk: eff.atk, mp: eff.mp, defense: eff.defense, crit: eff.crit, agility: eff.agility };
+  return buildBattleMission({
+    state, runTemplate: template, missionTemplateId: template.id,
+    heroIds, heroPositions, heroesForMission, timestamp,
+    looping: looping ?? false, isWeeklyBoss: false,
+    durationFactor: legacyDurationMultiplier(state),
+    onBattleError: (err) => { if (__DEV__) console.error('Erro ao processar batalha da missão:', err); },
   });
-
-  try {
-    const outcome = computeBattleOutcome(template, heroesWithEquipment, {
-      healerBuffMultiplier,
-      rogueRngBonus,
-      heroPositions,
-    });
-    
-    const missionEnemies = BattleEngine.createEnemies(template);
-    const durationFactor = legacyDurationMultiplier(state);
-    const scheduled = (outcome.actions || []).map((a, i) => ({
-      atMsFromStart: Math.floor((MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS) * durationFactor),
-      action: a,
-      applied: false,
-    }));
-
-    newMission.scheduledActions = scheduled;
-    newMission.enemiesState = missionEnemies;
-    newMission.precomputedOutcome = outcome;
-  } catch (err) {
-    if (__DEV__) console.error('Erro ao processar batalha da missão:', err);
-    newMission.scheduledActions = [];
-  }
-
-  const newHeroesState = state.heroes.map((h) =>
-    heroIds.includes(h.id)
-      ? {
-          ...h,
-          currentTask: HeroTask.MISSION,
-        }
-      : h
-  );
-
-  return {
-    ...state,
-    heroes: newHeroesState,
-    activeMissions: [...(state.activeMissions || []), newMission],
-  };
 }
 
 export function handleDismissMissionResult(state: GameState, missionId: string): GameState {
@@ -181,65 +205,15 @@ export function handleStartWeeklyBoss(
     heroesForMission.push(h);
   }
 
-  const missionId = uuidv4();
-  const countHealers = heroesForMission.filter((h) => h.classId === 'HEALER').length;
-  const countRogues = heroesForMission.filter((h) => h.classId === 'ROGUE').length;
-  const healerBuffMultiplier = 1 + Math.min(HEALER_BUFF_CAP, countHealers * HEALER_BUFF_PER_HERO);
-  const rogueRngBonus = Math.min(ROGUE_RNG_BONUS_CAP, countRogues * ROGUE_RNG_BONUS_PER_HERO);
-
-  const teamClassIds = heroesForMission.map(h => h.classId).filter(Boolean) as ClassId[];
-  const activeSynergyNames = getActiveSynergies(teamClassIds).map(s => s.name);
-
   const tpl = bossToMissionTemplate(boss);
 
-  // Apply all stat bonuses (equipment + permanentBonuses + pantheonBonuses) via central helper
-  const heroesWithEquipment = heroesForMission.map(h => {
-    const eff = getEffectiveStats(h, state);
-    return { ...h, hpMax: eff.hpMax, hpCurrent: eff.hpCurrent, atk: eff.atk, mp: eff.mp, defense: eff.defense, crit: eff.crit, agility: eff.agility };
+  return buildBattleMission({
+    state, runTemplate: tpl, missionTemplateId: boss.id,
+    heroIds, heroPositions, heroesForMission, timestamp,
+    looping: false, isWeeklyBoss: true,
+    durationFactor: 1,
+    onBattleError: (err) => { console.error('Erro ao processar batalha do boss semanal:', err); },
   });
-
-  const newMission: ActiveMission = {
-    id: missionId,
-    templateId: boss.id,
-    heroIds,
-    heroPositions,
-    startedAt: timestamp,
-    healerBuffMultiplier,
-    rogueRngBonus,
-    activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,
-    looping: false,
-    isWeeklyBoss: true,
-  };
-
-  try {
-    const outcome = computeBattleOutcome(tpl, heroesWithEquipment, {
-      healerBuffMultiplier,
-      rogueRngBonus,
-      heroPositions,
-    });
-    const missionEnemies = BattleEngine.createEnemies(tpl);
-    const scheduled = (outcome.actions || []).map((a, i) => ({
-      atMsFromStart: MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS,
-      action: a,
-      applied: false,
-    }));
-    newMission.scheduledActions = scheduled;
-    newMission.enemiesState = missionEnemies;
-    newMission.precomputedOutcome = outcome;
-  } catch (err) {
-    console.error('Erro ao processar batalha do boss semanal:', err);
-    newMission.scheduledActions = [];
-  }
-
-  const newHeroesState = state.heroes.map((h) =>
-    heroIds.includes(h.id) ? { ...h, currentTask: HeroTask.MISSION } : h
-  );
-
-  return {
-    ...state,
-    heroes: newHeroesState,
-    activeMissions: [...(state.activeMissions || []), newMission],
-  };
 }
 
 export function handleCompleteMission(state: GameState, missionId: string, reward: number): GameState {
@@ -256,9 +230,8 @@ export function handleCompleteMission(state: GameState, missionId: string, rewar
   const completedIds = state.completedMissionIds ?? [];
   const newCompletedIds = completedIds.includes(templateId) ? completedIds : [...completedIds, templateId];
 
-  // Recompensa: pantheon (applyGoldBonus) → Legado → Evento — stacking multiplicativo
-  const pantheonGold = applyGoldBonus(reward, state);
-  const finalGold = Math.floor(pantheonGold * legacyRewardMultiplier(state) * activeEventRewardMultiplier(state));
+  // Recompensa: pantheon → Legado → Evento — stacking multiplicativo (ver computeFinalGold)
+  const finalGold = computeFinalGold(reward, state);
 
   const nextState: GameState = {
     ...state,

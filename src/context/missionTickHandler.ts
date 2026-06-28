@@ -13,9 +13,9 @@ import { MISSIONS, MissionTemplate } from '../constants/missions';
 import { WEEKLY_BOSS_POOL } from '../constants/weeklyBosses';
 import { computeBattleOutcome } from '../utils/battleSim';
 import { BattleEngine } from '../utils/battleEngine';
-import { getEffectiveStats, applyGoldBonus } from '../utils/heroUtils';
-import { legacyRewardMultiplier, legacyDurationMultiplier } from '../constants/legacyUpgrades';
-import { activeEventRewardMultiplier } from './eventHandler';
+import { getEffectiveStats } from '../utils/heroUtils';
+import { legacyDurationMultiplier } from '../constants/legacyUpgrades';
+import { computeFinalGold } from '../utils/rewards';
 import { getActiveSynergies } from '../constants/synergies';
 import { bossToMissionTemplate } from './bossTemplate';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,7 +32,11 @@ export interface ProcessMissionsResult {
 
 /** Processa o progresso das missões ativas. */
 export function processMissions(state: GameState, heroes: Hero[], now: number): ProcessMissionsResult {
-  const active = (state.activeMissions || []).map((m) => ({ ...m }));
+  const active = (state.activeMissions || []).map((m) => ({
+    ...m,
+    enemiesState: m.enemiesState ? m.enemiesState.map((e) => ({ ...e })) : m.enemiesState,
+    heroPositions: m.heroPositions ? { ...m.heroPositions } : m.heroPositions,
+  }));
   const completed: { mission: ActiveMission; reward: number; outcome: MissionOutcome }[] = [];
   let currentHeroes = [...heroes];
 
@@ -167,7 +171,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
 
     // Check if looping mission should restart
     if (c.mission.looping && c.outcome.success) {
-      goldGained += Math.floor(applyGoldBonus(c.reward, state) * legacyRewardMultiplier(state) * activeEventRewardMultiplier(state));
+      goldGained += computeFinalGold(c.reward, state);
       const tpl = MISSIONS.find(t => t.id === c.mission.templateId);
       if (tpl) {
         // Get the surviving heroes for the next cycle
@@ -240,7 +244,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
       }
 
       // Normal completion: release heroes to IDLE
-      goldGained += Math.floor(applyGoldBonus(c.reward, state) * legacyRewardMultiplier(state) * activeEventRewardMultiplier(state));
+      goldGained += computeFinalGold(c.reward, state);
       c.mission.heroIds.forEach((hid: string) => {
         const idx = currentHeroes.findIndex((hh) => hh.id === hid);
         if (idx >= 0) {

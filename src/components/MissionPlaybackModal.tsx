@@ -21,15 +21,8 @@ import {
 } from '../constants/game';
 import { Hexagon } from './Hexagon';
 import { useMissionPlayback } from '../hooks/useMissionPlayback';
-
-const CLASS_EMOJI: Record<string, string> = {
-  WARRIOR: '⚔️',
-  TANK: '🛡️',
-  ROGUE: '🗡️',
-  ARCHER: '🏹',
-  MAGE: '🔮',
-  HEALER: '💚',
-};
+import { CLASS_EMOJI } from '../constants/classes';
+import { ClassId } from '../types';
 
 type Props = {
   visible: boolean;
@@ -70,7 +63,7 @@ export const MissionPlaybackModal: React.FC<Props> = ({
             {combatant && (
               <View style={styles.combatantContainer}>
                 <Text style={styles.cellEmoji}>
-                  {combatant.type === 'hero' ? (CLASS_EMOJI[combatant.classId ?? ''] ?? '👤') : '👹'}
+                  {combatant.type === 'hero' ? (CLASS_EMOJI[(combatant.classId ?? '') as ClassId] ?? '👤') : '👹'}
                 </Text>
                 <View style={styles.hpBarContainer}>
                     <View style={[styles.hpBarFill, { width: `${(combatant.hp / combatant.maxHp) * 100}%` }]} />

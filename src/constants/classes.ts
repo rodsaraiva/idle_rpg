@@ -14,6 +14,16 @@ export interface ClassDef {
   range: number;
 }
 
+export const CLASS_EMOJI: Record<ClassId, string> = {
+  WARRIOR: '⚔️',
+  TANK: '🛡️',
+  ROGUE: '🗡️',
+  ARCHER: '🏹',
+  MAGE: '🔮',
+  HEALER: '💚',
+  COMMANDER: '📯',
+};
+
 export const CLASS_DEFS: Record<ClassId, ClassDef> = {
   WARRIOR: {
     id: 'WARRIOR',
