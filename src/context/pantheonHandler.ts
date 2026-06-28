@@ -30,9 +30,9 @@ export function calculatePantheonBonuses(heroes: Hero[]): { goldPercent: number;
 /**
  * Create a fused hero from 3 source heroes.
  */
-export function createFusedHero(sourceHeroes: [Hero, Hero, Hero]): Hero {
+export function createFusedHero(sourceHeroes: [Hero, Hero, Hero], rng: () => number = Math.random): Hero {
   const classIds = sourceHeroes.map(h => h.classId).filter(Boolean) as ClassId[];
-  const randomIdx = Math.floor(Math.random() * classIds.length);
+  const randomIdx = Math.floor(rng() * classIds.length);
   const resultClassId = classIds[randomIdx] ?? 'WARRIOR';
 
   const classDef = CLASS_DEFS[resultClassId];
@@ -68,11 +68,11 @@ export function createFusedHero(sourceHeroes: [Hero, Hero, Hero]): Hero {
   const crit = Math.floor(baseCrit * starMul);
   const agility = Math.floor(baseAgi * starMul);
 
-  const personality = PERSONALITY_LIST[Math.floor(Math.random() * PERSONALITY_LIST.length)].id;
+  const personality = PERSONALITY_LIST[Math.floor(rng() * PERSONALITY_LIST.length)].id;
 
   const names = ['Fenix', 'Ascendido', 'Renascido', 'Forjado', 'Primordial', 'Eterno', 'Lendário'];
   const suffixes = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-  const name = `${names[Math.floor(Math.random() * names.length)]} ${suffixes[Math.floor(Math.random() * suffixes.length)]}`;
+  const name = `${names[Math.floor(rng() * names.length)]} ${suffixes[Math.floor(rng() * suffixes.length)]}`;
 
   return {
     id: uuidv4(),
