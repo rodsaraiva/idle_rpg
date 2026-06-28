@@ -31,20 +31,12 @@ import { MISSIONS } from '../constants/missions';
 import { BattleEngine, BattleEnemy } from '../utils/battleEngine';
 import { getActiveSynergies } from '../constants/synergies';
 import { PERSONALITIES } from '../constants/personalities';
+import { CLASS_EMOJI } from '../constants/classes';
 import { ClassId } from '../types';
 
 import { Hexagon } from './Hexagon';
 
 const IS_WEB = Platform.OS === 'web';
-
-const CLASS_EMOJI: Record<string, string> = {
-  WARRIOR: '⚔️',
-  TANK: '🛡️',
-  ROGUE: '🗡️',
-  ARCHER: '🏹',
-  MAGE: '🔮',
-  HEALER: '💚',
-};
 
 type Props = {
   visible: boolean;
@@ -290,7 +282,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
           >
             {hero ? (
               <>
-                <Text style={styles.cellEmoji}>{CLASS_EMOJI[hero.classId ?? ''] ?? '❓'}</Text>
+                <Text style={styles.cellEmoji}>{CLASS_EMOJI[(hero.classId ?? '') as ClassId] ?? '❓'}</Text>
                 <Text style={styles.cellTextSmall}>{hero.name}</Text>
               </>
             ) : enemy ? (
@@ -363,7 +355,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                     accessibilityRole="button"
                     accessibilityLabel={`Herói ${item.name}. Toque para posicionar ou pressione e arraste para mover.`}
                   >
-                    <Text style={styles.heroEmojiSmall}>{CLASS_EMOJI[item.classId ?? ''] ?? '❓'}</Text>
+                    <Text style={styles.heroEmojiSmall}>{CLASS_EMOJI[(item.classId ?? '') as ClassId] ?? '❓'}</Text>
                     <Text style={styles.heroName}>
                       {item.personality && PERSONALITIES[item.personality] ? `${PERSONALITIES[item.personality].emoji} ` : ''}{item.name}
                     </Text>
@@ -437,7 +429,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
             ]}
           >
             <Animated.View style={[styles.dragGhostStyle]}>
-              <Text style={styles.heroEmojiSmall}>{CLASS_EMOJI[draggingItem.classId ?? ''] ?? '❓'}</Text>
+              <Text style={styles.heroEmojiSmall}>{CLASS_EMOJI[(draggingItem.classId ?? '') as ClassId] ?? '❓'}</Text>
               <Text style={styles.heroName}>{draggingItem.name}</Text>
             </Animated.View>
           </Animated.View>

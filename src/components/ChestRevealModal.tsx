@@ -13,7 +13,7 @@ import LottieView from 'lottie-react-native';
 import { SOUND_ASSETS, LOTTIE_ASSETS } from '../constants/assets';
 import { Hero, ClassId } from '../types';
 import { theme } from '../theme';
-import { CLASS_DEFS } from '../constants/classes';
+import { CLASS_DEFS, CLASS_EMOJI } from '../constants/classes';
 import { createHero } from '../utils/heroFactory';
 import { playSound, stopSound, preloadSounds } from '../services/sound';
 import { lightTap, heavyTap, successNotification } from '../services/haptics';
@@ -24,15 +24,6 @@ type RevealPhase = 'suspense' | 'opening' | 'revealed';
 const SUSPENSE_DURATION_MS = 2200;
 const OPENING_DURATION_MS = 500;
 
-const CLASS_EMOJI: Record<ClassId, string> = {
-  WARRIOR: '⚔️',
-  TANK: '🛡️',
-  ROGUE: '🗡️',
-  ARCHER: '🏹',
-  MAGE: '🔮',
-  HEALER: '💚',
-  COMMANDER: '📯',
-};
 
 interface ChestRevealModalProps {
   visible: boolean;
