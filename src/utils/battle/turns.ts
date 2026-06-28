@@ -1,5 +1,6 @@
 import { Hero } from '../../types';
 import { GameMath } from '../gameMath';
+import { hpFraction } from '../heroUtils';
 import {
   executePreAttackSkills,
   onHeroDamagedSkills,
@@ -27,9 +28,9 @@ export function executeClassAbility(hero: Hero, state: BattleState): boolean {
   if (hero.classId === 'HEALER') {
     const mostInjured = [...state.heroes]
       .filter(h => h.id !== hero.id && h.hpCurrent > 0 && h.hpCurrent < h.hpMax)
-      .sort((a, b) => (a.hpCurrent / a.hpMax) - (b.hpCurrent / b.hpMax))[0];
+      .sort((a, b) => hpFraction(a) - hpFraction(b))[0];
 
-    if (mostInjured && (mostInjured.hpCurrent / mostInjured.hpMax) < 0.7) {
+    if (mostInjured && hpFraction(mostInjured) < 0.7) {
       const healAmount = Math.max(1, Math.floor(hero.mp * 0.8));
       const prevHp = mostInjured.hpCurrent;
       mostInjured.hpCurrent = Math.min(mostInjured.hpMax, mostInjured.hpCurrent + healAmount);
@@ -154,7 +155,7 @@ export function processHeroTurn(hero: Hero, state: BattleState, rng: () => numbe
 
   // Utilitários locais
   const getOccupied = () => new Set([...Object.values(state.heroPositions), ...Object.values(state.enemyPositions)]);
-  const getAlliesInDanger = () => state.heroes.filter(h => h.hpCurrent / h.hpMax < 0.3).map(h => h.id);
+  const getAlliesInDanger = () => state.heroes.filter(h => hpFraction(h) < 0.3).map(h => h.id);
 
   // 2. Movimentação
   const currentPos = state.heroPositions[hero.id] ?? 45;

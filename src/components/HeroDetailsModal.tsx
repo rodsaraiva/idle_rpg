@@ -8,6 +8,7 @@ import { HPBar } from './HPBar';
 import { useGame } from '../hooks/useGame';
 import { getEffectiveStats } from '../utils/heroUtils';
 import { Icon, IconName } from './ui/Icon';
+import { STAT_META } from '../constants/stats';
 
 interface HeroDetailsModalProps {
   hero: Hero | null;
@@ -41,15 +42,6 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
     weapon: '\u2694\uFE0F',
     armor: '\uD83D\uDEE1\uFE0F',
     accessory: '\uD83D\uDC8D',
-  };
-
-  const statLabelMap: Record<string, { label: string; color: string }> = {
-    hp: { label: 'HP', color: theme.colors.statHp },
-    atk: { label: 'ATK', color: theme.colors.statAtk },
-    mp: { label: 'MP', color: theme.colors.statMp },
-    defense: { label: 'DEF', color: theme.colors.textSecondary },
-    crit: { label: 'CRIT', color: theme.colors.gold },
-    agility: { label: 'AGI', color: theme.colors.success },
   };
 
   const ICON_NAMES: ReadonlySet<IconName> = new Set<IconName>(['crit', 'agility', 'bow']);
@@ -171,7 +163,7 @@ export function HeroDetailsModal({ hero, visible, onClose }: HeroDetailsModalPro
                     <View style={styles.equipmentBonuses}>
                       {Object.entries(eq.statBonus).map(([stat, value]) => {
                         if (!value) return null;
-                        const info = statLabelMap[stat];
+                        const info = STAT_META[stat];
                         if (!info) return null;
                         return (
                           <Text key={stat} style={[styles.equipmentBonusText, { color: info.color }]}>

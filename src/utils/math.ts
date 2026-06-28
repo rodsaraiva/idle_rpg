@@ -32,3 +32,5 @@ export function getGaussianVariance(mean = 1.0, stdDev = 0.16, min = 0.5, max = 
 
 export const getRecruitCost = GameMath.getRecruitCost;
 export const formatNumber = GameMath.formatNumber;
+
+export const clamp01 = (x: number) => Math.max(0, Math.min(1, x));

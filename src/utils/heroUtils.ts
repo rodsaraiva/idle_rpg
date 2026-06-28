@@ -2,6 +2,10 @@ import { Hero, HeroTask, GameState } from '../types';
 import { INCAPACITATED_HP_THRESHOLD } from '../constants/game';
 import { legacyTrainSpeedFactor } from '../constants/legacyUpgrades';
 
+/** Fraction of HP remaining, safe against hpMax=0 (returns 0 instead of NaN). */
+export const hpFraction = (h: { hpCurrent: number; hpMax: number }) =>
+  h.hpCurrent / Math.max(1, h.hpMax);
+
 /** HP is below the incapacitation threshold (< 3). */
 export function isHeroIncapacitated(hero: Hero): boolean {
   return hero.hpCurrent < INCAPACITATED_HP_THRESHOLD;

@@ -1,6 +1,7 @@
 import { Hero } from '../types';
 import { BattleState, BattleEnemy, Buff } from './battleEngine';
 import { GameMath } from './gameMath';
+import { hpFraction } from './heroUtils';
 
 function addBuff(state: BattleState, actorId: string, buff: Buff): void {
   if (!state.buffs[actorId]) state.buffs[actorId] = [];
@@ -82,7 +83,7 @@ export function applyProtectorShield(hero: Hero, state: BattleState): void {
   const heroPos = state.heroPositions[hero.id] ?? 0;
 
   for (const ally of state.heroes.filter(h => h.id !== hero.id && h.hpCurrent > 0)) {
-    if (ally.hpCurrent / ally.hpMax >= 0.5) continue;
+    if (hpFraction(ally) >= 0.5) continue;
 
     const allyPos = state.heroPositions[ally.id] ?? 0;
     if (GameMath.getHexDistance(heroPos, allyPos) <= 1) {

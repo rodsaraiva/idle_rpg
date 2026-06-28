@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GameState } from '../types';
+import { GameState, DEFAULT_NOTIFICATION_PREFS } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
 const BACKUP_KEY = '@idle_rpg_game_state.bak';
@@ -110,11 +110,7 @@ const migrations: Record<number, (data: any) => any> = {
     if (data.loginStreak === undefined) data.loginStreak = { count: 0, lastClaimedSeed: 0, lastSeenSeed: 0 };
     if (data.keys === undefined) data.keys = { bronze: 0, silver: 0, gold: 0 };
     if (data.cosmetics === undefined) data.cosmetics = { owned: [], equipped: {} };
-    if (data.notificationPrefs === undefined) data.notificationPrefs = {
-      optedIn: false,
-      categories: { missionReady: false, bossReady: false, dailyReset: false, idle: false },
-      quietHours: { start: 22, end: 9 },
-    };
+    if (data.notificationPrefs === undefined) data.notificationPrefs = DEFAULT_NOTIFICATION_PREFS;
     return data;
   },
   13: (data) => {

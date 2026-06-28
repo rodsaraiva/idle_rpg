@@ -33,6 +33,14 @@ export const ENEMY_HIT_CHANCE = 0.8;
 export const TANK_MITIGATION_PER_HERO = 0.15;
 export const TANK_MITIGATION_CAP = 0.5;
 export const INCAPACITATED_HP_THRESHOLD = 3;
+export const MAX_HIT_CHANCE = 0.98;
+export const MIN_HIT_CHANCE = 0.05;
+export const EVASION_K = 50;
+export const CRIT_ATTR_K = 100;
+export const DEF_MITIGATION_K = 50;
+export const ROGUE_CRIT_BONUS = 0.05;
+export const REWARD_RANDOM_BASE = 0.9;
+export const REWARD_RANDOM_SPREAD = 0.2;
 export const INCAPACITATED_DURATION_MS = 30 * 60 * 1000; // 30 minutes (mantido para compatibilidade se necessário)
 
 /** Mission related constants */

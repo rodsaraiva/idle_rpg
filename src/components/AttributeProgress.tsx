@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Text, Animated } from 'react-native';
 import { theme } from '../theme';
+import { clamp01 } from '../utils/math';
 
 interface Props {
   fraction: number; // 0..1
@@ -19,7 +20,7 @@ function formatMs(ms: number) {
 }
 
 export function AttributeProgress({ fraction, color = theme.colors.gold, label, timeRemainingMs }: Props) {
-  const pct = Math.max(0, Math.min(1, fraction));
+  const pct = clamp01(fraction);
   const anim = useRef(new Animated.Value(pct)).current;
 
   useEffect(() => {
