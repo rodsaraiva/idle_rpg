@@ -8,7 +8,7 @@ import { availableLegacyPoints, LEGACY_UPGRADES } from '../constants/legacyUpgra
  */
 export function checkLegacySeals(state: GameState): GameState {
   const legacy = state.legacy ?? { level: 0, totalExp: 0, sealsEarned: [] };
-  const earned = legacy.sealsEarned;
+  const earned = legacy.sealsEarned ?? []; // defensivo: estados legados sem sealsEarned
   const newSeals: string[] = [];
   let addedExp = 0;
 
