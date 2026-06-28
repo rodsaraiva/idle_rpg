@@ -16,12 +16,12 @@ import {
   MISSION_ACTION_INTERVAL_MS,
   BASE_MISSION_SLOTS,
 } from '../constants/game';
-import { isHeroAvailableForMission, getEffectiveStats, applyGoldBonus } from '../utils/heroUtils';
+import { isHeroAvailableForMission, getEffectiveStats } from '../utils/heroUtils';
 import { getActiveSynergies } from '../constants/synergies';
 import { ClassId } from '../types';
 import { checkLegacySeals } from './legacyHandler';
-import { legacyRewardMultiplier, legacyDurationMultiplier, legacyMissionSlotBonus } from '../constants/legacyUpgrades';
-import { activeEventRewardMultiplier } from './eventHandler';
+import { legacyDurationMultiplier, legacyMissionSlotBonus } from '../constants/legacyUpgrades';
+import { computeFinalGold } from '../utils/rewards';
 
 export function validateMissionRequirements(template: MissionTemplate, heroes: Hero[], state?: GameState): string | null {
   if (!template.requirements) return null;
@@ -256,9 +256,8 @@ export function handleCompleteMission(state: GameState, missionId: string, rewar
   const completedIds = state.completedMissionIds ?? [];
   const newCompletedIds = completedIds.includes(templateId) ? completedIds : [...completedIds, templateId];
 
-  // Recompensa: pantheon (applyGoldBonus) → Legado → Evento — stacking multiplicativo
-  const pantheonGold = applyGoldBonus(reward, state);
-  const finalGold = Math.floor(pantheonGold * legacyRewardMultiplier(state) * activeEventRewardMultiplier(state));
+  // Recompensa: pantheon → Legado → Evento — stacking multiplicativo (ver computeFinalGold)
+  const finalGold = computeFinalGold(reward, state);
 
   const nextState: GameState = {
     ...state,
