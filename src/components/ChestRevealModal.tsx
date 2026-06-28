@@ -24,7 +24,6 @@ type RevealPhase = 'suspense' | 'opening' | 'revealed';
 const SUSPENSE_DURATION_MS = 2200;
 const OPENING_DURATION_MS = 500;
 
-
 interface ChestRevealModalProps {
   visible: boolean;
   chestLabel: string;
