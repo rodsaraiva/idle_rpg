@@ -6,7 +6,6 @@ import { theme } from '../theme';
 import { MAX_BATTLE_ROUNDS } from '../constants/game';
 import { BattleRunner } from '../services/battleRunner';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
-import { playSound } from '../services/sound';
 import { lightTap, successNotification } from '../services/haptics';
 import { LOTTIE_ASSETS } from '../constants/assets';
 import { Icon } from './ui/Icon';

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { theme } from '../theme';
 import { formatNumber } from '../utils/math';
 
 interface StatBarProps {

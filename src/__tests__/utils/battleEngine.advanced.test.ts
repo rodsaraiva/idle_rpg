@@ -1,4 +1,4 @@
-import { BattleEngine, BattleState, BattleEnemy, SynergyHandlers } from '../../utils/battleEngine';
+import { BattleEngine, BattleState, BattleEnemy } from '../../utils/battleEngine';
 import { Hero, HeroTask } from '../../types';
 import { GameMath } from '../../utils/gameMath';
 import { createSynergyHandlers } from '../../utils/synergyEffects';

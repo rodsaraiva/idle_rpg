@@ -4,10 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameProvider } from '../../context/GameContext';
 import { StorageService } from '../../services/storage';
 import { GameState, HeroTask, Hero, ActiveMission } from '../../types';
-import { MISSIONS } from '../../constants/missions';
-
-const TPL = MISSIONS.find((m) => m.id === 'mission_1')!; // durationMs 10_000
-
 function makeHero(): Hero {
   return {
     id: 'h1', name: 'OfflineHero', hpMax: 50, hpCurrent: 50, atk: 10, mp: 5,

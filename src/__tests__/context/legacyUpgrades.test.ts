@@ -9,7 +9,7 @@ import { handleStartMission } from '../../context/missionHandler';
 import { handleTick } from '../../context/tickHandler';
 import { initialGameState } from '../../context/gameReducer';
 import { HeroTask } from '../../types';
-import { BASE_MISSION_SLOTS, MISSION_START_DELAY_MS, MISSION_ACTION_INTERVAL_MS } from '../../constants/game';
+import { BASE_MISSION_SLOTS } from '../../constants/game';
 
 const lvl = (level: number): any => ({ gold: 0, heroes: [], legacy: { level, totalExp: 0, sealsEarned: [] }, legacyUpgrades: {} });
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   Modal,
   View,
@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
-  Platform,
 } from 'react-native';
 import { ActiveMission } from '../types';
 import { theme } from '../theme';

@@ -1,6 +1,5 @@
 import { gameReducer, initialGameState } from '../../context/gameReducer';
 import { HeroTask, Hero } from '../../types';
-import { HP_REGEN_INTERVAL_MS } from '../../constants/game';
 
 function makeHero(id = 'h1', hpMax = 10, hpCurrent = 5, classId?: string): Hero {
   return {

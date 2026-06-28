@@ -1,13 +1,8 @@
 import { gameReducer, initialGameState } from '../../context/gameReducer';
-import { HeroTask, Hero } from '../../types';
 import { createHero } from '../../utils/heroFactory';
 
 test('BUY_CHEST deducts gold when affordable', () => {
   const state = { ...initialGameState, gold: 100, heroesRecruited: 0 };
-  const cost = (() => {
-    // replicate getRecruitCost roughly by checking reducer behavior; we just test deduction
-    return 10;
-  })();
   // Simulate buy chest (action expects chestId)
   const next = gameReducer(state, { type: 'BUY_CHEST', chestId: 'chest_bronze' } as any);
   // gold must be deducted (cannot know cost here precisely, but reducer uses getRecruitCost; ensure gold decreased)

@@ -1,6 +1,6 @@
 import { useGame } from './useGame';
 import { getRecruitCost } from '../utils/math';
-import { Hero, HeroTask } from '../types';
+import { Hero } from '../types';
 import { getHeroActions as getHeroActionsUtil } from '../utils/heroActions';
 import { useNavigation } from '@react-navigation/native';
 

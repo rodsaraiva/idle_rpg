@@ -147,7 +147,6 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
     dragging,
     draggingItem,
     startDrag,
-    cancelDrag,
     panHandlers,
     setContainerRef,
     setCellLayout,

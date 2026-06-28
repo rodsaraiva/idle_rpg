@@ -209,9 +209,9 @@ export function applyEnemyPassiveSkills(enemy: BattleEnemy, state: BattleState):
  */
 export function executeEnemyPreAttackSkills(
   enemy: BattleEnemy,
-  target: Hero,
+  _target: Hero,
   state: BattleState,
-  rng: number,
+  _rng: number,
 ): boolean {
   if (!enemy.skills) return false;
   if (enemy.skills.some(s => s.id === 'CHARGE')) tryCharge(enemy, state);

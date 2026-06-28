@@ -74,7 +74,7 @@ const alwaysHit = () => 0.1; // rng < hitChance → sempre acerta
 
 describe('D1 — AoE de skill herói', () => {
   // Helper: inimigo com escudo ativo (50% de redução)
-  function stateWithShieldedEnemy(skillId: string, classId: string, atk: number) {
+  function stateWithShieldedEnemy(_skillId: string, classId: string, atk: number) {
     const hero = makeHero({ classId: classId as any, atk, trainingCount: { hp: 0, atk: 100, mp: 100 } });
     // Dois inimigos na mesma posição (hex 2) para testar AoE
     const e1 = makeEnemy({ id: 'e1', hp: 50, maxHp: 50, position: 2 });
@@ -325,7 +325,7 @@ describe('D4 — Curas de skill disparam onHealApplied', () => {
   }
 
   test('Cura Maior dispara onHealApplied e aplica buff LINHA_DE_FRENTE no Guerreiro', () => {
-    const { healer, warrior, state } = makeHealerState();
+    const { healer, state } = makeHealerState();
 
     executePreAttackSkills(healer, makeEnemy(), state, alwaysHit);
 

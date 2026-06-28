@@ -1,6 +1,6 @@
 import { gameReducer, initialGameState } from '../../context/gameReducer';
 import { HeroTask } from '../../types';
-import { HP_REGEN_INTERVAL_MS, ENFERMARIA_TIME_SCALE, ENFERMARIA_MULTIPLIER_BASE, ENFERMARIA_HEALER_MP_K } from '../../constants/game';
+import { HP_REGEN_INTERVAL_MS, ENFERMARIA_TIME_SCALE } from '../../constants/game';
 
 test('send to enfermaria and regen doubled', () => {
   const hero = { id: 'h1', name: 'H', hpMax: 10, hpCurrent: 5, atk: 5, mp: 0, defense: 5, crit: 5, agility: 10, currentTask: HeroTask.IDLE };
@@ -19,9 +19,7 @@ test('send to enfermaria and regen doubled', () => {
 
   const h = s.heroes.find((x) => x.id === 'h1')!;
   // effective multiplier = base * (1 + healerMpSum * k)
-  const healerMpSum = 4;
-  const expectedMul = ENFERMARIA_MULTIPLIER_BASE * (1 + healerMpSum * ENFERMARIA_HEALER_MP_K);
-  // expected gain at least floor(1 * expectedMul)
+  // expected gain at least floor(1 * effective_multiplier)
   expect(h.hpCurrent).toBeGreaterThan(5);
 });
 

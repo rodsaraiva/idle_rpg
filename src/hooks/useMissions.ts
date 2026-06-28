@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from './useGame';
-import { Hero, HeroTask } from '../types';
+import { HeroTask } from '../types';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { isHeroIncapacitated } from '../utils/heroUtils';
 

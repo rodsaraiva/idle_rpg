@@ -1,4 +1,4 @@
-import { BattleEngine, BattleState, SynergyId } from '../../src/utils/battleEngine';
+import { BattleEngine, SynergyId } from '../../src/utils/battleEngine';
 import { MISSIONS, MissionTemplate } from '../../src/constants/missions';
 import { MAX_BATTLE_ROUNDS, HERO_ROWS, GRID_COLUMNS } from '../../src/constants/game';
 import { Hero } from '../../src/types/index';
