@@ -12,6 +12,7 @@ import {
 import { configProvider } from '../services/configProvider';
 import { legacyTrainSpeedFactor } from '../utils/heroUtils';
 import { checkAchievements } from './achievementHandler';
+import { checkLegacySeals } from './legacyHandler';
 import { createGuaranteedEquipment } from './equipmentHandler';
 import { refreshDailyQuests } from './dailyQuestHandler';
 import { refreshLoginStreak } from './loginStreakHandler';
@@ -212,6 +213,6 @@ export function handleTick(state: GameState, now: number): GameState {
     goldEarned: goldGained,
   });
 
-  // Check and award achievements
-  return checkAchievements(stateAfterTick);
+  // Check and award achievements, then grant legacy seals unlocked this tick
+  return checkLegacySeals(checkAchievements(stateAfterTick));
 }
