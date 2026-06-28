@@ -32,7 +32,11 @@ export interface ProcessMissionsResult {
 
 /** Processa o progresso das missões ativas. */
 export function processMissions(state: GameState, heroes: Hero[], now: number): ProcessMissionsResult {
-  const active = (state.activeMissions || []).map((m) => ({ ...m }));
+  const active = (state.activeMissions || []).map((m) => ({
+    ...m,
+    enemiesState: m.enemiesState ? m.enemiesState.map((e) => ({ ...e })) : m.enemiesState,
+    heroPositions: m.heroPositions ? { ...m.heroPositions } : m.heroPositions,
+  }));
   const completed: { mission: ActiveMission; reward: number; outcome: MissionOutcome }[] = [];
   let currentHeroes = [...heroes];
 
