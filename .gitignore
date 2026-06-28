@@ -53,3 +53,8 @@ yarn-error.*
 
 # Git worktrees
 .worktrees/
+
+# Generated test/coverage artifacts (publicar como artifact de CI, não versionar)
+coverage/
+test-results/
+playwright-report/
