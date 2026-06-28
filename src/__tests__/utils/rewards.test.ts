@@ -1,5 +1,6 @@
 import { computeFinalGold } from '../../utils/rewards';
 import { GameState } from '../../types';
+import { getEventSeed } from '../../constants/events';
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
@@ -51,5 +52,21 @@ describe('computeFinalGold', () => {
   test('sem evento ativo: activeEventRewardMultiplier retorna 1 (sem efeito)', () => {
     const state = makeState({ activeEvent: null });
     expect(computeFinalGold(50, state)).toBe(50);
+  });
+
+  test('pantheon × legacy × evento ativo empilham multiplicativamente e truncam', () => {
+    // event_goblin_invasion: missionRewardPct = 0.20 → fator 1.20
+    // seed deve bater com o Date.now() interno de activeEventRewardMultiplier
+    const seed = getEventSeed(Date.now());
+    const state = makeState({
+      pantheonBonuses: { goldPercent: 10, atkPercent: 0, hpPercent: 0 },
+      legacyUpgrades: { reward_1: 2 },
+      activeEvent: { id: 'event_goblin_invasion', seed, startedAt: 0, endsAt: Date.now() + 60_000 },
+    });
+    // applyGoldBonus:          Math.floor(100 * 1.1)  = 110
+    // legacyRewardMultiplier:  1 + (2*5)/100           = 1.1
+    // activeEventRewardMultiplier: 1 + 0.20            = 1.2
+    // Math.floor(110 * 1.1 * 1.2) = Math.floor(145.2) = 145
+    expect(computeFinalGold(100, state)).toBe(145);
   });
 });
