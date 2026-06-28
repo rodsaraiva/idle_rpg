@@ -4,6 +4,14 @@ Workflow `audit-best-practices`: 7 dimensões em paralelo → verificação adve
 **81 brutos → 77 confirmados → 4 refutados.** Severidade pós-verificação: 3 HIGH, 12 MED, 62 LOW.
 Os 3 HIGH foram reconfirmados manualmente lendo o código.
 
+## ✅ STATUS DE EXECUÇÃO (2026-06-27, mesma sessão)
+
+Tudo abaixo está **na `main`** (verificado por mim: tsc 0, lint 0, suíte 702→719, 126 suites; cada fase 3× sem flaky):
+- **3 HIGH** — todos corrigidos via TDD (boss semanal `getEffectiveStats`; Selos de Legado no `handleTick`).
+- **MED** — processo (lint gate + CI + coverage fora do git) e dedup (`computeFinalGold`, `CLASS_EMOJI`, rng na fusão, pureza do `processMissions`, `buildBattleMission`): feitos.
+- **LOW** — lote de **16** feito (código morto, `any`→narrowing, `hpFraction`/`clamp01`/`STAT_META`/`DEFAULT_NOTIFICATION_PREFS`, magic numbers de combate nomeados, typo `__version`→`_version`).
+- **Restam ~46 LOW** como backlog: memoização/perf e splits de componente grande (precisam de **validação visual no emulador** — sandbox não sobe Expo), `tsconfig` mais estrito (pode cascatear erros), `validateShape` hardening, expansão do escopo do eslint, e nitpicks variados.
+
 ---
 
 ## 🔴 HIGH — bugs reais de lógica (não estilo)
