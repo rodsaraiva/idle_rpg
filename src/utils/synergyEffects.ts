@@ -185,5 +185,3 @@ export function createSynergyHandlers(active: SynergyId[]): SynergyHandlers {
     },
   };
 }
-
-export const _NOOP_HANDLERS = NOOP_HANDLERS;

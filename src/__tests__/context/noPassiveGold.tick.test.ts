@@ -9,14 +9,8 @@ import { handleTick } from '../../context/tickHandler';
 import { HeroTask, Hero } from '../../types';
 import { TICK_INTERVAL_MS } from '../../constants/game';
 
-// Seed de evento que corresponde a missionRewardPct (event_goblin_invasion)
-// Garante que activeEventRewardMultiplier > 1 durante o teste.
-const NOW_WITH_EVENT = new Date(2026, 0, 15).getTime(); // Jan 2026 → seed 202601 → idx 1 → event_forge_festival
-// Usamos data fixa para controle: queremos seed que resulte em evento com missionRewardPct.
-// SEASONAL_EVENTS[202601 % 5] = SEASONAL_EVENTS[1] = event_forge_festival (forgeHaste only).
-// Para cobrir missionRewardPct, pegamos seed 202600 % 5 = 0 → event_goblin_invasion (+20%).
-// Construímos now = Date que gera seed 202600 → dezembro 2025.
-const NOW_DEC_2025 = new Date(2025, 11, 15).getTime(); // seed 202512 → 202512 % 5 = 2 → celestial_blessing (+10%)
+// seed 202512 % 5 = 2 → event_celestial_blessing (missionRewardPct +10%) → activeEventRewardMultiplier > 1
+const NOW_DEC_2025 = new Date(2025, 11, 15).getTime();
 
 function makeHero(overrides: Partial<Hero> = {}): Hero {
   return {

@@ -1,8 +1,6 @@
-import { 
-  RECRUIT_BASE_COST, 
-  RECRUIT_COST_MULTIPLIER, 
-  MISSION_BASE_GOLD, 
-  GOLD_PER_ATK,
+import {
+  RECRUIT_BASE_COST,
+  RECRUIT_COST_MULTIPLIER,
   REWARD_REF_STAT_SUM,
   REWARD_CURVE_EXPONENT,
   TEAM_SYNERGY_COEFFICIENT,
@@ -27,10 +25,6 @@ export const GameMath = {
   },
 
   // --- Missions ---
-  getMissionGoldPerTick(atk: number): number {
-    return MISSION_BASE_GOLD + atk * GOLD_PER_ATK;
-  },
-
   calcMissionReward(
     template: MissionTemplate,
     heroes: Hero[],
