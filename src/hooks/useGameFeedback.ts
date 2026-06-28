@@ -86,16 +86,16 @@ export function useGameFeedback(state: GameState) {
       });
 
       // 4. Enemy damage/death in missions
-      const prevMissions = (prev.activeMissions || []) as any[];
-      const curMissions = (state.activeMissions || []) as any[];
+      const prevMissions = prev.activeMissions ?? [];
+      const curMissions = state.activeMissions ?? [];
       const prevById = new Map(prevMissions.map((m) => [m.id, m]));
 
       curMissions.forEach((cm) => {
         const pm = prevById.get(cm.id);
         if (!pm || !pm.enemiesState || !cm.enemiesState) return;
 
-        const prevEnemies = pm.enemiesState as any[];
-        const curEnemies = cm.enemiesState as any[];
+        const prevEnemies = pm.enemiesState;
+        const curEnemies = cm.enemiesState;
         const prevByE = new Map(prevEnemies.map((e) => [e.id, e]));
 
         curEnemies.forEach((ce) => {

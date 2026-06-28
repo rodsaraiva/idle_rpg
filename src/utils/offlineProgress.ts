@@ -1,4 +1,4 @@
-import { GameState, HeroTask, OfflineSummaryFull, PerHeroChange } from '../types';
+import { GameState, HeroTask, OfflineSummaryFull, PerHeroChange, ActiveMission } from '../types';
 import {
   TICK_INTERVAL_MS,
   BASE_TRAIN_TIME_MS,
@@ -24,12 +24,12 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
 
   let heroesAffected = 0;
   const perHeroChanges: PerHeroChange[] = [];
-  const newActiveMissions: any[] = [];
+  const newActiveMissions: ActiveMission[] = [];
   const trainInflation = savedState.trainInflationFactor ?? TRAIN_INFLATION_FACTOR;
 
   const newHeroes = savedState.heroes.map((h) => {
-    const beforeHpMax = (h as any).hpMax ?? (h as any).hp ?? 0;
-    const beforeHpCurrent = (h as any).hpCurrent ?? (h as any).hp ?? beforeHpMax;
+    const beforeHpMax = h.hpMax;
+    const beforeHpCurrent = h.hpCurrent;
     const beforeAtk = h.atk;
     const beforeMp = h.mp;
 
@@ -140,7 +140,7 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
   if (savedState.activeMissions && savedState.activeMissions.length > 0) {
     const nowOffline = savedAt + cappedMs; // "agora" limitado pelo cap de 72h
 
-    savedState.activeMissions.forEach((m: any) => {
+    savedState.activeMissions.forEach((m: ActiveMission) => {
       // Resolução de template idêntica ao tick online (missão normal ou boss semanal)
       let template = MISSIONS.find((t) => t.id === m.templateId);
       if (!template && m.isWeeklyBoss) {

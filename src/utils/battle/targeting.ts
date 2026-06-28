@@ -4,7 +4,7 @@ import { GameMath } from '../gameMath';
  * Lógica de seleção de alvo: score por distância, classe, personalidade e
  * modifyScore externo, com tiebreak via rng.
  */
-export function selectTarget<T extends { id: string; hp?: number; hpCurrent?: number; position?: number; classId?: string; range?: number }>(
+export function selectTarget<T extends { id: string; hp?: number; hpCurrent?: number; position?: number; classId?: string; range?: number; maxHp?: number }>(
   attacker: { id: string; attackType?: 'MELEE' | 'RANGED'; personality?: string; classId?: string; range?: number },
   attackerPos: number,
   candidates: T[],
@@ -19,7 +19,7 @@ export function selectTarget<T extends { id: string; hp?: number; hpCurrent?: nu
   if (!candidates || candidates.length === 0) return undefined;
 
   const hpOf = (c: T) => (typeof c.hp === 'number' ? c.hp : c.hpCurrent ?? 0);
-  const maxHpOf = (c: any) => (typeof c.maxHp === 'number' ? c.maxHp : 100);
+  const maxHpOf = (c: T) => (typeof c.maxHp === 'number' ? c.maxHp : 100);
 
   const scores = candidates.map(target => {
     let score = 100;
