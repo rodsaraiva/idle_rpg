@@ -1,4 +1,4 @@
-import { GameState, GameAction } from '../types';
+import { GameState, GameAction, DEFAULT_NOTIFICATION_PREFS } from '../types';
 import { validateShape } from '../services/storage';
 import { handleTick } from './tickHandler';
 import {
@@ -146,11 +146,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'SET_NOTIFICATION_PREFS': {
-      const basePrefs = state.notificationPrefs ?? {
-        optedIn: false,
-        categories: { missionReady: false, bossReady: false, dailyReset: false, idle: false },
-        quietHours: { start: 22, end: 9 },
-      };
+      const basePrefs = state.notificationPrefs ?? DEFAULT_NOTIFICATION_PREFS;
       return {
         ...state,
         notificationPrefs: {

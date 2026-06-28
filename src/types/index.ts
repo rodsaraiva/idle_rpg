@@ -88,6 +88,12 @@ export interface NotificationPrefs {
   quietHours: { start: number; end: number };
 }
 
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  optedIn: false,
+  categories: { missionReady: false, bossReady: false, dailyReset: false, idle: false },
+  quietHours: { start: 22, end: 9 },
+};
+
 /** Estado global do jogo */
 export interface GameState {
   gold: number;

@@ -3,6 +3,7 @@ import { BattleState, BattleEnemy, Buff } from './battleEngine';
 import { getUnlockedSkills, SkillDef } from '../constants/skills';
 import { GameMath } from './gameMath';
 import { onEnemyDamagedSkills } from './enemySkillEffects';
+import { hpFraction } from './heroUtils';
 
 /** Check if a skill is off cooldown and available */
 function isSkillReady(state: BattleState, heroId: string, skill: SkillDef): boolean {
@@ -102,7 +103,7 @@ function tryGolpePesado(hero: Hero, target: BattleEnemy, state: BattleState): bo
 }
 
 function tryGritoDeGuerra(hero: Hero, state: BattleState): boolean {
-  const injured = state.heroes.find(h => h.id !== hero.id && h.hpCurrent > 0 && h.hpCurrent / h.hpMax < 0.4);
+  const injured = state.heroes.find(h => h.id !== hero.id && h.hpCurrent > 0 && hpFraction(h) < 0.4);
   if (!injured) return false;
 
   const existing = state.buffs[hero.id]?.find(b => b.source === 'WARRIOR_GRITO_DE_GUERRA' && b.type === 'atkMul');
@@ -123,7 +124,7 @@ function tryGritoDeGuerra(hero: Hero, state: BattleState): boolean {
 }
 
 function tryFuria(hero: Hero, state: BattleState): boolean {
-  if (hero.hpCurrent / hero.hpMax >= 0.3) return false;
+  if (hpFraction(hero) >= 0.3) return false;
   const skill = { id: 'WARRIOR_FURIA', cooldownRounds: -1 } as SkillDef;
   if (!isSkillReady(state, hero.id, skill)) return false;
 
@@ -321,8 +322,8 @@ function tryMeteoro(
 
 function tryCuraMaior(hero: Hero, state: BattleState): boolean {
   const injured = state.heroes
-    .filter(h => h.id !== hero.id && h.hpCurrent > 0 && h.hpCurrent / h.hpMax < 0.4)
-    .sort((a, b) => a.hpCurrent / a.hpMax - b.hpCurrent / b.hpMax)[0];
+    .filter(h => h.id !== hero.id && h.hpCurrent > 0 && hpFraction(h) < 0.4)
+    .sort((a, b) => hpFraction(a) - hpFraction(b))[0];
   if (!injured) return false;
 
   const healAmount = Math.floor(injured.hpMax * 0.5);

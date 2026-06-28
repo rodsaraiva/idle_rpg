@@ -23,15 +23,7 @@ import { Equipment } from '../types';
 import { MATERIALS, FORGE_RECIPES, MaterialId, EquipmentType } from '../constants/materials';
 import { LOTTIE_ASSETS } from '../constants/assets';
 import { emitForgeHint } from '../services/milestones';
-
-const STAT_LABELS: Record<string, string> = {
-  hp: 'HP',
-  atk: 'ATK',
-  mp: 'MP',
-  defense: 'DEF',
-  crit: 'CRIT',
-  agility: 'AGI',
-};
+import { STAT_META } from '../constants/stats';
 
 const TYPE_ICONS: Record<string, IconName> = {
   weapon: 'sword',
@@ -42,7 +34,7 @@ const TYPE_ICONS: Record<string, IconName> = {
 function formatStatBonus(statBonus: Equipment['statBonus']): string {
   return Object.entries(statBonus)
     .filter(([, v]) => v && v > 0)
-    .map(([k, v]) => `+${v} ${STAT_LABELS[k] || k}`)
+    .map(([k, v]) => `+${v} ${STAT_META[k]?.label || k}`)
     .join('  ');
 }
 

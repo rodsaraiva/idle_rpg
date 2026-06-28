@@ -1,6 +1,5 @@
 import { gameReducer, initialGameState } from '../../context/gameReducer';
 import { HeroTask, Hero } from '../../types';
-import { getMissionGoldPerTick } from '../../utils/math';
 
 function createHero(overrides: any = {}): Hero {
   const hpVal = overrides.hp ?? overrides.hpMax ?? 10;

@@ -7,6 +7,7 @@ import { theme } from '../theme';
 import { on, FeedbackEvent } from '../services/feedback';
 import { CombatantCard } from './CombatantCard';
 import { Icon } from './ui/Icon';
+import { clamp01 } from '../utils/math';
 
 interface Props {
   mission: ActiveMission;
@@ -32,7 +33,7 @@ export function MissionActiveItem({ mission, onWatch }: Props) {
     const totalActions = (mission.scheduledActions || []).length;
     if (totalActions === 0) return 0;
     const applied = (mission.scheduledActions || []).filter((s: any) => s.applied).length;
-    return Math.max(0, Math.min(1, applied / totalActions));
+    return clamp01(applied / totalActions);
   }, [mission.scheduledActions]);
 
   return (

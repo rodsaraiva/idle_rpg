@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { theme } from '../theme';
 import { textShadow } from '../theme/elevation';
+import { clamp01 } from '../utils/math';
 
 interface HPBarProps {
   current: number;
@@ -10,7 +11,7 @@ interface HPBarProps {
 }
 
 export function HPBar({ current, max, showText = true }: HPBarProps) {
-  const percentage = Math.max(0, Math.min(100, Math.round((current / Math.max(1, max)) * 100)));
+  const percentage = Math.round(clamp01(current / Math.max(1, max)) * 100);
   
   const getBarColor = () => {
     const ratio = current / Math.max(1, max);

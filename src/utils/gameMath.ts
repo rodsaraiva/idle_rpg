@@ -1,8 +1,6 @@
-import { 
-  RECRUIT_BASE_COST, 
-  RECRUIT_COST_MULTIPLIER, 
-  MISSION_BASE_GOLD, 
-  GOLD_PER_ATK,
+import {
+  RECRUIT_BASE_COST,
+  RECRUIT_COST_MULTIPLIER,
   REWARD_REF_STAT_SUM,
   REWARD_CURVE_EXPONENT,
   TEAM_SYNERGY_COEFFICIENT,
@@ -13,7 +11,15 @@ import {
   HIT_CHANCE_DISTANCE_PENALTY,
   CRIT_BASE_CHANCE,
   CRIT_MULTIPLIER,
-  GRID_COLUMNS
+  GRID_COLUMNS,
+  MAX_HIT_CHANCE,
+  MIN_HIT_CHANCE,
+  EVASION_K,
+  CRIT_ATTR_K,
+  DEF_MITIGATION_K,
+  ROGUE_CRIT_BONUS,
+  REWARD_RANDOM_BASE,
+  REWARD_RANDOM_SPREAD,
 } from '../constants/game';
 import { Hero } from '../types';
 import { MissionTemplate } from '../constants/missions';
@@ -27,10 +33,6 @@ export const GameMath = {
   },
 
   // --- Missions ---
-  getMissionGoldPerTick(atk: number): number {
-    return MISSION_BASE_GOLD + atk * GOLD_PER_ATK;
-  },
-
   calcMissionReward(
     template: MissionTemplate,
     heroes: Hero[],
@@ -77,8 +79,8 @@ export const GameMath = {
     const baseMapped = template.rewardMin + (template.rewardMax - template.rewardMin) * curved * dynamicScale;
 
     const rogueBonus = opts?.rogueRngBonus ?? 0;
-    const baseRandom = 0.9 + rngFn() * 0.2;
-    const randomFactor = Math.min(1.1 + rogueBonus, Math.max(0.9, baseRandom + rogueBonus));
+    const baseRandom = REWARD_RANDOM_BASE + rngFn() * REWARD_RANDOM_SPREAD;
+    const randomFactor = Math.min(1.1 + rogueBonus, Math.max(REWARD_RANDOM_BASE, baseRandom + rogueBonus));
 
     const raw = baseMapped * randomFactor;
     return Math.round(Math.max(template.rewardMin, Math.min(template.rewardMax, raw)));
@@ -86,27 +88,25 @@ export const GameMath = {
 
   // --- Combat ---
   calcHitChance(atk: number, targetAgility: number = 0, distance: number = 1): number {
-    const baseChance = Math.min(0.98, BASE_HIT_CHANCE + atk * HIT_CHANCE_PER_ATK);
+    const baseChance = Math.min(MAX_HIT_CHANCE, BASE_HIT_CHANCE + atk * HIT_CHANCE_PER_ATK);
     // Agilidade fornece uma curva de esquiva com retornos decrescentes
-    // Formula: Esquiva = Agi / (Agi + 50)
-    const evasion = targetAgility / (targetAgility + 50);
+    const evasion = targetAgility / (targetAgility + EVASION_K);
     // Penalidade por distância (além do primeiro hexágono)
     const distancePenalty = Math.max(0, distance - 1) * HIT_CHANCE_DISTANCE_PENALTY;
-    return Math.max(0.05, baseChance - evasion - distancePenalty);
+    return Math.max(MIN_HIT_CHANCE, baseChance - evasion - distancePenalty);
   },
 
   calcCritChance(classId?: string, critAttribute: number = 0): number {
-    const base = CRIT_BASE_CHANCE + (classId === 'ROGUE' ? 0.05 : 0);
-    // Crítico com retornos decrescentes: Crit% = CritAttr / (CritAttr + 100)
-    const critBonus = critAttribute / (critAttribute + 100);
+    const base = CRIT_BASE_CHANCE + (classId === 'ROGUE' ? ROGUE_CRIT_BONUS : 0);
+    // Crítico com retornos decrescentes
+    const critBonus = critAttribute / (critAttribute + CRIT_ATTR_K);
     return base + critBonus;
   },
 
   calcDamage(atk: number, targetDefense: number = 0, isCrit: boolean = false): number {
     const baseDmg = isCrit ? atk * CRIT_MULTIPLIER : atk;
-    // Defesa com retornos decrescentes: Redução = Def / (Def + 50)
-    // DEF=5: ~9%, DEF=20: ~29%, DEF=35 (Tank): ~41%, DEF=50: 50%
-    const mitigationFactor = 1 - targetDefense / (targetDefense + 50);
+    // Defesa com retornos decrescentes: DEF=5: ~9%, DEF=20: ~29%, DEF=35: ~41%, DEF=50: 50%
+    const mitigationFactor = 1 - targetDefense / (targetDefense + DEF_MITIGATION_K);
     return Math.max(1, Math.floor(baseDmg * mitigationFactor));
   },
 

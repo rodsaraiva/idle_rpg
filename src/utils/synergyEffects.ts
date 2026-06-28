@@ -88,7 +88,7 @@ const SYNERGY_IMPLS: Record<SynergyId, Partial<SynergyHandlers>> = {
   // Caos Arcano (Disjunção): Mago debuffa defesa do alvo (50% → 40% de DEF, por 2 turnos)
   CAOS_ARCANO: {
     onAttackResolved: (state, attacker, target, dmg, _distance) => {
-      if ((attacker as any).classId !== 'MAGE' || dmg <= 0) return;
+      if (!('classId' in attacker && attacker.classId === 'MAGE') || dmg <= 0) return;
       const existing = state.buffs[target.id] ?? [];
       const filtered = existing.filter(b => b.source !== 'CAOS_ARCANO');
       filtered.push({
@@ -105,7 +105,7 @@ const SYNERGY_IMPLS: Record<SynergyId, Partial<SynergyHandlers>> = {
   EMBOSCADA: {
     shouldIgnoreDefense: (state, attacker) => {
       if (state.rounds > 3) return false;
-      const cid = (attacker as any).classId;
+      const cid = 'classId' in attacker ? attacker.classId : undefined;
       return cid === 'WARRIOR' || cid === 'ROGUE';
     },
   },
@@ -113,7 +113,7 @@ const SYNERGY_IMPLS: Record<SynergyId, Partial<SynergyHandlers>> = {
   // Artilharia (Bombardeio): Ataques ranged >=2 hex têm 50% chance de splash
   ARTILHARIA: {
     onAttackResolved: (state, attacker, target, dmg, distance) => {
-      const cid = (attacker as any).classId;
+      const cid = 'classId' in attacker ? attacker.classId : undefined;
       if (cid !== 'ARCHER' && cid !== 'MAGE') return;
       if (distance < 2 || dmg <= 0) return;
       if (state.rng() >= 0.5) return;
@@ -132,13 +132,14 @@ const SYNERGY_IMPLS: Record<SynergyId, Partial<SynergyHandlers>> = {
       const pick = candidates[Math.floor(state.rng() * candidates.length)];
       const splashDmg = Math.max(1, Math.floor(dmg * 0.5));
       pick.hp = Math.max(0, pick.hp - splashDmg);
-      const txt = `Bombardeio: ${(attacker as any).name ?? (attacker as any).id} causou ${splashDmg} de dano em respingo em ${pick.id}`;
+      const attackerName = 'name' in attacker ? attacker.name : attacker.id;
+      const txt = `Bombardeio: ${attackerName} causou ${splashDmg} de dano em respingo em ${pick.id}`;
       state.log.push(txt);
       state.actions.push({
         round: state.rounds,
         actorType: 'hero',
-        actorId: (attacker as any).id,
-        actorName: (attacker as any).name ?? (attacker as any).id,
+        actorId: attacker.id,
+        actorName: attackerName,
         actionType: 'hit',
         targetId: pick.id,
         amount: splashDmg,
@@ -185,5 +186,3 @@ export function createSynergyHandlers(active: SynergyId[]): SynergyHandlers {
     },
   };
 }
-
-export const _NOOP_HANDLERS = NOOP_HANDLERS;

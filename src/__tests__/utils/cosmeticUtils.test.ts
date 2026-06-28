@@ -1,4 +1,4 @@
-import { resolveCosmetic, cornerForFrame } from '../../utils/cosmeticUtils';
+import { resolveCosmetic } from '../../utils/cosmeticUtils';
 
 test('resolveCosmetic retorna o cosmético pelo id', () => {
   const c = resolveCosmetic('frame_gold');
@@ -8,19 +8,8 @@ test('resolveCosmetic retorna o cosmético pelo id', () => {
   expect(c!.corner).toBe('gold');
 });
 
-test('cornerForFrame retorna o corner correto para cada moldura', () => {
-  expect(cornerForFrame('frame_gold')).toBe('gold');
-  expect(cornerForFrame('frame_silver')).toBe('silver');
-  expect(cornerForFrame('frame_obsidian')).toBe('obsidian');
-  expect(cornerForFrame('frame_bronze')).toBe('wood');
-});
-
 test('resolveCosmetic retorna undefined para id inexistente', () => {
   expect(resolveCosmetic('nonexistent_xyz')).toBeUndefined();
-});
-
-test('cornerForFrame retorna undefined para id inexistente', () => {
-  expect(cornerForFrame('nonexistent_xyz')).toBeUndefined();
 });
 
 test('selos e temas também são resolvidos pelo catálogo', () => {

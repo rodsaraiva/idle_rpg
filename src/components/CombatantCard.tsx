@@ -4,6 +4,7 @@ import { theme } from '../theme';
 import { textShadow } from '../theme/elevation';
 import { on, FeedbackEvent } from '../services/feedback';
 import { Icon } from './ui/Icon';
+import { clamp01 } from '../utils/math';
 
 interface CombatantCardProps {
   id: string;
@@ -36,7 +37,7 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
   align = 'left',
   highlighted = false,
 }) => {
-  const hpPct = Math.max(0, Math.min(1, hp / Math.max(1, maxHp)));
+  const hpPct = clamp01(hp / Math.max(1, maxHp));
 
   const hpAnim = useRef(new Animated.Value(hpPct)).current;
   const hitAnim = useRef(new Animated.Value(0)).current; // 0..1
@@ -47,7 +48,7 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
 
   // animate HP bar when hp changes
   useEffect(() => {
-    const to = Math.max(0, Math.min(1, hp / Math.max(1, maxHp)));
+    const to = clamp01(hp / Math.max(1, maxHp));
     Animated.timing(hpAnim, {
       toValue: to,
       duration: 220,
