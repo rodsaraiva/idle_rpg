@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { configProvider } from '../../../src/services/configProvider';
-import { MISSIONS, MissionTemplate } from '../../../src/constants/missions';
+import { MISSIONS } from '../../../src/constants/missions';
 import { ClassId } from '../../../src/types/index';
 import { generateTrainedHero } from '../../utils/trainedHeroGenerator';
 import { runMissionSimulation } from '../../utils/simulationRunner';
@@ -59,7 +59,7 @@ function formatTable(data: Record<string, any>) {
   const columns = Object.keys(data[keys[0]]);
   let table = '';
   table += `| ${'Classe/Grupo'.padEnd(45)} | ` + columns.map(c => c.padEnd(18)).join(' | ') + ' |\n';
-  table += `| ${'-'.repeat(45)} | ` + columns.map(c => '-'.repeat(18)).join(' | ') + ' |\n';
+  table += `| ${'-'.repeat(45)} | ` + columns.map(() => '-'.repeat(18)).join(' | ') + ' |\n';
   for (const key of keys) {
     table += `| ${key.padEnd(45)} | ` + columns.map(col => String(data[key][col]).padEnd(18)).join(' | ') + ' |\n';
   }

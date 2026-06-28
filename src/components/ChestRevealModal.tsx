@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { SOUND_ASSETS, LOTTIE_ASSETS } from '../constants/assets';
+import { LOTTIE_ASSETS } from '../constants/assets';
 import { Hero, ClassId } from '../types';
 import { theme } from '../theme';
 import { CLASS_DEFS, CLASS_EMOJI } from '../constants/classes';
@@ -37,7 +37,7 @@ export function ChestRevealModal({
   chestLabel,
   statVariance,
   onComplete,
-  onCancel,
+  onCancel: _onCancel,
 }: ChestRevealModalProps) {
   const isWeb = Platform.OS === 'web';
   const [phase, setPhase] = useState<RevealPhase>('suspense');

@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { ActiveMission, MissionAction, Hero, MissionActorType } from '../types';
+import { useState, useEffect } from 'react';
+import { ActiveMission, MissionActorType } from '../types';
 import { useGame } from './useGame';
-import { GameMath } from '../utils/gameMath';
 
 export type CombatantState = {
   id: string;

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Image, Platform, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Image, Animated, Easing } from 'react-native';
 import { theme } from '../theme';
 import { textShadow } from '../theme/elevation';
 import { on, FeedbackEvent } from '../services/feedback';
@@ -30,8 +30,8 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
   atk,
   mp,
   defense,
-  agility,
-  crit,
+  agility: _agility,
+  crit: _crit,
   avatarUrl,
   attackType,
   align = 'left',
@@ -109,8 +109,6 @@ export const CombatantCard: React.FC<CombatantCardProps> = ({
   const hpWidth = hpAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const dmgTranslate = dmgAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -40] });
   const dmgOpacity = dmgAnim.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: [0, 1, 1, 0] });
-  const glowOpacity = isTargetLocal ? 1 : 0;
-
   return (
     <Animated.View
       style={[

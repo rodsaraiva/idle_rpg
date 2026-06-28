@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, ViewStyle } from 'react-native';
+import { View, StyleSheet, ViewStyle } from 'react-native';
 import Svg, { Polygon } from 'react-native-svg';
 import { HEX_WIDTH, HEX_HEIGHT } from '../constants/game';
 import { theme } from '../theme';

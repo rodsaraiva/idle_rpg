@@ -117,7 +117,7 @@ describe('skillEffects', () => {
 
       // Second time should not trigger
       dead.hpCurrent = 0;
-      const consumed2 = executePreAttackSkills(healer, undefined, state, fixedRng(0.5));
+      executePreAttackSkills(healer, undefined, state, fixedRng(0.5));
       expect(dead.hpCurrent).toBe(0); // Not revived again
     });
   });

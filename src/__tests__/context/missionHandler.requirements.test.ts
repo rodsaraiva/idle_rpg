@@ -1,23 +1,6 @@
 import { handleStartMission } from '../../context/missionHandler';
 import { initialGameState } from '../../context/gameReducer';
 import { HeroTask, Hero } from '../../types';
-import { MISSIONS } from '../../constants/missions';
-
-// Create a mock mission with requirements
-const MOCK_MISSION = {
-  id: 'req_mission',
-  name: 'Requirement Mission',
-  minHeroes: 1,
-  durationMs: 1000,
-  rewardMin: 10,
-  rewardMax: 20,
-  requirements: [
-    { type: 'class_needed', classId: 'MAGE', label: 'Precisa de um Mago' },
-    { type: 'min_stat', stat: 'atk', value: 20, label: 'Ataque alto necessário' },
-    { type: 'min_avg_stat', stat: 'hp', value: 50, label: 'Time precisa de HP médio alto' }
-  ]
-} as any;
-
 // Add it to MISSIONS temporarily or just use it in tests if we can inject it
 // Since MISSIONS is a constant, we might need to mock the import or just test the internal logic if exported.
 // But handleStartMission uses MISSIONS directly.

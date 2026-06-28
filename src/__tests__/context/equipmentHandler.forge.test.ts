@@ -1,5 +1,5 @@
 import { handleForgeEquipment } from '../../context/equipmentHandler';
-import { GameState, HeroTask } from '../../types';
+import { GameState } from '../../types';
 import { refreshWeeklyState } from '../../context/weeklyHandler';
 
 const baseState: GameState = {

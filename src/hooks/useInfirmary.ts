@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useGame } from './useGame';
-import { Hero, HeroTask } from '../types';
+import { HeroTask } from '../types';
 
 export function useInfirmary() {
   const { state, dispatch, isLoaded } = useGame();

@@ -13,15 +13,13 @@
  */
 
 import * as fs from 'fs';
-import * as path from 'path';
 import { configProvider } from '../../src/services/configProvider';
-import { MISSIONS, MissionTemplate } from '../../src/constants/missions';
+import { MISSIONS } from '../../src/constants/missions';
 import { ClassId, Hero, Equipment, PersonalityId } from '../../src/types';
 import { generateTrainedHero } from '../utils/trainedHeroGenerator';
 import { runMissionSimulation, SimulationResult } from '../utils/simulationRunner';
 import { PERSONALITY_LIST, PERSONALITIES } from '../../src/constants/personalities';
 import { SYNERGIES, getActiveSynergies } from '../../src/constants/synergies';
-import { EQUIPMENT_TIERS } from '../../src/constants/equipment';
 import { generateEquipment } from '../../src/context/equipmentHandler';
 import { makeRng } from '../../src/utils/math';
 import { GameMath } from '../../src/utils/gameMath';
@@ -111,17 +109,9 @@ function applyEquipmentToHero(hero: Hero, items: Equipment[]): Hero {
   return clone;
 }
 
-function uniqueHeroes<T extends Hero>(heroes: T[]): T[] {
-  // Clone and give unique IDs so simulationRunner doesn't deduplicate by id
-  return heroes.map((h, i) => ({ ...h, id: `${h.id}_${i}` }));
-}
-
 function combinations<T>(arr: T[], n: number): T[][] {
   if (n === 0) return [[]];
   if (arr.length === 0) return [];
-  const [first, ...rest] = arr;
-  const withFirst = combinations(arr, n - 1).map(c => [first, ...c]).filter(c => c.length === n);
-  const withoutFirst = combinations(rest, n);
   // Allow repetition
   const result: T[][] = [];
   for (let i = 0; i < arr.length; i++) {

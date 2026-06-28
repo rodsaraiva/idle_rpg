@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Hero, HeroTask } from '../types';
 import { theme } from '../theme';
-import { StatBar } from './StatBar';
 import { TaskButton } from './TaskButton';
 import { AttributeProgress } from './AttributeProgress';
 import { BASE_TRAIN_TIME_MS, TRAIN_INFLATION_FACTOR, INCAPACITATED_HP_THRESHOLD } from '../constants/game';

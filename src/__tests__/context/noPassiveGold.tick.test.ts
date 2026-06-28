@@ -33,7 +33,6 @@ function makeHero(overrides: Partial<Hero> = {}): Hero {
 
 /** Estado base: sem missões ativas, com Legado comprado e evento ativo. */
 function makeStateWithBonuses(now: number): any {
-  const seed = Math.floor(now / (1000 * 60 * 60 * 24 * 30)) % 100 + 202501; // aproximação — usamos refreshActiveEvent
   // Construir activeEvent consistente com now para que refreshActiveEvent seja no-op:
   // Mesma lógica de getEventSeed: seed = year*100 + (month+1).
   const d = new Date(now);

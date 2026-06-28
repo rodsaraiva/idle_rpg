@@ -1,7 +1,4 @@
-import { Hero } from '../types';
 import {
-  BattleState,
-  BattleEnemy,
   SynergyHandlers,
   SynergyId,
 } from './battleEngine';

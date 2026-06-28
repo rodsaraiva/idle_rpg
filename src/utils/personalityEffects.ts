@@ -21,7 +21,7 @@ export function applyPersonalityOnHit(
   hero: Hero,
   target: BattleEnemy,
   state: BattleState,
-  dmg: number,
+  _dmg: number,
   rng: () => number,
   didMove: boolean,
 ): boolean {

@@ -31,7 +31,7 @@ function makeCommander(atkStat: number, id = 'cmd1'): Hero {
   } as Hero;
 }
 
-function makeAlly(id: string, position?: number): Hero {
+function makeAlly(id: string, _position?: number): Hero {
   return {
     id,
     name: `Aliado ${id}`,

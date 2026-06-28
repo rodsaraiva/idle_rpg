@@ -1,5 +1,5 @@
 import { checkAchievements } from '../../context/achievementHandler';
-import { GameState, HeroTask } from '../../types';
+import { GameState } from '../../types';
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {

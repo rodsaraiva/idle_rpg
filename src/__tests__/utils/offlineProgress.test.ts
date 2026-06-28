@@ -1,6 +1,6 @@
 import { calculateOfflineProgress } from '../../utils/offlineProgress';
 import { GameState, HeroTask, Hero } from '../../types';
-import { BASE_TRAIN_TIME_MS, TICK_INTERVAL_MS, MAX_OFFLINE_MS } from '../../constants/game';
+import { TICK_INTERVAL_MS, MAX_OFFLINE_MS } from '../../constants/game';
 
 describe('OfflineProgress - Catch-up Logic', () => {
   const createBaseState = (): GameState => ({

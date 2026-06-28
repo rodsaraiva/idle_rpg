@@ -1,9 +1,8 @@
 import { MissionTemplate } from '../constants/missions';
-import { Hero, MissionOutcome, MissionAction } from '../types';
+import { Hero, MissionOutcome } from '../types';
 import { getDropsForEnemy } from '../constants/materials';
 import { calcMissionReward } from './missionMath';
-import { BattleEngine, BattleEnemy, BattleState } from './battleEngine';
-import { GameMath } from './gameMath';
+import { BattleEngine } from './battleEngine';
 import { processDoTBuffs } from './skillEffects';
 import { processEnemyRegenBuffs } from './enemySkillEffects';
 
@@ -12,11 +11,6 @@ import {
   ENEMY_HIT_CHANCE,
   TANK_MITIGATION_PER_HERO,
   TANK_MITIGATION_CAP,
-  INCAPACITATED_DURATION_MS,
-  BASE_HIT_CHANCE,
-  HIT_CHANCE_PER_ATK,
-  GRID_COLUMNS,
-  GRID_ROWS
 } from '../constants/game';
 import { makeRng } from './math';
 

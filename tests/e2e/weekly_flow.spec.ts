@@ -1,11 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { loadClean, loadWithState, makeHero, makeState } from './helpers';
+import { loadClean, loadWithState, makeState } from './helpers';
 import { getWeeklySeed, pickWeeklyQuests } from '../../src/constants/weeklyQuests';
-import { getWeeklyBoss } from '../../src/constants/weeklyBosses';
 
 const seed = getWeeklySeed();
 const quests = pickWeeklyQuests(seed);
-const boss = getWeeklyBoss(seed);
 
 test.describe('Weekly Flow', () => {
   test('Semanal card visível na Vila e navegável', async ({ page }) => {

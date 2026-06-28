@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ActiveMission } from '../types';
 import { MISSIONS } from '../constants/missions';
 import { useGame } from '../hooks/useGame';
