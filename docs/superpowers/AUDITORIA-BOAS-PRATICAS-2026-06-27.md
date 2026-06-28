@@ -10,7 +10,12 @@ Tudo abaixo está **na `main`** (verificado por mim: tsc 0, lint 0, suíte 702�
 - **3 HIGH** — todos corrigidos via TDD (boss semanal `getEffectiveStats`; Selos de Legado no `handleTick`).
 - **MED** — processo (lint gate + CI + coverage fora do git) e dedup (`computeFinalGold`, `CLASS_EMOJI`, rng na fusão, pureza do `processMissions`, `buildBattleMission`): feitos.
 - **LOW** — lote de **16** feito (código morto, `any`→narrowing, `hpFraction`/`clamp01`/`STAT_META`/`DEFAULT_NOTIFICATION_PREFS`, magic numbers de combate nomeados, typo `__version`→`_version`).
-- **Restam ~46 LOW** como backlog: memoização/perf e splits de componente grande (precisam de **validação visual no emulador** — sandbox não sobe Expo), `tsconfig` mais estrito (pode cascatear erros), `validateShape` hardening, expansão do escopo do eslint, e nitpicks variados.
+- **tsconfig mais estrito** — 5 flags adotadas: `noImplicitOverride`/`noImplicitReturns`/`noFallthroughCasesInSwitch` (custo 0) + `noUnusedLocals`/`noUnusedParameters` (77 dead symbols removidos).
+
+### Débito dedicado (medido, deixado fora de propósito)
+- **`noUncheckedIndexedAccess` = 340 erros** — projeto próprio; força `arr[i]: T|undefined` em todo o código (muitos guards/`!`). Alto valor, alta churn.
+- **`exactOptionalPropertyTypes` = 42** e **`noPropertyAccessFromIndexSignature` = 39** (este puramente estilístico) — médio valor, fazer numa branch isolada.
+- **~46 LOW restantes** — memoização/perf e splits de componente grande precisam de **validação visual no emulador** (sandbox não sobe Expo); `validateShape` hardening (threat model é auto-tampering local, baixa prioridade); expansão do escopo do eslint (gera novos warnings); nitpicks.
 
 ---
 
