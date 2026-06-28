@@ -12,6 +12,7 @@ import { View, Text, Modal, Pressable, StyleSheet } from 'react-native';
 import { GameContext } from '../context/GameContext';
 import { GameState } from '../types';
 import { setAnalyticsConsent, trackAppOpen } from '../services/analytics';
+import { darkColors as c } from '../theme/tokens/colors';
 
 // ── Lógica pura ──────────────────────────────────────────────────────────────
 
@@ -47,7 +48,6 @@ export function ConsentGate(): React.ReactElement | null {
         trackAppOpen();
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, state.consent]);
 
   // Não exibe antes do carregamento (evita flash) e quando já decidido
@@ -86,35 +86,35 @@ export function ConsentGate(): React.ReactElement | null {
   );
 }
 
-// ── Estilos inline (sem depender do ThemeProvider que pode não estar acima) ──
+// ── Estilos via tokens de cor (darkColors é const estática; não exige ThemeProvider acima) ──
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: c.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
   card: {
-    backgroundColor: '#1a1206',
+    backgroundColor: c.bgBase,
     borderRadius: 12,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#c9a227',
+    borderColor: c.gold,
     maxWidth: 360,
     width: '100%',
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#f4d582',
+    color: c.goldBright,
     marginBottom: 12,
     textAlign: 'center',
   },
   body: {
     fontSize: 14,
-    color: '#d4c5a0',
+    color: c.textSecondary,
     lineHeight: 20,
     marginBottom: 20,
   },
@@ -127,11 +127,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#5a4a2a',
+    borderColor: c.border,
     alignItems: 'center',
   },
   btnDeclineText: {
-    color: '#a09070',
+    color: c.textMuted,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -139,11 +139,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderRadius: 8,
-    backgroundColor: '#c9a227',
+    backgroundColor: c.gold,
     alignItems: 'center',
   },
   btnAcceptText: {
-    color: '#1a1206',
+    color: c.bgBase,
     fontWeight: '700',
     fontSize: 14,
   },
