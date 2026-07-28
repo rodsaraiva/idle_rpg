@@ -163,7 +163,7 @@ export type GameAction =
   | { type: 'CONFIRM_CHEST_REVEAL'; hero: Hero }
   | { type: 'SET_TICK_INTERVAL'; ms: number }
   | { type: 'SET_TRAIN_INFLATION'; inflation: number }
-  | { type: 'START_MISSION'; templateId: string; heroIds: string[]; heroPositions?: Record<string, number>; now: number; looping?: boolean }
+  | { type: 'START_MISSION'; templateId: string; heroIds: string[]; heroPositions?: Record<string, number>; now: number; loop?: LoopPlan }
   | { type: 'COMPLETE_MISSION'; missionId: string; reward: number }
   | { type: 'DISMISS_MISSION_RESULT'; missionId: string }
   | { type: 'FORGE_EQUIPMENT'; tier: number; equipmentType: 'weapon' | 'armor' | 'accessory'; now: number }
@@ -258,8 +258,7 @@ export interface ActiveMission {
   activeSynergies?: string[];
   // precomputed reward/summary to avoid recomputing on completion
   precomputedOutcome?: MissionOutcome;
-  // whether this mission auto-repeats on completion
-  looping?: boolean;
+  // plano de repetição do ciclo (ausente = missão não repete)
   loop?: LoopPlan;
   loopRecalled?: boolean;
   loopTally?: LoopTally;

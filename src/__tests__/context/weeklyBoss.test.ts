@@ -125,13 +125,13 @@ describe('handleStartWeeklyBoss — build do encontro', () => {
     }
   });
 
-  test('mission não tem looping=true', () => {
+  test('mission não entra em loop', () => {
     const state = makeState(5);
     const heroIds = state.heroes.slice(0, 4).map(h => h.id);
 
     const next = handleStartWeeklyBoss(state, heroIds, undefined, Date.now());
 
-    expect(next.activeMissions![0].looping).toBe(false);
+    expect(next.activeMissions![0].loop).toBeUndefined();
   });
 });
 
@@ -151,7 +151,6 @@ describe('tick — conclusão do boss semanal', () => {
       startedAt: pastTime - boss.durationMs,
       finishAt: pastTime,
       isWeeklyBoss: true,
-      looping: false,
       scheduledActions: [],
       enemiesState: [],
       precomputedOutcome: {
@@ -278,7 +277,6 @@ describe('tick — recompensa de equipamento do boss', () => {
       startedAt: pastTime - boss.durationMs,
       finishAt: pastTime,
       isWeeklyBoss: true,
-      looping: false,
       scheduledActions: [],
       enemiesState: [],
       precomputedOutcome: {

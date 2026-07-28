@@ -39,7 +39,7 @@ describe('processMissions (caracterização da unidade isolada)', () => {
       activeMissions: [{
         id: 'mA', templateId: M1.id, heroIds: ['h1'],
         startedAt: now - 100_000, finishAt: now - 1000,
-        looping: false, scheduledActions: [], enemiesState: [],
+        scheduledActions: [], enemiesState: [],
         precomputedOutcome: outcome({ reward: 100 }),
       }],
     });
@@ -60,7 +60,7 @@ describe('processMissions (caracterização da unidade isolada)', () => {
       activeMissions: [{
         id: 'mLoop', templateId: M1.id, heroIds,
         startedAt: now - 100_000, finishAt: now - 1000,
-        looping: true, scheduledActions: [], enemiesState: [], heroPositions: {},
+        loop: { mode: 'endless' }, scheduledActions: [], enemiesState: [], heroPositions: {},
         precomputedOutcome: outcome({ reward: 80, success: true }),
       }],
     });
@@ -69,7 +69,7 @@ describe('processMissions (caracterização da unidade isolada)', () => {
     expect(r.activeMissions.length).toBe(1);
     const next = r.activeMissions[0];
     expect(next.startedAt).toBe(now);
-    expect(next.looping).toBe(true);
+    expect(next.loop).toEqual({ mode: 'endless' });
     expect(next.precomputedOutcome).toBeDefined();
     expect(Array.isArray(next.scheduledActions)).toBe(true);
     // heróis NÃO voltam a IDLE no loop
@@ -85,7 +85,7 @@ describe('processMissions (caracterização da unidade isolada)', () => {
       activeMissions: [{
         id: 'mDead', templateId: M1.id, heroIds: ['d1'],
         startedAt: now - 100_000, finishAt: now - 1000,
-        looping: true, scheduledActions: [], enemiesState: [],
+        loop: { mode: 'endless' }, scheduledActions: [], enemiesState: [],
         precomputedOutcome: outcome({
           reward: 50, success: true,
           casualties: [{ heroId: 'd1', hpLost: 50, hpAfter: 0 }],
@@ -108,7 +108,7 @@ describe('processMissions (caracterização da unidade isolada)', () => {
         id: 'mBoss', templateId: boss.id, heroIds: ['hb'],
         isWeeklyBoss: true,
         startedAt: now - 100_000, finishAt: now - 1000,
-        looping: false, scheduledActions: [], enemiesState: [],
+        scheduledActions: [], enemiesState: [],
         precomputedOutcome: outcome({ reward: 200, success: true }),
       }],
     });
@@ -126,7 +126,7 @@ describe('processMissions (caracterização da unidade isolada)', () => {
       activeMissions: [{
         id: 'mCas', templateId: M1.id, heroIds: ['h1'],
         startedAt: now - 100_000, finishAt: now - 1000,
-        looping: false, scheduledActions: [], enemiesState: [],
+        scheduledActions: [], enemiesState: [],
         precomputedOutcome: outcome({
           reward: 100, success: true,
           casualties: [{ heroId: 'h1', hpLost: 20, hpAfter: 30 }],
@@ -146,7 +146,7 @@ describe('processMissions (caracterização da unidade isolada)', () => {
       activeMissions: [{
         id: 'mDrop', templateId: M1.id, heroIds: ['h1'],
         startedAt: now - 100_000, finishAt: now - 1000,
-        looping: false, scheduledActions: [], enemiesState: [],
+        scheduledActions: [], enemiesState: [],
         precomputedOutcome: outcome({ reward: 100, materialDrops: { iron: 2, leather: 1 } }),
       }],
     });

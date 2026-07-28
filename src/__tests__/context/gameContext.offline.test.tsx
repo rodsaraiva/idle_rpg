@@ -15,7 +15,7 @@ function makeHero(): Hero {
 
 function makeMission(startedAt: number): ActiveMission {
   return {
-    id: 'm1', templateId: 'mission_1', heroIds: ['h1'], startedAt, looping: true,
+    id: 'm1', templateId: 'mission_1', heroIds: ['h1'], startedAt, loop: { mode: 'endless' },
     scheduledActions: [], enemiesState: [],
     precomputedOutcome: {
       reward: 100, rounds: 1, actions: [], log: [], success: true, casualties: [], enemyCasualties: 0,

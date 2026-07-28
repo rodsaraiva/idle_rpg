@@ -114,7 +114,7 @@ test('sem slot_1: não inicia missão além de BASE_MISSION_SLOTS', () => {
   // Encher os slots base com missões fictícias já ativas
   const filledMissions = Array.from({ length: BASE_MISSION_SLOTS }, (_, i) => ({
     id: `m${i}`, templateId: 'mission_1', heroIds: [`occupied_${i}`],
-    startedAt: Date.now(), looping: false,
+    startedAt: Date.now(),
   }));
 
   const state = {
@@ -138,7 +138,7 @@ test('com slot_1 rank 1: permite missão além de BASE_MISSION_SLOTS', () => {
 
   const filledMissions = Array.from({ length: BASE_MISSION_SLOTS }, (_, i) => ({
     id: `m${i}`, templateId: 'mission_1', heroIds: [`occupied_${i}`],
-    startedAt: Date.now(), looping: false,
+    startedAt: Date.now(),
   }));
 
   const state = {

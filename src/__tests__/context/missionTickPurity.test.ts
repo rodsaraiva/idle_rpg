@@ -61,7 +61,6 @@ describe('processMissions — pureza do reducer (enemiesState e heroPositions)',
         heroIds: ['h1'],
         // elapsed = 50_000ms >> all atMsFromStart values → both actions fire
         startedAt: now - 50_000,
-        looping: false,
         scheduledActions,
         enemiesState,
         heroPositions,

@@ -71,7 +71,6 @@ describe('gold bonus via pantheonBonuses', () => {
           heroIds: ['h1'],
           startedAt: now - 100000,
           finishAt: now - 1000,
-          looping: false,
           scheduledActions: [],
           enemiesState: [],
           precomputedOutcome: {

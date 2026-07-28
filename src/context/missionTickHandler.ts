@@ -170,7 +170,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
     }
 
     // Check if looping mission should restart
-    if (c.mission.looping && c.outcome.success) {
+    if (c.mission.loop && c.outcome.success) {
       goldGained += computeFinalGold(c.reward, state);
       const tpl = MISSIONS.find(t => t.id === c.mission.templateId);
       if (tpl) {
@@ -209,7 +209,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
               heroIds: c.mission.heroIds,
               heroPositions: c.mission.heroPositions,
               startedAt: now,
-              looping: true,
+              loop: c.mission.loop,
               healerBuffMultiplier,
               rogueRngBonus,
               activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,

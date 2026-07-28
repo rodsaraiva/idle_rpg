@@ -1,4 +1,4 @@
-import { GameState, HeroTask, Hero, ActiveMission } from '../types';
+import { GameState, HeroTask, Hero, ActiveMission, LoopPlan } from '../types';
 import { MISSIONS, MissionTemplate } from '../constants/missions';
 import { getWeeklyBoss } from '../constants/weeklyBosses';
 import { getWeeklySeed } from '../constants/weeklyQuests';
@@ -59,14 +59,14 @@ function buildBattleMission(params: {
   heroPositions?: Record<string, number>;
   heroesForMission: Hero[];
   timestamp: number;
-  looping: boolean;
+  loop?: LoopPlan;
   isWeeklyBoss: boolean;
   durationFactor: number;
   onBattleError: (err: unknown) => void;
 }): GameState {
   const {
     state, runTemplate, missionTemplateId, heroIds, heroPositions,
-    heroesForMission, timestamp, looping, isWeeklyBoss, durationFactor, onBattleError,
+    heroesForMission, timestamp, loop, isWeeklyBoss, durationFactor, onBattleError,
   } = params;
 
   const missionId = uuidv4();
@@ -87,7 +87,7 @@ function buildBattleMission(params: {
     healerBuffMultiplier,
     rogueRngBonus,
     activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,
-    looping,
+    loop,
     ...(isWeeklyBoss ? { isWeeklyBoss: true } : {}),
   };
 
@@ -132,7 +132,7 @@ function buildBattleMission(params: {
   };
 }
 
-export function handleStartMission(state: GameState, templateId: string, heroIds: string[], heroPositions?: Record<string, number>, now?: number, looping?: boolean): GameState {
+export function handleStartMission(state: GameState, templateId: string, heroIds: string[], heroPositions?: Record<string, number>, now?: number, loop?: LoopPlan): GameState {
   const template = MISSIONS.find((t) => t.id === templateId);
   if (!template) return state;
   if ((heroIds?.length ?? 0) < template.minHeroes) return state;
@@ -163,7 +163,7 @@ export function handleStartMission(state: GameState, templateId: string, heroIds
   return buildBattleMission({
     state, runTemplate: template, missionTemplateId: template.id,
     heroIds, heroPositions, heroesForMission, timestamp,
-    looping: looping ?? false, isWeeklyBoss: false,
+    loop, isWeeklyBoss: false,
     durationFactor: legacyDurationMultiplier(state),
     onBattleError: (err) => { if (__DEV__) console.error('Erro ao processar batalha da missão:', err); },
   });
@@ -210,7 +210,7 @@ export function handleStartWeeklyBoss(
   return buildBattleMission({
     state, runTemplate: tpl, missionTemplateId: boss.id,
     heroIds, heroPositions, heroesForMission, timestamp,
-    looping: false, isWeeklyBoss: true,
+    isWeeklyBoss: true,
     durationFactor: 1,
     onBattleError: (err) => { console.error('Erro ao processar batalha do boss semanal:', err); },
   });

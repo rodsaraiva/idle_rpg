@@ -96,7 +96,6 @@ describe('invariante "sem gold passivo" no caminho do tick', () => {
           heroIds: ['h1'],
           startedAt: now - 100_000,
           finishAt: now - 1000,
-          looping: false,
           scheduledActions: [],
           enemiesState: [],
           precomputedOutcome: {

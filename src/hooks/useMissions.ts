@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from './useGame';
-import { HeroTask } from '../types';
+import { HeroTask, LoopPlan } from '../types';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { isHeroIncapacitated } from '../utils/heroUtils';
 
@@ -33,7 +33,7 @@ export function useMissions() {
     setPendingTemplate(null);
   };
 
-  const handleConfirmMission = (templateId: string, heroIds: string[], heroPositions?: Record<string, number>, looping?: boolean) => {
+  const handleConfirmMission = (templateId: string, heroIds: string[], heroPositions?: Record<string, number>, loop?: LoopPlan) => {
     if (!templateId) return;
 
     const valid = heroIds.filter((id) =>
@@ -47,7 +47,7 @@ export function useMissions() {
       return;
     }
 
-    dispatch({ type: 'START_MISSION', templateId, heroIds: valid, heroPositions, now: Date.now(), looping });
+    dispatch({ type: 'START_MISSION', templateId, heroIds: valid, heroPositions, now: Date.now(), loop });
     closeSelectionModal();
   };
 

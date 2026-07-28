@@ -186,7 +186,7 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         });
       };
 
-      if (m.looping) {
+      if (m.loop) {
         const totalElapsed = nowOffline - startedAt;
         const cycles = Math.floor(totalElapsed / template.durationMs); // >= 1
         const total = reward * cycles;

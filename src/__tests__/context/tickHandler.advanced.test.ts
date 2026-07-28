@@ -230,7 +230,7 @@ describe('tickHandler — processMissions branches', () => {
       enemiesState: [],
       scheduledActions: [],
       precomputedOutcome,
-      looping: true,
+      loop: { mode: 'endless' },
     };
 
     const unlockedAll = ['first_mission', 'five_missions', 'twenty_missions', 'mission_variety_3', 'all_mission_types', 'gold_100', 'gold_1000', 'gold_10000', 'recruit_3', 'recruit_5'];
@@ -242,7 +242,7 @@ describe('tickHandler — processMissions branches', () => {
     expect(next.activeMissions?.length).toBe(1);
     expect(next.activeMissions?.[0].id).not.toBe('m-loop');
     expect(next.activeMissions?.[0].templateId).toBe('mission_1');
-    expect(next.activeMissions?.[0].looping).toBe(true);
+    expect(next.activeMissions?.[0].loop).toEqual({ mode: 'endless' });
     expect(next.activeMissions?.[0].scheduledActions?.length).toBeGreaterThan(0);
     // Hero should not be released to IDLE since loop continues
     expect(next.heroes[0].currentTask).toBe(HeroTask.MISSION);
@@ -284,7 +284,7 @@ describe('tickHandler — processMissions branches', () => {
       enemiesState: [],
       scheduledActions: [],
       precomputedOutcome,
-      looping: true,
+      loop: { mode: 'endless' },
     };
     const unlockedAll = ['first_mission', 'five_missions', 'twenty_missions', 'mission_variety_3', 'all_mission_types', 'gold_100', 'gold_1000', 'gold_10000', 'recruit_3', 'recruit_5'];
     const state = {
@@ -299,7 +299,7 @@ describe('tickHandler — processMissions branches', () => {
 
     // Looped mission should have been re-pushed
     expect(next.activeMissions?.length).toBe(1);
-    expect(next.activeMissions?.[0].looping).toBe(true);
+    expect(next.activeMissions?.[0].loop).toEqual({ mode: 'endless' });
     expect(next.activeMissions?.[0].id).not.toBe('m-loop-eq');
   });
 
@@ -323,7 +323,7 @@ describe('tickHandler — processMissions branches', () => {
       enemiesState: [],
       scheduledActions: [],
       precomputedOutcome,
-      looping: true,
+      loop: { mode: 'endless' },
     };
 
     const state = { ...initialGameState, heroes: [hero], gold: 0, activeMissions: [mission] };

@@ -32,7 +32,6 @@ function makeMission(overrides: Partial<ActiveMission> = {}): ActiveMission {
     templateId: 'mission_1',
     heroIds: ['h1'],
     startedAt: 0,
-    looping: false,
     scheduledActions: [],
     enemiesState: [],
     precomputedOutcome: {
@@ -69,7 +68,7 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
     const now = Date.now();
     // missão iniciada DUR antes do save; save 1ms atrás → nowOffline ≈ startedAt + DUR
     const startedAt = now - 1 - DUR;
-    const mission = makeMission({ looping: true, startedAt });
+    const mission = makeMission({ loop: { mode: 'endless' }, startedAt });
     const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: 1 + DUR, mission }))!;
     expect(summary.goldGained).toBe(100);
     const newMission = summary.newState!.activeMissions![0];
@@ -82,7 +81,7 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
     const now = Date.now();
     const elapsed = Math.floor(3.5 * DUR);
     const startedAt = now - elapsed;
-    const mission = makeMission({ looping: true, startedAt });
+    const mission = makeMission({ loop: { mode: 'endless' }, startedAt });
     const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: elapsed, mission }))!;
     expect(summary.goldGained).toBe(300); // 3 ciclos completos
   });
@@ -90,7 +89,7 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
   test('não-loop, completa: credita 1x reward, herói volta a IDLE, missão sai de activeMissions', () => {
     const now = Date.now();
     const startedAt = now - 1 - DUR;
-    const mission = makeMission({ looping: false, startedAt });
+    const mission = makeMission({ startedAt });
     const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: 1 + DUR, mission }))!;
     expect(summary.goldGained).toBe(100);
     expect(summary.newState!.activeMissions!.length).toBe(0);
@@ -100,7 +99,7 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
   test('em andamento: elapsed < DUR → gold 0, missão intacta com startedAt preservado', () => {
     const now = Date.now();
     const startedAt = now - Math.floor(DUR / 2);
-    const mission = makeMission({ looping: true, startedAt });
+    const mission = makeMission({ loop: { mode: 'endless' }, startedAt });
     const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: Math.floor(DUR / 2), mission }));
     // ticks > 0 garantido porque elapsedSinceSaved = DUR/2 = 5000ms >> tickInterval 500ms
     expect(summary!.goldGained).toBe(0);
@@ -111,7 +110,7 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
     const now = Date.now();
     const hundredHours = 100 * 60 * 60 * 1000;
     const startedAt = now - hundredHours;
-    const mission = makeMission({ looping: true, startedAt });
+    const mission = makeMission({ loop: { mode: 'endless' }, startedAt });
     const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: hundredHours, mission }))!;
     const cappedCycles = Math.floor(MAX_OFFLINE_MS / DUR);
     expect(summary.goldGained).toBe(100 * cappedCycles);
@@ -120,7 +119,7 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
   test('save do motor novo (sem remainingMs, só startedAt + precomputedOutcome) → gold creditado (regressão do bug 1.2)', () => {
     const now = Date.now();
     const startedAt = now - 1 - DUR;
-    const mission = makeMission({ looping: false, startedAt });
+    const mission = makeMission({ startedAt });
     expect((mission as any).remainingMs).toBeUndefined();
     const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: 1 + DUR, mission }))!;
     expect(summary.goldGained).toBe(100);
@@ -130,7 +129,7 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
     const now = Date.now();
     const startedAt = now - 1 - DUR;
     const heroes = [makeHero({ id: 'h1' }), makeHero({ id: 'h2' })];
-    const mission = makeMission({ looping: false, startedAt, heroIds: ['h1', 'h2'] });
+    const mission = makeMission({ startedAt, heroIds: ['h1', 'h2'] });
     const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: 1 + DUR, mission, heroes }))!;
     expect(summary.newState!.perHeroGold!['h1']).toBe(50);
     expect(summary.newState!.perHeroGold!['h2']).toBe(50);
@@ -140,7 +139,6 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
     const now = Date.now();
     const startedAt = now - 1 - DUR;
     const mission = makeMission({
-      looping: false,
       startedAt,
       precomputedOutcome: {
         reward: 777, rounds: 1, actions: [], log: [], success: true, casualties: [], enemyCasualties: 0,
@@ -153,7 +151,7 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
   test('fonte do reward: sem precomputedOutcome cai no fallback calcMissionReward (> 0)', () => {
     const now = Date.now();
     const startedAt = now - 1 - DUR;
-    const mission = makeMission({ looping: false, startedAt, precomputedOutcome: undefined });
+    const mission = makeMission({ startedAt, precomputedOutcome: undefined });
     const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: 1 + DUR, mission }))!;
     expect(summary.goldGained).toBeGreaterThan(0);
   });
@@ -166,7 +164,6 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
     const mission = makeMission({
       templateId: boss.id,
       isWeeklyBoss: true,
-      looping: false,
       startedAt,
       heroIds: ['h1', 'h2', 'h3', 'h4'],
       precomputedOutcome: {
@@ -189,7 +186,6 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
     const mission = makeMission({
       templateId: boss.id,
       isWeeklyBoss: true,
-      looping: false,
       startedAt,
       heroIds: ['h1', 'h2', 'h3', 'h4'],
       precomputedOutcome: {
@@ -212,7 +208,6 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
     const mission = makeMission({
       templateId: boss.id,
       isWeeklyBoss: true,
-      looping: false,
       startedAt,
       heroIds: ['h1', 'h2', 'h3', 'h4'],
       precomputedOutcome: {

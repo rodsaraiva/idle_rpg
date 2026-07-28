@@ -14,7 +14,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { useDragDropGrid } from '../hooks/useDragDropGrid';
-import { Hero } from '../types';
+import { Hero, LoopPlan } from '../types';
 import { theme } from '../theme';
 import { 
   TOTAL_GRID_SLOTS, 
@@ -44,7 +44,7 @@ type Props = {
   selectableHeroes: Hero[];
   minHeroes: number;
   templateId: string;
-  onConfirm: (templateId: string, heroIds: string[], heroPositions: Record<string, number>, looping?: boolean) => void;
+  onConfirm: (templateId: string, heroIds: string[], heroPositions: Record<string, number>, loop?: LoopPlan) => void;
 };
 
 export const MissionHeroSelectionModal: React.FC<Props> = ({
@@ -138,7 +138,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
       if (id) heroPositions[id] = idx;
     });
 
-    onConfirm(templateId, heroIds, heroPositions, looping);
+    onConfirm(templateId, heroIds, heroPositions, looping ? { mode: 'endless' } : undefined);
   };
 
   // drag/drop logic delegated to hook for testability/clarity

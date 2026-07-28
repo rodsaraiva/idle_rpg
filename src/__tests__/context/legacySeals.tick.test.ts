@@ -66,7 +66,6 @@ function makeStateWithCostaFinishing() {
     enemiesState: [],
     scheduledActions: [],
     precomputedOutcome,
-    looping: false,
   };
 
   return {
