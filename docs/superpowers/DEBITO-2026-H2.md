@@ -3,9 +3,20 @@
 > Registro de pendências conhecidas após executar os 6 SPECs executáveis (1, 2, 3, 6, 4, 5) na `main`.
 > Cada item foi conscientemente adiado, não esquecido. Gerado em 2026-06-25.
 
-## A. Validação visual (emulador/device) — bloqueada no sandbox
+## A. Validação visual (emulador/device) — parcialmente destravada
 
-O sandbox de execução **não sobe o Expo** (exit 144), então toda validação de UX ficou *manual-pending*. Precisa de uma passada num emulador iOS/Android (ou web local) antes de considerar as telas "prontas de verdade" (regra do projeto: type-check/testes não garantem UX):
+> **Atualização 2026-07-28:** o Expo **sobe** (`npx expo start --web --port 8081` rodando
+> em background pelo runner da sessão; o que falha é `nohup ... & disown`, que morre com
+> exit 144). Uma passada no browser já foi feita e achou 3 bugs de boot, todos corrigidos:
+> save apagado a cada abertura, consent LGPD competindo com o FTUE, e resumo offline
+> montado só na GuildScreen (ver commits `1629b09`, `3bee2ff`, `a3c7ba3`).
+>
+> **Cuidado com screenshot:** o browser do Playwright MCP usado aqui devolve tiles
+> velhos de sessões anteriores — apareceram cards de heróis que não existiam no DOM.
+> Para validar, conferir via DOM/estilos computados (`browser_evaluate`) e tratar o
+> pixel como indício, não prova. Validação de *aparência* segue pendente de device real.
+
+O que ainda precisa de olho humano em emulador iOS/Android:
 
 - **SPEC 2/3 (Design System + Redesign):** conferir as 11 telas no DS "Reino" — contraste, hierarquia, densidade, dark-first. Validar que nenhum token quebrou layout em telas pequenas.
 - **SPEC 3 — Vila-mapa:** calibrar as coordenadas dos 8 hotspots sobre `village_map.png` (foram estimadas, não medidas no device).
@@ -21,6 +32,10 @@ O sandbox de execução **não sobe o Expo** (exit 144), então toda validação
 - **SPEC 3 — resíduos de migração:** emojis (★ ✕ ✓) e `rgba(...)` inline ainda em modais não-migrados; `fontSize` literais em alguns componentes compartilhados. Fechar quando esses modais entrarem no DS.
 - **SPEC 4 — Caos Arcano (NIT):** o tuning aplicou valor (`0.5→0.4`) **e** duração (`+1→+2`), onde o plano descrevia como "ou". Ambos individualmente dentro dos limites e o gate `--ci synergyMinDelta` cobre over-tuning; confirmar na próxima medição que a sinergia não passou do teto de class-gap.
 - **SPEC 4/6 — adaptador de boss duplicado:** `bossToMissionTemplate` ainda existe em `src/constants/weeklyBosses.ts` (importado por `src/utils/offlineProgress.ts`), apesar do `bossTemplate.ts` ter centralizado o adaptador. Bodies idênticos (zero impacto), mas o comentário "único adaptador" em `bossTemplate.ts` superestima. Deduplicar quando mexer em offline.
+- **Warnings de console no web (4, nenhum erro):** ciclo de require
+  `skillEffects ↔ enemySkillEffects`; props depreciadas do RN Web (`textShadow*`,
+  `shadow*`, `props.pointerEvents`). Baratos de fechar, nenhum quebra o boot.
+
 - **SPEC 5 — `resetOnboarding` (NIT):** dispara `patch.hintsSeen:{}`, mas `handleSetOnboarding` faz merge profundo (`{...base, ...{}}`), então flags antigas sobrevivem ao "reset". Caminho dev/debug, inofensivo em produção. Para um reset real, substituir `hintsSeen` inteiro em vez de mesclar.
 
 ## C. Débito device-bound do SPEC 8 (monetização & retenção)
@@ -91,7 +106,8 @@ SPECs 10+ do roadmap H2 2026 não têm plano de execução ainda —
 
 ## Como retomar
 
-1. Subir o Expo localmente (`npx expo start --web --port 8081` ou emulador) e varrer o item A + validação visual do SPEC 8 (item C) e SPEC 9 (item D).
+1. Varrer o restante do item A + validação visual do SPEC 8 (item C) e SPEC 9 (item D).
+   O Expo web já sobe; o que falta de verdade é device/emulador para julgar aparência.
 2. Cada item de B é uma tarefa pequena e isolada — bom candidato a `/plan` curto ou fix direto.
 3. Débito device-bound do SPEC 8 (item C) exige emulador com expo-notifications habilitado e conta de billing de teste.
 4. Débito device-bound do SPEC 9 (item D): seguir a "Ordem recomendada de execução" em `docs/store/SUBMISSION-CHECKLIST.md`.
