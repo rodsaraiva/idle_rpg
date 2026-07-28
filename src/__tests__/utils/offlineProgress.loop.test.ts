@@ -113,6 +113,27 @@ test('loop "until" com prazo não-múltiplo credita o teto arredondado pra cima 
   expect(resumo.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
 });
 
+test('loop "until" com prazo múltiplo exato da duração credita ceil(D/d), não floor(D/d) + 1', () => {
+  // D = 4×duração é o caso mais comum na prática: os chips de "até" (15m/1h/4h/8h)
+  // dividem quase toda duração de missão exatamente, e endsAt/startedAt nascem na
+  // mesma call stack síncrona (useMissions.ts). Aqui ceil e floor+1 discordam por 1
+  // ciclo — é o vizinho off-by-one que o teste "não-múltiplo" sozinho não pega.
+  const template = MISSIONS[0];
+  const agora = Date.now();
+  const decorrido = template.durationMs * 10; // tempo offline sobra além do prazo
+  const startedAt = agora - decorrido;
+  const estado = estadoComLoop(
+    { mode: 'until', endsAt: startedAt + template.durationMs * 4 },
+    decorrido
+  );
+
+  const resumo = calculateOfflineProgress(estado)!;
+
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO * 4);
+  expect(resumo.newState!.activeMissions).toHaveLength(0);
+  expect(resumo.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
+});
+
 test('loop "until" credita o ciclo em voo mesmo com o prazo vencendo no meio dele (0 < D < duração)', () => {
   // Formato mais comum do último ciclo de qualquer loop "until": o prazo nunca
   // interrompe o ciclo em andamento, só impede que um novo comece.
