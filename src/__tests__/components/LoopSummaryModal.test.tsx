@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 
 jest.mock('../../components/MissionResultModal', () => ({
   MissionResultModal: () => null,
@@ -18,11 +18,11 @@ function resumo(over: Partial<LoopSummary> = {}): LoopSummary {
   };
 }
 
-function wrap(summary: LoopSummary | null) {
+function wrap(summary: LoopSummary | null, dispatch: jest.Mock = jest.fn()) {
   return (
     <GameContext.Provider value={{
       state: { ...initialGameState, completedLoops: summary ? [summary] : [] } as any,
-      dispatch: jest.fn(), isLoaded: true, setHeroTask: jest.fn(), recruitHero: jest.fn(),
+      dispatch, isLoaded: true, setHeroTask: jest.fn(), recruitHero: jest.fn(),
       offlineSummary: null, clearOfflineSummary: jest.fn(), applyOfflineSummary: jest.fn(),
       advanceOnboarding: jest.fn(), skipOnboarding: jest.fn(),
       markHintSeen: jest.fn(), resetOnboarding: jest.fn(),
@@ -52,4 +52,11 @@ test('mostra o ouro e os materiais acumulados', () => {
   const { getByText } = render(wrap(resumo()));
   expect(getByText(/240/)).toBeTruthy();
   expect(getByText(/couro ×3/)).toBeTruthy();
+});
+
+test('"Fechar" despacha DISMISS_LOOP_SUMMARY com o missionId do resumo', () => {
+  const dispatch = jest.fn();
+  const { getByLabelText } = render(wrap(resumo({ missionId: 'm42' }), dispatch));
+  fireEvent.press(getByLabelText('Fechar resumo do loop'));
+  expect(dispatch).toHaveBeenCalledWith({ type: 'DISMISS_LOOP_SUMMARY', missionId: 'm42' });
 });
