@@ -130,13 +130,21 @@ export function useGameFeedback(state: GameState) {
         }
       }
 
-      // 6. Mission completion notifications
-      const prevMissionCount = (prev.activeMissions || []).length;
-      const curMissionCount = (state.activeMissions || []).length;
-      if (prevMissionCount > curMissionCount) {
-        const completedCount = prevMissionCount - curMissionCount;
-        const newResults = (state.recentMissionResults || []).slice(0, completedCount);
-        for (const result of newResults) {
+      // 6. Mission completion notifications — casa por missionId, não por posição/contagem.
+      // Ciclos de loop saem de activeMissions mas seu resultado é filtrado de
+      // recentMissionResults (Task 7); casar por posição pegava uma entrada
+      // stale/de outra missão quando as contagens não batiam 1:1.
+      const curMissionIds = new Set(curMissions.map((m) => m.id));
+      const removedMissionIds = prevMissions
+        .filter((m) => !curMissionIds.has(m.id))
+        .map((m) => m.id);
+      if (removedMissionIds.length > 0) {
+        const resultsByMissionId = new Map(
+          (state.recentMissionResults || []).map((r) => [r.missionId, r])
+        );
+        for (const missionId of removedMissionIds) {
+          const result = resultsByMissionId.get(missionId);
+          if (!result) continue; // sem entrada correspondente (ex.: ciclo de loop filtrado) — sem toast
           if (result.success) {
             emit(FEEDBACK_EVENTS.TOAST, { text: `Missão concluída! +${result.reward} ouro`, type: 'success' });
           } else {

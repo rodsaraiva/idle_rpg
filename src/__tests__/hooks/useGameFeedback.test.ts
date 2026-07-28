@@ -227,6 +227,43 @@ describe('useGameFeedback', () => {
     expect(emit).toHaveBeenCalledWith(FEEDBACK_EVENTS.BATTLE_TARGET, expect.objectContaining({ id: 'e1' }));
   });
 
+  test('não dispara toast com resultado errado quando o ciclo final de um loop some de activeMissions sem entrada correspondente em recentMissionResults', () => {
+    // Ciclo final de loop: sai de activeMissions, mas seu resultado foi filtrado
+    // de recentMissionResults (fromLoop). O array não ganha entrada nova — só
+    // sobra a entrada "stale" que já estava lá de um tick anterior, de outra missão.
+    const activeLoopMission = {
+      id: 'loop-m1', templateId: 't-loop', heroIds: [], startedAt: 0,
+      loop: { mode: 'times', remaining: 1, total: 1 },
+    } as any;
+    const staleResult = {
+      missionId: 'other-m', templateId: 't2', success: true, reward: 999,
+      rounds: 1, actions: [], log: [], casualties: [], enemyCasualties: 0,
+    };
+
+    const { rerender } = renderHook(({ state }) => useGameFeedback(state), {
+      initialProps: {
+        state: {
+          ...initialGameState,
+          activeMissions: [activeLoopMission],
+          recentMissionResults: [staleResult],
+        } as any,
+      },
+    });
+
+    rerender({
+      state: {
+        ...initialGameState,
+        activeMissions: [],
+        recentMissionResults: [staleResult],
+      } as any,
+    });
+
+    expect(emit).not.toHaveBeenCalledWith(
+      FEEDBACK_EVENTS.TOAST,
+      expect.objectContaining({ text: expect.stringContaining('Missão') }),
+    );
+  });
+
   test('emits BATTLE_DEATH when enemy goes from alive to dead in active mission', () => {
     const prevMission = {
       id: 'm1',
