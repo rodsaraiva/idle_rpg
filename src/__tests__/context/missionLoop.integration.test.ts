@@ -52,3 +52,43 @@ test('missão sem loop encerra e libera o herói', () => {
   expect(r.activeMissions).toHaveLength(0);
   expect(r.newHeroes[0].currentTask).toBe(HeroTask.IDLE);
 });
+
+test('plano de 3 vezes roda 3 ciclos e para — sem off-by-one', () => {
+  let missoes: ActiveMission[] = [missaoConcluida({ mode: 'times', remaining: 3, total: 3 })];
+  let herois = [heroi('h1')];
+  const restantes: number[] = [];
+
+  for (let i = 0; i < 4 && missoes.length > 0; i++) {
+    const st = { ...estado(missoes), heroes: herois };
+    const r = processMissions(st, herois, Date.now());
+    herois = r.newHeroes;
+    missoes = r.activeMissions.map((m) => ({
+      ...missaoConcluida(m.loop), id: m.id, loopTally: m.loopTally,
+    }));
+    const plano = missoes[0]?.loop;
+    if (plano?.mode === 'times') restantes.push(plano.remaining);
+  }
+
+  // ciclo 1 deixa remaining 2, ciclo 2 deixa 1, ciclo 3 encerra
+  expect(restantes).toEqual([2, 1]);
+  expect(missoes).toHaveLength(0);
+  expect(herois[0].currentTask).toBe(HeroTask.IDLE);
+});
+
+test('modo por tempo não inicia novo ciclo depois do prazo', () => {
+  const agora = Date.now();
+  const st = estado([missaoConcluida({ mode: 'until', endsAt: agora - 1 })]);
+  const r = processMissions(st, st.heroes, agora);
+
+  expect(r.activeMissions).toHaveLength(0);
+  expect(r.newHeroes[0].currentTask).toBe(HeroTask.IDLE);
+});
+
+test('modo por tempo continua enquanto o prazo não chegou', () => {
+  const agora = Date.now();
+  const st = estado([missaoConcluida({ mode: 'until', endsAt: agora + 60_000 })]);
+  const r = processMissions(st, st.heroes, agora);
+
+  expect(r.activeMissions).toHaveLength(1);
+  expect(r.activeMissions[0].loop).toEqual({ mode: 'until', endsAt: agora + 60_000 });
+});

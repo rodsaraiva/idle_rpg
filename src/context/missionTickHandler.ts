@@ -18,6 +18,7 @@ import { legacyDurationMultiplier } from '../constants/legacyUpgrades';
 import { computeFinalGold } from '../utils/rewards';
 import { getActiveSynergies } from '../constants/synergies';
 import { bossToMissionTemplate } from './bossTemplate';
+import { planAllowsAnotherCycle, advanceLoopPlan } from '../utils/missionLoop';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ProcessMissionsResult {
@@ -150,7 +151,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
     const n = c.mission.heroIds.length || 1;
     const per = Math.floor(c.reward / n);
 
-    // Apply casualties to hero HP regardless of looping
+    // Aplica as baixas ao HP dos heróis independente de a missão estar em loop
     c.mission.heroIds.forEach((hid: string) => {
       const idx = currentHeroes.findIndex((hh) => hh.id === hid);
       if (idx >= 0) {
@@ -169,8 +170,13 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
       }
     }
 
-    // Check if looping mission should restart
-    if (c.mission.loop && c.outcome.success) {
+    // O plano só é avaliado depois do ciclo terminar: avança primeiro, decide depois.
+    // Assim um plano criado com remaining: 3 roda exatamente 3 ciclos (sem off-by-one).
+    const planoAvancado = c.mission.loop ? advanceLoopPlan(c.mission.loop) : undefined;
+    const podeRepetir =
+      !!planoAvancado && c.outcome.success && planAllowsAnotherCycle(planoAvancado, now);
+
+    if (podeRepetir) {
       goldGained += computeFinalGold(c.reward, state);
       const tpl = MISSIONS.find(t => t.id === c.mission.templateId);
       if (tpl) {
@@ -209,7 +215,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
               heroIds: c.mission.heroIds,
               heroPositions: c.mission.heroPositions,
               startedAt: now,
-              loop: c.mission.loop,
+              loop: planoAvancado,
               healerBuffMultiplier,
               rogueRngBonus,
               activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,
@@ -218,7 +224,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
               precomputedOutcome: newOutcome,
             });
           } catch {
-            // If battle computation fails, stop looping and release heroes
+            // Se o cálculo da batalha falhar, encerra o loop e libera os heróis
             c.mission.heroIds.forEach((hid: string) => {
               const idx = currentHeroes.findIndex((hh) => hh.id === hid);
               if (idx >= 0) {

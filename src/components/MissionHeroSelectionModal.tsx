@@ -38,6 +38,14 @@ import { Hexagon } from './Hexagon';
 
 const IS_WEB = Platform.OS === 'web';
 
+const CHIPS_VEZES = [3, 5, 10, 25];
+const CHIPS_TEMPO: { label: string; ms: number }[] = [
+  { label: '15m', ms: 15 * 60 * 1000 },
+  { label: '1h', ms: 60 * 60 * 1000 },
+  { label: '4h', ms: 4 * 60 * 60 * 1000 },
+  { label: '8h', ms: 8 * 60 * 60 * 1000 },
+];
+
 type Props = {
   visible: boolean;
   onClose: () => void;
@@ -58,13 +66,15 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
   // grid of 50 slots, each can hold a hero id or null
   const [slots, setSlots] = useState<(string | null)[]>(() => Array(TOTAL_GRID_SLOTS).fill(null));
   const [previewEnemies, setPreviewEnemies] = useState<BattleEnemy[]>([]);
-  const [looping, setLooping] = useState(false);
+  const [loopMode, setLoopMode] = useState<'once' | 'times' | 'until' | 'endless'>('once');
+  const [timesChip, setTimesChip] = useState(3);
+  const [untilChip, setUntilChip] = useState(15 * 60 * 1000);
 
-  // reset slots and generate preview enemies when modal opens
+  // reset slots e gera inimigos de preview quando o modal abre
   useEffect(() => {
     if (visible) {
       setSlots(Array(TOTAL_GRID_SLOTS).fill(null));
-      setLooping(false);
+      setLoopMode('once');
       const template = MISSIONS.find(t => t.id === templateId);
       if (template) {
         setPreviewEnemies(BattleEngine.createEnemies(template));
@@ -129,6 +139,15 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
 
   const placedCount = slots.filter(Boolean).length;
 
+  const planoEscolhido = (): LoopPlan | undefined => {
+    switch (loopMode) {
+      case 'once': return undefined;
+      case 'times': return { mode: 'times', remaining: timesChip, total: timesChip };
+      case 'until': return { mode: 'until', endsAt: Date.now() + untilChip };
+      case 'endless': return { mode: 'endless' };
+    }
+  };
+
   const handleConfirm = () => {
     const heroIds = slots.filter(Boolean) as string[];
     if (heroIds.length < minHeroes) return;
@@ -138,7 +157,7 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
       if (id) heroPositions[id] = idx;
     });
 
-    onConfirm(templateId, heroIds, heroPositions, looping ? { mode: 'endless' } : undefined);
+    onConfirm(templateId, heroIds, heroPositions, planoEscolhido());
   };
 
   // drag/drop logic delegated to hook for testability/clarity
@@ -380,18 +399,67 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
               </View>
             )}
 
-            <TouchableOpacity
-              style={styles.loopToggle}
-              onPress={() => setLooping((v) => !v)}
-              accessibilityRole="switch"
-              accessibilityState={{ checked: looping }}
-              accessibilityLabel="Alternar modo loop da missão"
-            >
-              <View style={[styles.loopCheckbox, looping && styles.loopCheckboxActive]}>
-                {looping ? <Text style={styles.loopCheckmark}>✓</Text> : null}
+            <Text style={styles.loopLabel}>Modo do loop</Text>
+
+            {([
+              { modo: 'once', rotulo: 'Uma vez' },
+              { modo: 'times', rotulo: 'Repetir' },
+              { modo: 'until', rotulo: 'Por tempo' },
+              { modo: 'endless', rotulo: 'Indefinido' },
+            ] as const).map(({ modo, rotulo }) => (
+              <View key={modo} style={styles.loopRow}>
+                <TouchableOpacity
+                  style={styles.loopToggle}
+                  onPress={() => setLoopMode(modo)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: loopMode === modo }}
+                  accessibilityLabel={`Modo de loop: ${rotulo}`}
+                >
+                  <View style={[styles.loopCheckbox, loopMode === modo && styles.loopCheckboxActive]} />
+                  <Text style={styles.loopLabel}>{rotulo}</Text>
+                </TouchableOpacity>
+
+                {modo === 'times' ? (
+                  <View style={styles.chipRow}>
+                    {CHIPS_VEZES.map((n) => (
+                      <TouchableOpacity
+                        key={n}
+                        disabled={loopMode !== 'times'}
+                        onPress={() => setTimesChip(n)}
+                        accessibilityLabel={`Repetir ${n} vezes`}
+                        style={[
+                          styles.chip,
+                          loopMode !== 'times' && styles.chipDisabled,
+                          loopMode === 'times' && timesChip === n && styles.chipActive,
+                        ]}
+                      >
+                        <Text style={styles.chipText}>{n}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : null}
+
+                {modo === 'until' ? (
+                  <View style={styles.chipRow}>
+                    {CHIPS_TEMPO.map((c) => (
+                      <TouchableOpacity
+                        key={c.label}
+                        disabled={loopMode !== 'until'}
+                        onPress={() => setUntilChip(c.ms)}
+                        accessibilityLabel={`Rodar por ${c.label}`}
+                        style={[
+                          styles.chip,
+                          loopMode !== 'until' && styles.chipDisabled,
+                          loopMode === 'until' && untilChip === c.ms && styles.chipActive,
+                        ]}
+                      >
+                        <Text style={styles.chipText}>{c.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : null}
               </View>
-              <Text style={styles.loopLabel}>Em Loop (auto-repetir missão)</Text>
-            </TouchableOpacity>
+            ))}
 
             <View style={styles.actions}>
               <Text style={styles.helperText}>
@@ -402,10 +470,10 @@ export const MissionHeroSelectionModal: React.FC<Props> = ({
                   <Button title="Fechar" onPress={onClose} accessibilityLabel="Fechar modal de seleção" />
                 </View>
                 <Button
-                  title={looping ? "Iniciar em loop" : "Iniciar missão"}
+                  title={loopMode === 'once' ? 'Iniciar missão' : 'Iniciar em loop'}
                   onPress={handleConfirm}
                   disabled={placedCount < minHeroes || invalidPlaced.length > 0}
-                  accessibilityLabel={looping ? "Iniciar missão em loop" : "Iniciar missão com heróis selecionados"}
+                  accessibilityLabel={loopMode === 'once' ? 'Iniciar missão com heróis selecionados' : 'Iniciar missão em loop'}
                 />
               </View>
             </View>
@@ -557,15 +625,22 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.gold,
     borderColor: theme.colors.gold,
   },
-  loopCheckmark: {
-    color: theme.colors.textPrimary,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
   loopLabel: {
     color: theme.colors.textPrimary,
     fontSize: 13,
     fontWeight: '600',
   },
+  loopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  chipRow: { flexDirection: 'row', gap: theme.spacing.xs },
+  chip: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: theme.borderRadius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  chipActive: { borderColor: theme.colors.goldBright, backgroundColor: theme.colors.surfaceRaised },
+  chipDisabled: { opacity: 0.4 },
+  chipText: { ...theme.type.label, color: theme.colors.textPrimary },
 });
 
