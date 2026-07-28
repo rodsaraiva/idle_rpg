@@ -1,4 +1,4 @@
-import { deriveStep, targetForStep, firstMissionStarted } from '../../onboarding/onboardingSteps';
+import { deriveStep, targetForStep, firstMissionStarted, isOnboardingActive } from '../../onboarding/onboardingSteps';
 import { GameState, HeroTask } from '../../types';
 
 function makeState(over: Partial<GameState> = {}): GameState {
@@ -112,5 +112,24 @@ describe('firstMissionStarted', () => {
   });
   test('false sem missões ativas', () => {
     expect(firstMissionStarted(makeState())).toBe(false);
+  });
+});
+
+describe('isOnboardingActive — FTUE espera a decisão de consentimento', () => {
+  const base = makeState();
+
+  test('inativo enquanto o consentimento não foi decidido (1º boot)', () => {
+    expect(isOnboardingActive('intro', base)).toBe(false);
+  });
+
+  test('ativo depois de decidido, mesmo recusando analytics', () => {
+    const recusou = { ...base, consent: { analytics: false, decided: true, decidedAt: 1 } };
+    expect(isOnboardingActive('intro', recusou)).toBe(true);
+  });
+
+  test('passos terminais continuam inativos mesmo com consentimento decidido', () => {
+    const decidiu = { ...base, consent: { analytics: true, decided: true, decidedAt: 1 } };
+    expect(isOnboardingActive('done', decidiu)).toBe(false);
+    expect(isOnboardingActive('skipped', decidiu)).toBe(false);
   });
 });

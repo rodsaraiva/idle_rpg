@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
 import { useGame } from '../hooks/useGame';
 import { HeroTask, OnboardingStep } from '../types';
-import { deriveStep, targetForStep, firstMissionStarted, TargetId } from './onboardingSteps';
+import { deriveStep, targetForStep, firstMissionStarted, isOnboardingActive, TargetId } from './onboardingSteps';
 import { analytics } from '../services/analytics';
 import { emitInfirmaryHint } from '../services/milestones';
 
@@ -78,7 +78,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [state.heroes, ob, markHintSeen]);
 
-  const isActive = step !== 'done' && step !== 'skipped';
+  const isActive = isOnboardingActive(step, state);
   const target = targetForStep(step);
 
   const value: OnboardingContextValue = {

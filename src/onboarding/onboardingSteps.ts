@@ -20,6 +20,17 @@ function collectDone(state: GameState): boolean {
 }
 
 /**
+ * O FTUE só entra depois da decisão de consentimento: no 1º boot os dois modais
+ * disputavam a tela, e o gate LGPD tem que vir antes de qualquer telemetria do tutorial.
+ */
+export function isOnboardingActive(
+  step: OnboardingStep,
+  state: Pick<GameState, 'consent'>
+): boolean {
+  return step !== 'done' && step !== 'skipped' && !!state.consent?.decided;
+}
+
+/**
  * Passo "alvo" derivado do GameState real. Nunca regride.
  * - 'done'/'skipped' são terminais e retornam inalterados.
  * - 'intro' só sai por ação manual; deriveStep não o ultrapassa enquanto o passo salvo for 'intro'.
