@@ -58,4 +58,19 @@ describe('tickHandler — ciclo de loop não abre modal de resultado', () => {
 
     expect(next.recentMissionResults).toHaveLength(1);
   });
+
+  test('resumo novo entra no fim de completedLoops — não troca o card que o jogador está vendo', () => {
+    const estadoComPendente: GameState = {
+      ...estadoComLoopConcluido(),
+      completedLoops: [{
+        missionId: 'antigo', templateId: TPL.id, heroIds: ['hOld'],
+        tally: { cycles: 1, gold: 10, materials: {}, casualties: [] },
+        reason: 'completed',
+      }],
+    };
+
+    const next = handleTick(estadoComPendente, AGORA);
+
+    expect(next.completedLoops?.map((r) => r.missionId)).toEqual(['antigo', 'm1']);
+  });
 });

@@ -181,7 +181,9 @@ export function handleTick(state: GameState, now: number): GameState {
     recentMissionResults: updatedResults,
     completedMissionCount,
     completedMissionIds,
-    completedLoops: [...completedLoops, ...(currentState.completedLoops ?? [])].slice(0, 5),
+    // Novos entram no fim: dispensar o resumo mais recente não deve trazer de volta
+    // um resumo antigo que o jogador já não espera ver.
+    completedLoops: [...(currentState.completedLoops ?? []), ...completedLoops].slice(0, 5),
   };
 
   if (Object.keys(materialDrops).length > 0) {
