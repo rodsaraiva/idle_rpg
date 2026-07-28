@@ -226,14 +226,17 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         // sobreviventes >= tpl.minHeroes (missionTickHandler.ts:226); abaixo disso ele para
         // no ciclo que acabou de rodar — que aqui também é sempre o primeiro (mesmo outcome
         // pré-computado reusado pra todos os ciclos, não há dado pra "N-ésimo ciclo").
-        // Conta mortos (hpAfter <= 0), não sobreviventes presentes no array: fixtures e o
-        // outcome "sem baixas" usam casualties: [] pra dizer "ninguém morreu", não "todos".
-        const mortosNoOutcome = new Set(
-          (m.precomputedOutcome?.casualties ?? [])
-            .filter((c) => c.hpAfter <= 0)
-            .map((c) => c.heroId)
+        const hpAposOutcome = new Map(
+          (m.precomputedOutcome?.casualties ?? []).map((c) => [c.heroId, c.hpAfter] as const)
         );
-        const sobreviventesAposOutcome = m.heroIds.filter((hid) => !mortosNoOutcome.has(hid)).length;
+        // Espelha heroesForNext do online (missionTickHandler.ts:225): usa a baixa do outcome
+        // quando o herói participou deste combate; se não participou, é porque já morreu num
+        // ciclo anterior e o online o re-arma mesmo assim (missionTickHandler.ts:257) — cai no
+        // HP atual (0), não fica "ausente do array" = vivo por omissão.
+        const sobreviventesAposOutcome = m.heroIds.filter((hid) => {
+          const hp = hpAposOutcome.get(hid) ?? newHeroes.find((hh) => hh.id === hid)?.hpCurrent ?? 0;
+          return hp > 0;
+        }).length;
         const vitoriaEsvaziaTime =
           m.precomputedOutcome?.success === true && sobreviventesAposOutcome < template.minHeroes;
         const paraNoPrimeiroCiclo = outcomeFalhou || vitoriaEsvaziaTime;
@@ -254,7 +257,8 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
           if (paraNoPrimeiroCiclo) {
             // Baixas do ciclo que encerrou o loop: o online aplica isso incondicionalmente antes de
             // decidir se repete (missionTickHandler.ts:172-182). Recolhido (loopRecalled) ou teto
-            // batido normalmente não mexem em HP aqui — só derrota e vitória-que-esvazia o fazem.
+            // batido normalmente, quando NÃO é também derrota/vitória-que-esvazia, não mexem em HP
+            // aqui — só entram neste bloco quando paraNoPrimeiroCiclo também é verdadeiro.
             m.precomputedOutcome!.casualties.forEach((c) => {
               const idx = newHeroes.findIndex((hh) => hh.id === c.heroId);
               if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], hpCurrent: c.hpAfter };

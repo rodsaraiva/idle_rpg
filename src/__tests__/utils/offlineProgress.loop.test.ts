@@ -424,3 +424,57 @@ test('loop com vitória que esvazia o time (paridade): offline credita exatament
   expect(h1Offline.currentTask).toBe(HeroTask.IDLE);
   expect(h2Offline.currentTask).toBe(HeroTask.IDLE);
 });
+
+test('review Critical: herói já morto num ciclo anterior (ausente do casualties do outcome atual) conta como morto, não como vivo por omissão', () => {
+  // Cenário de dois passos que o próprio online produz: h1 morreu num ciclo anterior; o online
+  // re-arma a missão com heroIds completo (missionTickHandler.ts:257) mas computa o outcome só
+  // com os sobreviventes daquele momento (h2, h3) — h1 não é combatente e por isso não aparece
+  // no casualties deste outcome. Neste ciclo h2 também morre; só h3 sobrevive. sobreviventes(1)
+  // < minHeroes(2): o online para aqui. Tratar "ausente do array" como "vivo" (bug do Critical)
+  // deixaria h1 vivo por omissão e o loop seguiria de graça.
+  function heroi3(): Hero {
+    return {
+      id: 'h3', name: 'Herói 3', hpMax: 500, hpCurrent: 500, atk: 999, mp: 10,
+      defense: 50, crit: 10, agility: 10, currentTask: HeroTask.MISSION,
+      trainingProgressMs: { hp: 0, atk: 0, mp: 0 }, trainingCount: { hp: 0, atk: 0, mp: 0 },
+      equippedItems: [],
+    } as Hero;
+  }
+
+  const decorrido = CICLO * 10;
+  const agora = Date.now();
+  const h1Morto = { ...heroi(), hpCurrent: 0 }; // já morto num ciclo anterior; segue em MISSION (não regenera)
+  const estado: GameState = {
+    gold: 0, heroes: [h1Morto, heroi2(), heroi3()], heroesRecruited: 3,
+    lastSavedAt: agora - decorrido,
+    activeMissions: [{
+      id: 'm1', templateId: MISSIONS_1.id, heroIds: ['h1', 'h2', 'h3'], // heroIds original, h1 incluso
+      startedAt: agora - decorrido, scheduledActions: [], enemiesState: [],
+      precomputedOutcome: {
+        reward: REWARD_POR_CICLO, rounds: 1, actions: [], log: [],
+        success: true,
+        // h1 NÃO participou deste combate (já estava fora) — sem entrada aqui, de propósito.
+        casualties: [
+          { heroId: 'h2', hpLost: 500, hpAfter: 0 },
+          { heroId: 'h3', hpLost: 10, hpAfter: 490 },
+        ],
+        enemyCasualties: 2,
+      },
+      loop: { mode: 'endless' },
+    }],
+  } as GameState;
+
+  const resumo = calculateOfflineProgress(estado)!;
+
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO); // 1 ciclo, não 10 — sobrevivente único (h3) < minHeroes(2)
+  expect(resumo.newState!.activeMissions).toHaveLength(0); // loop não é re-armado
+  const h1 = resumo.newState!.heroes.find((h) => h.id === 'h1')!;
+  const h2 = resumo.newState!.heroes.find((h) => h.id === 'h2')!;
+  const h3 = resumo.newState!.heroes.find((h) => h.id === 'h3')!;
+  expect(h1.hpCurrent).toBe(0); // continua morto — não é tocado pelo casualties deste outcome
+  expect(h2.hpCurrent).toBe(0);
+  expect(h3.hpCurrent).toBe(490);
+  expect(h1.currentTask).toBe(HeroTask.IDLE);
+  expect(h2.currentTask).toBe(HeroTask.IDLE);
+  expect(h3.currentTask).toBe(HeroTask.IDLE);
+});
