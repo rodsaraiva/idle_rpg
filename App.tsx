@@ -4,6 +4,7 @@ import { ThemeProvider } from './src/theme/ThemeProvider';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { FeedbackLayer } from './src/components/FeedbackLayer';
 import { ConsentGate } from './src/components/ConsentGate';
+import { OfflineSummaryGate } from './src/components/OfflineSummaryGate';
 import { useReinoFonts } from './src/theme/fonts';
 import { OnboardingProvider } from './src/onboarding/OnboardingProvider';
 import { OnboardingOverlay } from './src/onboarding/OnboardingOverlay';
@@ -16,6 +17,8 @@ export default function App() {
       <GameProvider>
         {/* Gate LGPD: bloqueia analytics até decisão; sincroniza flag de módulo no boot */}
         <ConsentGate />
+        {/* Resumo offline na raiz: o app abre na Vila, não na Guilda */}
+        <OfflineSummaryGate />
         <OnboardingProvider>
           <AppNavigator />
           <FeedbackLayer />

@@ -11,7 +11,7 @@ import { GameState, GameAction, HeroTask, OfflineSummaryFull, OnboardingStep } f
 import { gameReducer, initialGameState } from './gameReducer';
 import { loadGameState, saveGameState, CorruptSaveError } from '../services/storage';
 import { emit, FEEDBACK_EVENTS } from '../services/feedback';
-import { calculateOfflineProgress } from '../utils/offlineProgress';
+import { calculateOfflineProgress, hasReportableGains } from '../utils/offlineProgress';
 import { useGameFeedback } from '../hooks/useGameFeedback';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { isHeroInMission } from '../utils/heroUtils';
@@ -87,7 +87,12 @@ export function GameProvider({ children }: GameProviderProps) {
           // O resumo offline é só um adicional a ser aplicado quando o jogador der ciente.
           dispatch({ type: 'LOAD_STATE', state: savedState });
           const summary = calculateOfflineProgress(savedState);
-          if (summary) setOfflineSummary(summary);
+          if (hasReportableGains(summary)) {
+            setOfflineSummary(summary);
+          } else if (summary?.newState) {
+            // Ausência curta: aplica em silêncio em vez de abrir um modal zerado
+            dispatch({ type: 'LOAD_STATE', state: summary.newState });
+          }
         }
       } catch (error) {
         if (error instanceof CorruptSaveError) {

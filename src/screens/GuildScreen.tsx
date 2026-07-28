@@ -8,7 +8,6 @@ import { ScreenContainer } from '../components/ui/ScreenContainer';
 import { Icon } from '../components/ui/Icon';
 import { HeroCard } from '../components/HeroCard';
 import { RecruitButton } from '../components/RecruitButton';
-import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
 import { Hero } from '../types';
 import { useGuild } from '../hooks/useGuild';
 import { GuildEmptyState } from '../components/GuildEmptyState';
@@ -23,12 +22,9 @@ export function GuildScreen() {
   const {
     state,
     isLoaded,
-    offlineSummary,
     nextRecruitCost,
     canAfford,
     recruitHero,
-    clearOfflineSummary,
-    applyOfflineSummary,
     getHeroActions,
   } = useGuild();
 
@@ -129,12 +125,6 @@ export function GuildScreen() {
         />
       </View>
 
-      <OfflineSummaryModal
-        visible={!!offlineSummary}
-        summary={offlineSummary}
-        onApply={applyOfflineSummary}
-        onDismiss={clearOfflineSummary}
-      />
     </ScreenContainer>
   );
 }

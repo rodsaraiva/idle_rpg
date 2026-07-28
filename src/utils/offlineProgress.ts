@@ -11,6 +11,15 @@ import { calcMissionReward } from './missionMath';
 import { computePointsFromMs } from './trainingMath';
 import { createGuaranteedEquipment } from '../context/equipmentHandler';
 
+/**
+ * O resumo é gerado a partir de 1 tick (500ms) de ausência, então um reload trivial
+ * produz "0h 0m / 0 ouro". Só vale interromper o jogador quando há algo a reportar.
+ */
+export function hasReportableGains(summary: OfflineSummaryFull | null): boolean {
+  if (!summary) return false;
+  return summary.goldGained > 0 || summary.heroesAffected > 0;
+}
+
 export function calculateOfflineProgress(savedState: GameState): OfflineSummaryFull | null {
   const savedAt = savedState.lastSavedAt || Date.now();
   const elapsedMs = Date.now() - savedAt;

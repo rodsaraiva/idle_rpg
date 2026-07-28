@@ -1,4 +1,4 @@
-import { calculateOfflineProgress } from '../../utils/offlineProgress';
+import { calculateOfflineProgress, hasReportableGains } from '../../utils/offlineProgress';
 import { GameState, HeroTask, Hero } from '../../types';
 import { TICK_INTERVAL_MS, MAX_OFFLINE_MS } from '../../constants/game';
 
@@ -78,5 +78,25 @@ describe('OfflineProgress - Catch-up Logic', () => {
       expect(result.ticks).toBe(Math.floor(expectedTicks));
       expect(result.cappedHours).toBe(72);
     }
+  });
+});
+
+describe('hasReportableGains — não incomodar o jogador com resumo vazio', () => {
+  const vazio = { ticks: 3, goldGained: 0, heroesAffected: 0, cappedHours: 0, perHeroChanges: [], previousState: {} as any, newState: {} as any };
+
+  test('resumo sem ouro e sem herói afetado não é reportável', () => {
+    expect(hasReportableGains(vazio)).toBe(false);
+  });
+
+  test('ouro ganho torna o resumo reportável', () => {
+    expect(hasReportableGains({ ...vazio, goldGained: 12 })).toBe(true);
+  });
+
+  test('herói afetado torna o resumo reportável', () => {
+    expect(hasReportableGains({ ...vazio, heroesAffected: 1 })).toBe(true);
+  });
+
+  test('resumo nulo não é reportável', () => {
+    expect(hasReportableGains(null)).toBe(false);
   });
 });
