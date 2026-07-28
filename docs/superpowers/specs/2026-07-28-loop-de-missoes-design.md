@@ -60,7 +60,7 @@ export interface LoopTally {
   cycles: number;                          // ciclos concluídos com sucesso
   gold: number;                            // já creditado, aqui só para reportar
   materials: Record<string, number>;
-  casualties: { heroId: string; hpAfter: number }[];  // estado ao fim do último ciclo
+  casualties: { heroId: string; hpAfter: number }[];  // união por herói de quem caiu em QUALQUER ciclo
   lastResult?: MissionResult;              // alimenta "Ver último combate"
 }
 
@@ -181,6 +181,12 @@ correspondente. O `onConfirm` passa a levar `loop?: LoopPlan` no lugar de `loopi
 `times` (usa `plannedCycles`); nos outros, "N ciclos". O texto do motivo é fixo por `reason`. A
 porcentagem de HP das baixas sai de `hpAfter / hero.hpMax`, buscando o herói em `state.heroes` pelo
 id — a `LoopTally` guarda só o valor absoluto.
+
+**Baixas acumulam por herói, não pela foto do último ciclo** (decisão de 2026-07-28, revisada durante a
+execução): um herói que caiu no ciclo 2 tem que aparecer no resumo mesmo que o ciclo 3 termine ileso.
+`accumulateTally` funde a lista por `heroId`, mantendo o `hpAfter` mais recente de cada um. Sobrescrever
+fazia um loop de 10 ciclos reportar "nenhuma baixa" — e é justamente esse número que o jogador usa para
+decidir se repete.
 
 "Ver último combate" precisa de um ajuste no `MissionResultModal`, que hoje lê
 `state.recentMissionResults[0]` direto do contexto (`:17,25`) — e resultados de loop, por decisão da
