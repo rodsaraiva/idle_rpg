@@ -114,6 +114,9 @@ test('loop encerrado emite resumo com ciclos, ouro e motivo', () => {
   expect(resumo.tally.cycles).toBe(3);
   expect(resumo.tally.gold).toBeGreaterThan(200);
   expect(resumo.tally.lastResult).toBeDefined();
+  // totalEnemies precisa vir preenchido igual ao newResults — senão "Ver último
+  // combate" mostra "N derrotados" em vez de "N/M" e o ícone nunca fica verde.
+  expect(resumo.tally.lastResult?.totalEnemies).toBe(2);
 });
 
 test('loop que continua não emite resumo e carrega o acumulado adiante', () => {

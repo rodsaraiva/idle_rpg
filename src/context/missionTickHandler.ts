@@ -21,6 +21,21 @@ import { bossToMissionTemplate } from './bossTemplate';
 import { planAllowsAnotherCycle, advanceLoopPlan, accumulateTally } from '../utils/missionLoop';
 import { v4 as uuidv4 } from 'uuid';
 
+/** Resolve o template de uma missão pelo id — normal ou boss semanal do pool. */
+function resolveMissionTemplate(templateId: string, isWeeklyBoss?: boolean): MissionTemplate | undefined {
+  let tpl: MissionTemplate | undefined = MISSIONS.find((t) => t.id === templateId);
+  if (!tpl && isWeeklyBoss) {
+    const bossFromPool = WEEKLY_BOSS_POOL.find((b) => b.id === templateId);
+    if (bossFromPool) tpl = bossToMissionTemplate(bossFromPool);
+  }
+  return tpl;
+}
+
+/** Total de inimigos do template — usado no "N/M derrotados" da tela de resultado. */
+function countTotalEnemies(tpl: MissionTemplate | undefined): number {
+  return tpl?.enemies?.reduce((sum, e) => sum + (e.count ?? 1), 0) ?? 0;
+}
+
 export interface ProcessMissionsResult {
   newHeroes: Hero[];
   activeMissions: ActiveMission[];
@@ -44,11 +59,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
 
   for (let mi = 0; mi < active.length; mi++) {
     const m = active[mi];
-    let tpl: MissionTemplate | undefined = MISSIONS.find((t) => t.id === m.templateId);
-    if (!tpl && m.isWeeklyBoss) {
-      const bossFromPool = WEEKLY_BOSS_POOL.find(b => b.id === m.templateId);
-      if (bossFromPool) tpl = bossToMissionTemplate(bossFromPool);
-    }
+    const tpl = resolveMissionTemplate(m.templateId, m.isWeeklyBoss);
     if (!tpl) continue;
 
     const startedAt = m.startedAt ?? 0;
@@ -165,7 +176,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
       perHeroGold[hid] = (perHeroGold[hid] || 0) + per;
     });
 
-    // Accumulate material drops from this mission outcome
+    // Acumula os drops de material deste desfecho de missão
     if (c.outcome.materialDrops) {
       for (const [mat, qty] of Object.entries(c.outcome.materialDrops)) {
         materialDrops[mat] = (materialDrops[mat] ?? 0) + qty;
@@ -186,8 +197,9 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
             ...c.outcome,
             missionId: c.mission.id,
             templateId: c.mission.templateId,
+            totalEnemies: countTotalEnemies(resolveMissionTemplate(c.mission.templateId, c.mission.isWeeklyBoss)),
             activeSynergies: c.mission.activeSynergies,
-          } as MissionResult,
+          },
         })
       : undefined;
 
@@ -204,10 +216,10 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
       goldGained += computeFinalGold(c.reward, state);
       const tpl = MISSIONS.find(t => t.id === c.mission.templateId);
       if (tpl) {
-        // Get the surviving heroes for the next cycle
+        // Pega os heróis sobreviventes para o próximo ciclo
         const heroesForNext = currentHeroes.filter(h => c.mission.heroIds.includes(h.id) && h.hpCurrent > 0);
         if (heroesForNext.length >= tpl.minHeroes) {
-          // Apply all stat bonuses via central helper
+          // Aplica todos os bônus de stat via helper central
           const heroesWithEquipment = heroesForNext.map(h => {
             const eff = getEffectiveStats(h, state);
             return { ...h, hpMax: eff.hpMax, hpCurrent: eff.hpCurrent, atk: eff.atk, mp: eff.mp, defense: eff.defense, crit: eff.crit, agility: eff.agility };
@@ -268,7 +280,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
             });
           }
         } else {
-          // Not enough surviving heroes to continue — release them
+          // Sobreviventes insuficientes para continuar — libera os heróis
           if (c.mission.loop && tally) {
             completedLoops.push({
               missionId: c.mission.id,
@@ -305,7 +317,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
         });
       }
 
-      // Normal completion: release heroes to IDLE
+      // Conclusão normal: libera os heróis para IDLE
       goldGained += computeFinalGold(c.reward, state);
       c.mission.heroIds.forEach((hid: string) => {
         const idx = currentHeroes.findIndex((hh) => hh.id === hid);
@@ -316,22 +328,14 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
     }
   });
 
-  const newResults: MissionResult[] = completed.map(c => {
-    let tpl: MissionTemplate | undefined = MISSIONS.find(m => m.id === c.mission.templateId);
-    if (!tpl && c.mission.isWeeklyBoss) {
-      const bossFromPool = WEEKLY_BOSS_POOL.find(b => b.id === c.mission.templateId);
-      if (bossFromPool) tpl = bossToMissionTemplate(bossFromPool);
-    }
-    const totalEnemies = tpl?.enemies?.reduce((sum, e) => sum + (e.count ?? 1), 0) ?? 0;
-    return {
-      ...c.outcome,
-      missionId: c.mission.id,
-      templateId: c.mission.templateId,
-      totalEnemies,
-      activeSynergies: c.mission.activeSynergies,
-      fromLoop: !!c.mission.loop,
-    };
-  });
+  const newResults: MissionResult[] = completed.map(c => ({
+    ...c.outcome,
+    missionId: c.mission.id,
+    templateId: c.mission.templateId,
+    totalEnemies: countTotalEnemies(resolveMissionTemplate(c.mission.templateId, c.mission.isWeeklyBoss)),
+    activeSynergies: c.mission.activeSynergies,
+    fromLoop: !!c.mission.loop,
+  }));
 
   return {
     newHeroes: currentHeroes,
