@@ -1,4 +1,4 @@
-import { GameState, HeroTask, OfflineSummaryFull, PerHeroChange, ActiveMission } from '../types';
+import { GameState, HeroTask, OfflineSummaryFull, PerHeroChange, ActiveMission, LoopPlan, LoopTally } from '../types';
 import {
   TICK_INTERVAL_MS,
   BASE_TRAIN_TIME_MS,
@@ -188,13 +188,53 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
 
       if (m.loop) {
         const totalElapsed = nowOffline - startedAt;
-        const cycles = Math.floor(totalElapsed / template.durationMs); // >= 1
+        const possiveis = Math.floor(totalElapsed / template.durationMs);
+        // Teto do plano: recolhido encerra no ciclo em curso; 'times'/'until' limitam pelo que resta;
+        // 'endless' não tem teto — todo o tempo decorrido vira ciclos.
+        const teto =
+          m.loopRecalled ? 1
+          : m.loop.mode === 'times' ? m.loop.remaining
+          : m.loop.mode === 'until' ? Math.max(0, Math.floor((m.loop.endsAt - startedAt) / template.durationMs))
+          : possiveis;
+        const cycles = Math.min(possiveis, teto);
+
         const total = reward * cycles;
         creditPerHero(total);
         additionalGold += total;
-        // re-armar: novo startedAt alinhado ao último ciclo (espelha o tick online)
-        const leftover = totalElapsed % template.durationMs;
-        newActiveMissions.push({ ...m, startedAt: nowOffline - leftover });
+
+        const planoEsgotou = cycles < possiveis || m.loopRecalled;
+        if (planoEsgotou) {
+          // plano acabou antes do tempo disponível: heróis voltam, como missão avulsa.
+          // Nenhum LoopSummary é emitido aqui — decisão 5 da spec: o ouro entra no
+          // resumo de progresso offline que já existe.
+          m.heroIds.forEach((hid: string) => {
+            const idx = newHeroes.findIndex((hh) => hh.id === hid);
+            if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
+          });
+        } else {
+          const leftover = totalElapsed % template.durationMs;
+          const loopRestante: LoopPlan =
+            m.loop.mode === 'times'
+              ? { ...m.loop, remaining: Math.max(0, m.loop.remaining - cycles) }
+              : m.loop;
+          // O loop sobrevive à sessão offline: soma os ciclos e o ouro ao acumulado que a
+          // UI mostra ("×N"), senão o jogador vê um número menor do que o ouro recebido.
+          // Não fabrica lastResult/materiais novos — não há combate simulado ação a ação
+          // aqui, e lastResult alimenta o botão "Ver último combate".
+          const loopTallyAtualizado: LoopTally = {
+            cycles: (m.loopTally?.cycles ?? 0) + cycles,
+            gold: (m.loopTally?.gold ?? 0) + total,
+            materials: { ...(m.loopTally?.materials ?? {}) },
+            casualties: m.loopTally?.casualties ?? [],
+            lastResult: m.loopTally?.lastResult,
+          };
+          newActiveMissions.push({
+            ...m,
+            startedAt: nowOffline - leftover,
+            loop: loopRestante,
+            loopTally: loopTallyAtualizado,
+          });
+        }
       } else {
         creditPerHero(reward);
         additionalGold += reward;
