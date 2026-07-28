@@ -20,6 +20,8 @@ export interface HeroCardAction {
   disabled?: boolean;
   color?: string;
   isActive?: boolean;
+  /** Expõe o botão para medição externa (spotlight do FTUE). */
+  ref?: React.RefObject<View | null>;
 }
 
 interface HeroCardProps {
@@ -245,16 +247,25 @@ export function HeroCard({
       ) : null}
 
       <View style={styles.actions}>
-        {renderedActions.map((a, i) => (
-          <TaskButton
-            key={`${a.label}-${i}`}
-            label={a.label}
-            isActive={!!a.isActive}
-            color={a.color ?? theme.colors.gold}
-            onPress={a.onPress}
-            disabled={!!a.disabled}
-          />
-        ))}
+        {renderedActions.map((a, i) => {
+          const button = (
+            <TaskButton
+              label={a.label}
+              isActive={!!a.isActive}
+              color={a.color ?? theme.colors.gold}
+              onPress={a.onPress}
+              disabled={!!a.disabled}
+            />
+          );
+          const key = `${a.label}-${i}`;
+          return a.ref ? (
+            <View key={key} ref={a.ref} collapsable={false} style={styles.actionSlot}>
+              {button}
+            </View>
+          ) : (
+            <React.Fragment key={key}>{button}</React.Fragment>
+          );
+        })}
       </View>
     </>
   );
@@ -385,6 +396,10 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: theme.spacing.sm,
+  },
+  // O wrapper de ref precisa ocupar o mesmo espaço do TaskButton (flex:1) que ele embrulha
+  actionSlot: {
+    flex: 1,
   },
   hpRow: {
     flexDirection: 'row',

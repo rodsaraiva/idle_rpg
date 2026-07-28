@@ -1,30 +1,19 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, FlatList, StyleSheet } from 'react-native';
 import { theme } from '../theme';
 import { AnimatedGold } from '../components/AnimatedGold';
 import { Banner } from '../components/ui/Banner';
 import { ScreenContainer } from '../components/ui/ScreenContainer';
-import { Icon, IconName } from '../components/ui/Icon';
-import { PressableScale } from '../components/ui/PressableScale';
 import { EmptyState } from '../components/ui/EmptyState';
 import { HeroCard } from '../components/HeroCard';
 import { HeroDetailsModal } from '../components/HeroDetailsModal';
-import { OfflineSummaryModal } from '../components/OfflineSummaryModal';
-import { Hero, HeroTask } from '../types';
+import { Hero } from '../types';
 import { useTraining } from '../hooks/useTraining';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { registerTarget } from '../onboarding/targetRegistry';
 
 export function TrainingScreen() {
-  const {
-    state,
-    isLoaded,
-    offlineSummary,
-    setAllHeroesTask,
-    getHeroActions,
-    applyOfflineSummary,
-    clearOfflineSummary,
-  } = useTraining();
+  const { state, isLoaded, getHeroActions } = useTraining();
 
   const trainAtkRef = React.useRef<View>(null);
   React.useEffect(() => {
@@ -45,21 +34,15 @@ export function TrainingScreen() {
     return <LoadingScreen message="Carregando treinamento..." />;
   }
 
-  const renderHero = ({ item }: { item: Hero }) => (
+  // O FTUE aponta para o ATK do primeiro herói da lista — é o gesto que o passo pede.
+  const renderHero = ({ item, index }: { item: Hero; index: number }) => (
     <HeroCard
       hero={item}
-      actions={getHeroActions(item)}
+      actions={getHeroActions(item, index === 0 ? trainAtkRef : undefined)}
       showSecondaryStats={false}
       onPress={setSelectedHero}
       equippedCosmetics={state.cosmetics?.equipped}
     />
-  );
-
-  const BatchButton = ({ title, icon, color, onPress }: { title: string; icon: IconName; color: string; onPress: () => void }) => (
-    <PressableScale style={[styles.batchButton, { borderColor: color }]} onPress={onPress}>
-      <Icon name={icon} size={20} color={color} />
-      <Text style={styles.batchText}>{title}</Text>
-    </PressableScale>
   );
 
   return (
@@ -73,32 +56,6 @@ export function TrainingScreen() {
         />
       }
     >
-      <View style={styles.batchSection}>
-        <Text style={styles.sectionTitle}>Ordens Coletivas</Text>
-        <View style={styles.batchRow}>
-          <BatchButton
-            title="HP"
-            icon="heart"
-            color={theme.colors.statHp}
-            onPress={() => setAllHeroesTask(HeroTask.TRAIN_HP)}
-          />
-          <View ref={trainAtkRef} collapsable={false}>
-            <BatchButton
-              title="ATK"
-              icon="sword"
-              color={theme.colors.statAtk}
-              onPress={() => setAllHeroesTask(HeroTask.TRAIN_ATK)}
-            />
-          </View>
-          <BatchButton
-            title="MP"
-            icon="stat-mp"
-            color={theme.colors.statMp}
-            onPress={() => setAllHeroesTask(HeroTask.TRAIN_MP)}
-          />
-        </View>
-      </View>
-
       {state.heroes.length === 0 ? (
         <EmptyState
           icon="castle"
@@ -115,12 +72,6 @@ export function TrainingScreen() {
         />
       )}
 
-      <OfflineSummaryModal
-        visible={!!offlineSummary}
-        summary={offlineSummary}
-        onApply={applyOfflineSummary}
-        onDismiss={clearOfflineSummary}
-      />
       <HeroDetailsModal
         visible={!!selectedHero}
         hero={selectedHero}
@@ -131,35 +82,6 @@ export function TrainingScreen() {
 }
 
 const styles = StyleSheet.create({
-  batchSection: {
-    marginVertical: theme.spacing.md,
-  },
-  sectionTitle: {
-    ...theme.type.label,
-    color: theme.colors.textSecondary,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  batchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: theme.spacing.sm,
-  },
-  batchButton: {
-    flex: 1,
-    backgroundColor: theme.colors.surfaceRaised,
-    padding: theme.spacing.sm,
-    borderRadius: theme.borderRadius.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    ...theme.elevation.e1,
-  },
-  batchText: {
-    ...theme.type.label,
-    color: theme.colors.textPrimary,
-    textTransform: 'uppercase',
-    marginTop: 4,
-  },
   listContent: {
     paddingBottom: theme.spacing.xl,
   },

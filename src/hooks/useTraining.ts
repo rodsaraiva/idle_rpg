@@ -1,5 +1,7 @@
+import React from 'react';
+import { View } from 'react-native';
 import { useGame } from './useGame';
-import { Hero, HeroTask } from '../types';
+import { Hero } from '../types';
 import { getHeroActions as getHeroActionsUtil } from '../utils/heroActions';
 
 export function useTraining() {
@@ -12,17 +14,13 @@ export function useTraining() {
     applyOfflineSummary 
   } = useGame();
 
-  const setAllHeroesTask = (task: HeroTask) => {
-    state.heroes.forEach(h => setHeroTask(h.id, task));
-  };
-
-  const getHeroActions = (hero: Hero) => getHeroActionsUtil(hero, setHeroTask);
+  const getHeroActions = (hero: Hero, atkRef?: React.RefObject<View | null>) =>
+    getHeroActionsUtil(hero, setHeroTask, atkRef);
 
   return {
     state,
     isLoaded,
     offlineSummary,
-    setAllHeroesTask,
     getHeroActions,
     applyOfflineSummary,
     clearOfflineSummary,

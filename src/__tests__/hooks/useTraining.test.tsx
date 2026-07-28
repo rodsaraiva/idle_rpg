@@ -42,16 +42,6 @@ describe('useTraining', () => {
     expect(result.current.offlineSummary).not.toBeNull();
   });
 
-  test('setAllHeroesTask calls setHeroTask for each hero', () => {
-    const { result } = renderHook(() => useTraining(), { wrapper });
-    
-    act(() => {
-      result.current.setAllHeroesTask(HeroTask.TRAIN_HP);
-    });
-    
-    expect(mockSetHeroTask).toHaveBeenCalledWith('h1', HeroTask.TRAIN_HP);
-  });
-
   test('getHeroActions returns correct action objects', () => {
     const { result } = renderHook(() => useTraining(), { wrapper });
     const actions = result.current.getHeroActions(mockHero);

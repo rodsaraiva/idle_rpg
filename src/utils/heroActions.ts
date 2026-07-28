@@ -1,7 +1,14 @@
+import React from 'react';
+import { View } from 'react-native';
 import { Hero, HeroTask } from '../types';
 import { theme } from '../theme';
 
-export function getHeroActions(hero: Hero, setHeroTask: (id: string, task: HeroTask) => void) {
+/** `atkRef` marca o botão de ATK como alvo mensurável do spotlight do FTUE. */
+export function getHeroActions(
+  hero: Hero,
+  setHeroTask: (id: string, task: HeroTask) => void,
+  atkRef?: React.RefObject<View | null>
+) {
   return [
     {
       label: 'Treinar HP',
@@ -14,6 +21,7 @@ export function getHeroActions(hero: Hero, setHeroTask: (id: string, task: HeroT
       isActive: hero.currentTask === HeroTask.TRAIN_ATK,
       color: theme.colors.statAtk,
       onPress: () => setHeroTask(hero.id, HeroTask.TRAIN_ATK),
+      ...(atkRef ? { ref: atkRef } : {}),
     },
     {
       label: 'Treinar MP',

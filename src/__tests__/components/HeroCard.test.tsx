@@ -121,3 +121,35 @@ describe('HeroCard — regra DEF/CRIT/AGI não-treináveis', () => {
     expect(queryByLabelText(/^DEF /)).toBeNull();
   });
 });
+
+describe('HeroCard — ref de ação (alvo do FTUE)', () => {
+  test('anexa o ref a um nó real, mensurável pelo spotlight', () => {
+    const atkRef = React.createRef<any>();
+    // react-test-renderer só materializa ref de host component com createNodeMock
+    render(
+      wrap(
+        <HeroCard
+          hero={makeHero()}
+          actions={[
+            { label: 'Treinar HP', onPress: jest.fn() },
+            { label: 'Treinar ATK', onPress: jest.fn(), ref: atkRef },
+          ]}
+        />
+      ),
+      { createNodeMock: () => ({ measureInWindow: jest.fn() }) }
+    );
+    expect(atkRef.current?.measureInWindow).toBeDefined();
+  });
+
+  test('sem ref na ação, renderiza os botões normalmente', () => {
+    const { getByText } = render(
+      wrap(
+        <HeroCard
+          hero={makeHero()}
+          actions={[{ label: 'Treinar ATK', onPress: jest.fn() }]}
+        />
+      )
+    );
+    expect(getByText('Treinar ATK')).toBeTruthy();
+  });
+});
