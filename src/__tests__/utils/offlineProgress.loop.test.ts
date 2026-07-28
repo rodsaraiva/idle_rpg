@@ -64,19 +64,70 @@ test('loop endless continua armado', () => {
   expect(resumo.newState!.activeMissions).toHaveLength(1);
 });
 
-test('loop por tempo (until) respeita o prazo mesmo offline', () => {
+test('loop "times" esgota o plano exatamente na janela offline (cycles === teto, sem sobra)', () => {
+  // Caso mais comum pra planos curtos: o jogador volta logo depois de o plano ter
+  // terminado (decorrido cai em [remaining*d, (remaining+1)*d), sem ciclo extra "de graça").
+  const template = MISSIONS[0];
+  const decorrido = template.durationMs * 3.5;
+  const estado = estadoComLoop({ mode: 'times', remaining: 3, total: 3 }, decorrido);
+
+  const resumo = calculateOfflineProgress(estado)!;
+
+  expect(resumo.newState!.activeMissions).toHaveLength(0);
+  expect(resumo.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO * 3);
+});
+
+test('loop "until" continua armado quando o prazo cobre mais ciclos do que o tempo offline gerou', () => {
   const template = MISSIONS[0];
   const agora = Date.now();
-  const decorrido = template.durationMs * 10;
-  // prazo cabe só 4 ciclos a partir do início da missão
+  const decorrido = template.durationMs * 2; // só 2 ciclos possíveis no tempo offline
+  const startedAt = agora - decorrido;
   const estado = estadoComLoop(
-    { mode: 'until', endsAt: (agora - decorrido) + template.durationMs * 4 },
+    { mode: 'until', endsAt: startedAt + template.durationMs * 4.3 }, // prazo cobre 5 ciclos (ceil)
     decorrido
   );
 
   const resumo = calculateOfflineProgress(estado)!;
 
-  expect(resumo.goldGained).toBe(REWARD_POR_CICLO * 4);
+  expect(resumo.newState!.activeMissions).toHaveLength(1);
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO * 2);
+});
+
+test('loop "until" com prazo não-múltiplo credita o teto arredondado pra cima (ceil), não floor', () => {
+  // D = 4.3x a duração: o ciclo em voo quando o prazo vence sempre completa,
+  // então o teto real é ceil(D/d) = 5, não floor(D/d) = 4.
+  const template = MISSIONS[0];
+  const agora = Date.now();
+  const decorrido = template.durationMs * 6; // tempo offline sobra além do prazo
+  const startedAt = agora - decorrido;
+  const estado = estadoComLoop(
+    { mode: 'until', endsAt: startedAt + template.durationMs * 4.3 },
+    decorrido
+  );
+
+  const resumo = calculateOfflineProgress(estado)!;
+
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO * 5);
+  expect(resumo.newState!.activeMissions).toHaveLength(0);
+  expect(resumo.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
+});
+
+test('loop "until" credita o ciclo em voo mesmo com o prazo vencendo no meio dele (0 < D < duração)', () => {
+  // Formato mais comum do último ciclo de qualquer loop "until": o prazo nunca
+  // interrompe o ciclo em andamento, só impede que um novo comece.
+  const template = MISSIONS[0];
+  const agora = Date.now();
+  const decorrido = template.durationMs; // exatamente 1 ciclo decorrido
+  const startedAt = agora - decorrido;
+  const estado = estadoComLoop(
+    { mode: 'until', endsAt: startedAt + template.durationMs * 0.5 },
+    decorrido
+  );
+
+  const resumo = calculateOfflineProgress(estado)!;
+
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO); // 1 ciclo, não 0
   expect(resumo.newState!.activeMissions).toHaveLength(0);
   expect(resumo.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
 });

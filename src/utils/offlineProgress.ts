@@ -191,10 +191,13 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         const possiveis = Math.floor(totalElapsed / template.durationMs);
         // Teto do plano: recolhido encerra no ciclo em curso; 'times'/'until' limitam pelo que resta;
         // 'endless' não tem teto — todo o tempo decorrido vira ciclos.
+        // 'until': o prazo só impede que um NOVO ciclo comece — o ciclo em voo sempre
+        // completa (mesma regra do planAllowsAnotherCycle online). Por isso é ceil, não
+        // floor, com mínimo 1: mesmo D <= 0 credita o ciclo que já tinha começado.
         const teto =
           m.loopRecalled ? 1
           : m.loop.mode === 'times' ? m.loop.remaining
-          : m.loop.mode === 'until' ? Math.max(0, Math.floor((m.loop.endsAt - startedAt) / template.durationMs))
+          : m.loop.mode === 'until' ? Math.max(1, Math.ceil((m.loop.endsAt - startedAt) / template.durationMs))
           : possiveis;
         const cycles = Math.min(possiveis, teto);
 
@@ -202,7 +205,11 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         creditPerHero(total);
         additionalGold += total;
 
-        const planoEsgotou = cycles < possiveis || m.loopRecalled;
+        // 'endless' nunca esgota (não tem teto real — teto aqui só espelha possiveis).
+        // Nos demais, o plano esgota assim que os ciclos rodados alcançam o teto —
+        // "cycles < possiveis" deixava passar batido o caso cycles === teto === possiveis
+        // (plano consumido inteiro sem sobrar tempo pra mais um ciclo).
+        const planoEsgotou = m.loopRecalled || (m.loop.mode !== 'endless' && cycles >= teto);
         if (planoEsgotou) {
           // plano acabou antes do tempo disponível: heróis voltam, como missão avulsa.
           // Nenhum LoopSummary é emitido aqui — decisão 5 da spec: o ouro entra no
