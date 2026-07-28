@@ -222,7 +222,22 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         // online exige success pra repetir o loop (planAllowsAnotherCycle). Se esse ciclo
         // fracassou, os demais nunca teriam rodado — creditar só 1, não o tempo offline inteiro.
         const outcomeFalhou = m.precomputedOutcome?.success === false;
-        const cycles = outcomeFalhou ? 1 : Math.min(possiveis, teto);
+        // Vitória que esvazia o time é o mesmo fenômeno: o online só repete o loop com
+        // sobreviventes >= tpl.minHeroes (missionTickHandler.ts:226); abaixo disso ele para
+        // no ciclo que acabou de rodar — que aqui também é sempre o primeiro (mesmo outcome
+        // pré-computado reusado pra todos os ciclos, não há dado pra "N-ésimo ciclo").
+        // Conta mortos (hpAfter <= 0), não sobreviventes presentes no array: fixtures e o
+        // outcome "sem baixas" usam casualties: [] pra dizer "ninguém morreu", não "todos".
+        const mortosNoOutcome = new Set(
+          (m.precomputedOutcome?.casualties ?? [])
+            .filter((c) => c.hpAfter <= 0)
+            .map((c) => c.heroId)
+        );
+        const sobreviventesAposOutcome = m.heroIds.filter((hid) => !mortosNoOutcome.has(hid)).length;
+        const vitoriaEsvaziaTime =
+          m.precomputedOutcome?.success === true && sobreviventesAposOutcome < template.minHeroes;
+        const paraNoPrimeiroCiclo = outcomeFalhou || vitoriaEsvaziaTime;
+        const cycles = paraNoPrimeiroCiclo ? 1 : Math.min(possiveis, teto);
 
         // Mesmo multiplicador do online (pantheon → Legado → Evento), aplicado POR CICLO
         // antes de somar — floor por ciclo diverge de floor do total (ver computeFinalGold).
@@ -232,13 +247,14 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         additionalGold += total;
 
         // 'endless' nunca esgota; nos demais, o plano esgota assim que os ciclos rodados alcançam o
-        // teto. Derrota esgota sempre, mesmo 'endless' — sem success não há por que repetir.
-        const planoEsgotou = outcomeFalhou || m.loopRecalled || (m.loop.mode !== 'endless' && cycles >= teto);
+        // teto. Derrota e vitória-que-esvazia esgotam sempre, mesmo 'endless' — sem sobreviventes
+        // suficientes não há por que repetir.
+        const planoEsgotou = paraNoPrimeiroCiclo || m.loopRecalled || (m.loop.mode !== 'endless' && cycles >= teto);
         if (planoEsgotou) {
-          if (outcomeFalhou) {
-            // Baixas do ciclo perdido: o online aplica isso incondicionalmente antes de decidir
-            // se repete (missionTickHandler.ts:172-182). Aqui só no caminho de derrota — aplicar
-            // baixas também em vitória offline é escopo maior, que esta task não cobre.
+          if (paraNoPrimeiroCiclo) {
+            // Baixas do ciclo que encerrou o loop: o online aplica isso incondicionalmente antes de
+            // decidir se repete (missionTickHandler.ts:172-182). Recolhido (loopRecalled) ou teto
+            // batido normalmente não mexem em HP aqui — só derrota e vitória-que-esvazia o fazem.
             m.precomputedOutcome!.casualties.forEach((c) => {
               const idx = newHeroes.findIndex((hh) => hh.id === c.heroId);
               if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], hpCurrent: c.hpAfter };

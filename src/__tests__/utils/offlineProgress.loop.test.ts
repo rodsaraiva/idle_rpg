@@ -285,3 +285,142 @@ test('loop com combate de derrota (paridade): offline credita exatamente o que a
   expect(resumoOffline.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
   expect(resumoOffline.newState!.heroes[0].hpCurrent).toBe(resultadoOnline.newHeroes[0].hpCurrent);
 });
+
+// --- Task 12: vitória com baixas que esvaziam o time também fecha o loop no 1º ciclo ---
+
+const MISSIONS_1 = MISSIONS[1]; // minHeroes: 2 — precisa de 2 heróis pra o critério de sobreviventes fazer sentido
+
+function heroi2(): Hero {
+  return {
+    id: 'h2', name: 'Herói 2', hpMax: 500, hpCurrent: 500, atk: 999, mp: 10,
+    defense: 50, crit: 10, agility: 10, currentTask: HeroTask.MISSION,
+    trainingProgressMs: { hp: 0, atk: 0, mp: 0 }, trainingCount: { hp: 0, atk: 0, mp: 0 },
+    equippedItems: [],
+  } as Hero;
+}
+
+test('loop "endless" com vitória que derruba o time abaixo de minHeroes credita 1 ciclo (não os N que o tempo offline caberia), aplica a baixa e libera os heróis', () => {
+  // Mesmo raciocínio da derrota: o outcome pré-computado é do 1º ciclo. Se ele já deixa
+  // sobreviventes (1) abaixo de minHeroes (2), o online nunca rodaria um 2º ciclo.
+  const decorrido = CICLO * 10;
+  const agora = Date.now();
+  const estado: GameState = {
+    gold: 0, heroes: [heroi(), heroi2()], heroesRecruited: 2,
+    lastSavedAt: agora - decorrido,
+    activeMissions: [{
+      id: 'm1', templateId: MISSIONS_1.id, heroIds: ['h1', 'h2'],
+      startedAt: agora - decorrido, scheduledActions: [], enemiesState: [],
+      precomputedOutcome: {
+        reward: REWARD_POR_CICLO, rounds: 1, actions: [], log: [],
+        success: true,
+        casualties: [
+          { heroId: 'h1', hpLost: 500, hpAfter: 0 },
+          { heroId: 'h2', hpLost: 100, hpAfter: 400 },
+        ],
+        enemyCasualties: 2,
+      },
+      loop: { mode: 'endless' },
+    }],
+  } as GameState;
+
+  const resumo = calculateOfflineProgress(estado)!;
+
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO); // 1 ciclo, igual ao online — não 10
+  expect(resumo.newState!.activeMissions).toHaveLength(0); // loop não é re-armado
+  expect(resumo.newState!.heroes.find((h) => h.id === 'h1')!.currentTask).toBe(HeroTask.IDLE);
+  expect(resumo.newState!.heroes.find((h) => h.id === 'h2')!.currentTask).toBe(HeroTask.IDLE);
+  expect(resumo.newState!.heroes.find((h) => h.id === 'h1')!.hpCurrent).toBe(0); // baixa aplicada
+  expect(resumo.newState!.heroes.find((h) => h.id === 'h2')!.hpCurrent).toBe(400); // baixa aplicada
+});
+
+test('loop "endless" com vitória que NÃO derruba o time abaixo de minHeroes continua armado, sem aplicar baixas (limite de escopo mantido)', () => {
+  const decorrido = CICLO * 3;
+  const agora = Date.now();
+  const estado: GameState = {
+    gold: 0, heroes: [heroi(), heroi2()], heroesRecruited: 2,
+    lastSavedAt: agora - decorrido,
+    activeMissions: [{
+      id: 'm1', templateId: MISSIONS_1.id, heroIds: ['h1', 'h2'],
+      startedAt: agora - decorrido, scheduledActions: [], enemiesState: [],
+      precomputedOutcome: {
+        reward: REWARD_POR_CICLO, rounds: 1, actions: [], log: [],
+        success: true,
+        casualties: [
+          { heroId: 'h1', hpLost: 100, hpAfter: 400 },
+          { heroId: 'h2', hpLost: 0, hpAfter: 500 },
+        ],
+        enemyCasualties: 2,
+      },
+      loop: { mode: 'endless' },
+    }],
+  } as GameState;
+
+  const resumo = calculateOfflineProgress(estado)!;
+
+  expect(resumo.newState!.activeMissions).toHaveLength(1); // 2 sobreviventes >= minHeroes(2) — loop segue
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO * 3);
+  // Fora de escopo (decisão do dono, ver brief): enquanto o loop continua, baixa não é aplicada offline.
+  expect(resumo.newState!.heroes.find((h) => h.id === 'h1')!.hpCurrent).toBe(500);
+});
+
+test('loop com vitória que esvazia o time (paridade): offline credita exatamente o que a única conclusão online creditaria, com panteão aplicado, HP e missões restantes idênticos', () => {
+  const REWARD = 9; // floor(9*1.4) = 12 ≠ 9 — só discrimina um mutante se o multiplicador de fato mexer no valor
+  const now = Date.now();
+  const heroi1 = heroi();
+  const heroiDois = heroi2();
+  const outcomeVitoriaEsvazia = {
+    reward: REWARD, rounds: 1, actions: [], log: [],
+    success: true,
+    casualties: [
+      { heroId: 'h1', hpLost: 500, hpAfter: 0 },
+      { heroId: 'h2', hpLost: 50, hpAfter: 450 },
+    ],
+    enemyCasualties: 2,
+  };
+  const estadoComPanteao = (over: Partial<GameState>): GameState => ({
+    gold: 0, heroes: [], heroesRecruited: 2, lastSavedAt: Date.now(), activeMissions: [],
+    pantheonBonuses: { goldPercent: 40, atkPercent: 0, hpPercent: 0 },
+    activeEvent: null,
+    ...over,
+  } as GameState);
+
+  // ONLINE: 1 conclusão vitoriosa com 1 sobrevivente — heroesForNext.length(1) < tpl.minHeroes(2),
+  // então processMissions não repete (missionTickHandler.ts:226), mesmo com loop 'endless'.
+  const missaoOnline: ActiveMission = {
+    id: 'm1', templateId: MISSIONS_1.id, heroIds: ['h1', 'h2'],
+    startedAt: now - 1000, finishAt: now - 1, scheduledActions: [], enemiesState: [],
+    precomputedOutcome: outcomeVitoriaEsvazia, loop: { mode: 'endless' },
+  };
+  const estadoOnline = estadoComPanteao({ heroes: [heroi1, heroiDois], activeMissions: [missaoOnline] });
+  const resultadoOnline = processMissions(estadoOnline, [heroi1, heroiDois], now);
+
+  // OFFLINE: mesma missão, mesmo outcome, mas decorrido cobre 10 ciclos possíveis — sem a
+  // checagem de sobreviventes, offline creditaria 10x.
+  const decorrido = CICLO * 10;
+  const missaoOffline: ActiveMission = {
+    id: 'm1', templateId: MISSIONS_1.id, heroIds: ['h1', 'h2'],
+    startedAt: now - decorrido, scheduledActions: [], enemiesState: [],
+    precomputedOutcome: outcomeVitoriaEsvazia, loop: { mode: 'endless' },
+  };
+  const estadoOffline = estadoComPanteao({
+    heroes: [heroi1, heroiDois], lastSavedAt: now - decorrido, activeMissions: [missaoOffline],
+  });
+  const resumoOffline = calculateOfflineProgress(estadoOffline)!;
+
+  expect(computeFinalGold(REWARD, estadoOnline)).toBe(12);
+  expect(resultadoOnline.goldGained).toBe(12);
+  expect(resumoOffline.goldGained).toBe(resultadoOnline.goldGained);
+
+  expect(resultadoOnline.activeMissions).toHaveLength(0);
+  expect(resumoOffline.newState!.activeMissions).toHaveLength(0);
+
+  const h1Online = resultadoOnline.newHeroes.find((h) => h.id === 'h1')!;
+  const h2Online = resultadoOnline.newHeroes.find((h) => h.id === 'h2')!;
+  const h1Offline = resumoOffline.newState!.heroes.find((h) => h.id === 'h1')!;
+  const h2Offline = resumoOffline.newState!.heroes.find((h) => h.id === 'h2')!;
+
+  expect(h1Offline.hpCurrent).toBe(h1Online.hpCurrent);
+  expect(h2Offline.hpCurrent).toBe(h2Online.hpCurrent);
+  expect(h1Offline.currentTask).toBe(HeroTask.IDLE);
+  expect(h2Offline.currentTask).toBe(HeroTask.IDLE);
+});
