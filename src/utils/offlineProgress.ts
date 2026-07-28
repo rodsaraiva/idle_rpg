@@ -11,6 +11,8 @@ import { calcMissionReward } from './missionMath';
 import { computePointsFromMs } from './trainingMath';
 import { createGuaranteedEquipment } from '../context/equipmentHandler';
 import { computeFinalGold } from './rewards';
+import { computeCycleDurationMs } from './missionLoop';
+import { legacyDurationMultiplier } from '../constants/legacyUpgrades';
 
 /**
  * O resumo é gerado a partir de 1 tick (500ms) de ausência, então um reload trivial
@@ -157,13 +159,29 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         const boss = WEEKLY_BOSS_POOL.find((b) => b.id === m.templateId);
         if (boss) template = bossToMissionTemplate(boss);
       }
-      if (!template || template.durationMs <= 0) {
+      if (!template) {
+        newActiveMissions.push({ ...m });
+        return;
+      }
+
+      // Duração real do ciclo: a MESMA fórmula do motor online (computeCycleDurationMs em
+      // missionLoop.ts), a partir do nº de ações do combate pré-computado — nunca
+      // template.durationMs, que o motor online não lê em lugar nenhum (é um rótulo antigo,
+      // dessincronizado do tempo real de execução; ver task-10-brief.md, item I2).
+      // Boss semanal não recebe o multiplicador de Legado (mesma regra de missionHandler.ts).
+      const durationFactor = m.isWeeklyBoss ? 1 : legacyDurationMultiplier(savedState);
+      const actionsCount = m.precomputedOutcome?.actions?.length;
+      const cycleDurationMs = actionsCount != null
+        ? computeCycleDurationMs(actionsCount, durationFactor)
+        : template.durationMs; // sem outcome pré-computado (save legado ou erro de batalha): sem n, cai no fallback antigo
+
+      if (cycleDurationMs <= 0) {
         newActiveMissions.push({ ...m });
         return;
       }
 
       const startedAt = m.startedAt;
-      const endsAt = startedAt + template.durationMs;
+      const endsAt = startedAt + cycleDurationMs;
 
       if (nowOffline < endsAt) {
         // ainda em andamento → mantém intacta (startedAt preservado)
@@ -189,7 +207,7 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
 
       if (m.loop) {
         const totalElapsed = nowOffline - startedAt;
-        const possiveis = Math.floor(totalElapsed / template.durationMs);
+        const possiveis = Math.floor(totalElapsed / cycleDurationMs);
         // Teto do plano: recolhido encerra no ciclo em curso; 'times'/'until' limitam pelo que resta;
         // 'endless' não tem teto — todo o tempo decorrido vira ciclos.
         // 'until': o prazo só impede que um NOVO ciclo comece — o ciclo em voo sempre
@@ -198,7 +216,7 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         const teto =
           m.loopRecalled ? 1
           : m.loop.mode === 'times' ? m.loop.remaining
-          : m.loop.mode === 'until' ? Math.max(1, Math.ceil((m.loop.endsAt - startedAt) / template.durationMs))
+          : m.loop.mode === 'until' ? Math.max(1, Math.ceil((m.loop.endsAt - startedAt) / cycleDurationMs))
           : possiveis;
         const cycles = Math.min(possiveis, teto);
 
@@ -220,7 +238,7 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
             if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], currentTask: HeroTask.IDLE };
           });
         } else {
-          const leftover = totalElapsed % template.durationMs;
+          const leftover = totalElapsed % cycleDurationMs;
           const loopRestante: LoopPlan =
             m.loop.mode === 'times'
               ? { ...m.loop, remaining: Math.max(0, m.loop.remaining - cycles) }

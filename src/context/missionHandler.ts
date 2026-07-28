@@ -12,8 +12,6 @@ import {
   HEALER_BUFF_CAP,
   ROGUE_RNG_BONUS_PER_HERO,
   ROGUE_RNG_BONUS_CAP,
-  MISSION_START_DELAY_MS,
-  MISSION_ACTION_INTERVAL_MS,
   BASE_MISSION_SLOTS,
 } from '../constants/game';
 import { isHeroAvailableForMission, getEffectiveStats } from '../utils/heroUtils';
@@ -22,6 +20,7 @@ import { ClassId } from '../types';
 import { checkLegacySeals } from './legacyHandler';
 import { legacyDurationMultiplier, legacyMissionSlotBonus } from '../constants/legacyUpgrades';
 import { computeFinalGold } from '../utils/rewards';
+import { actionTimestampMs } from '../utils/missionLoop';
 
 export function validateMissionRequirements(template: MissionTemplate, heroes: Hero[], state?: GameState): string | null {
   if (!template.requirements) return null;
@@ -106,7 +105,7 @@ function buildBattleMission(params: {
 
     const missionEnemies = BattleEngine.createEnemies(runTemplate);
     const scheduled = (outcome.actions || []).map((a, i) => ({
-      atMsFromStart: Math.floor((MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS) * durationFactor),
+      atMsFromStart: actionTimestampMs(i, durationFactor),
       action: a,
       applied: false,
     }));

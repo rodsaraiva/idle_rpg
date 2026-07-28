@@ -3,9 +3,12 @@ import { GameState, HeroTask, ActiveMission, Hero } from '../../types';
 import { MISSIONS } from '../../constants/missions';
 import { WEEKLY_BOSS_POOL } from '../../constants/weeklyBosses';
 import { MAX_OFFLINE_MS } from '../../constants/game';
+import { computeCycleDurationMs } from '../../utils/missionLoop';
 
-const TPL = MISSIONS.find((m) => m.id === 'mission_1')!; // durationMs 10_000
-const DUR = TPL.durationMs;
+const TPL = MISSIONS.find((m) => m.id === 'mission_1')!; // durationMs 10_000 (não usado p/ ciclo real, ver I2)
+// DUR (I2): a fixture padrão deste arquivo usa precomputedOutcome.actions: [] (n=0 ações) — a
+// mesma duração que a produção calcula (computeCycleDurationMs), não template.durationMs.
+const DUR = computeCycleDurationMs(0);
 
 function makeHero(overrides: Partial<Hero> = {}): Hero {
   return {
@@ -149,10 +152,13 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
   });
 
   test('fonte do reward: sem precomputedOutcome cai no fallback calcMissionReward (> 0)', () => {
+    // Sem precomputedOutcome não há n (nº de ações) pra calcular a duração real — cai no
+    // fallback template.durationMs (ver offlineProgress.ts), por isso usa TPL.durationMs
+    // aqui em vez do DUR compartilhado (que assume actions: [] via computeCycleDurationMs).
     const now = Date.now();
-    const startedAt = now - 1 - DUR;
+    const startedAt = now - 1 - TPL.durationMs;
     const mission = makeMission({ startedAt, precomputedOutcome: undefined });
-    const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: 1 + DUR, mission }))!;
+    const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: 1 + TPL.durationMs, mission }))!;
     expect(summary.goldGained).toBeGreaterThan(0);
   });
 

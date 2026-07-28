@@ -2,8 +2,6 @@ import { GameState, HeroTask, Hero, ActiveMission, MissionOutcome, MissionResult
 import { analytics } from '../services/analytics';
 import {
   MISSION_FINISH_DELAY_MS,
-  MISSION_START_DELAY_MS,
-  MISSION_ACTION_INTERVAL_MS,
   HEALER_BUFF_PER_HERO,
   HEALER_BUFF_CAP,
   ROGUE_RNG_BONUS_PER_HERO,
@@ -18,7 +16,7 @@ import { legacyDurationMultiplier } from '../constants/legacyUpgrades';
 import { computeFinalGold } from '../utils/rewards';
 import { getActiveSynergies } from '../constants/synergies';
 import { bossToMissionTemplate } from './bossTemplate';
-import { planAllowsAnotherCycle, advanceLoopPlan, accumulateTally } from '../utils/missionLoop';
+import { planAllowsAnotherCycle, advanceLoopPlan, accumulateTally, actionTimestampMs } from '../utils/missionLoop';
 import { v4 as uuidv4 } from 'uuid';
 
 /** Resolve o template de uma missão pelo id — normal ou boss semanal do pool. */
@@ -241,7 +239,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
             });
             const loopDurationFactor = legacyDurationMultiplier(state);
             const newScheduled = (newOutcome.actions || []).map((a, i) => ({
-              atMsFromStart: Math.floor((MISSION_START_DELAY_MS + i * MISSION_ACTION_INTERVAL_MS) * loopDurationFactor),
+              atMsFromStart: actionTimestampMs(i, loopDurationFactor),
               action: a,
               applied: false,
             }));

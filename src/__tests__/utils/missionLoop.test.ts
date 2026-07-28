@@ -1,4 +1,10 @@
-import { planAllowsAnotherCycle, advanceLoopPlan, accumulateTally } from '../../utils/missionLoop';
+import {
+  planAllowsAnotherCycle, advanceLoopPlan, accumulateTally,
+  actionTimestampMs, computeCycleDurationMs,
+} from '../../utils/missionLoop';
+import {
+  MISSION_START_DELAY_MS, MISSION_ACTION_INTERVAL_MS, MISSION_FINISH_DELAY_MS,
+} from '../../constants/game';
 import { LoopPlan, MissionResult } from '../../types';
 
 const AGORA = 1_000_000;
@@ -112,5 +118,39 @@ describe('accumulateTally', () => {
     expect(primeiro.gold).toBe(10);
     expect(primeiro.materials).toEqual({ couro: 1 });
     expect(primeiro.casualties).toEqual([{ heroId: 'h1', hpAfter: 0 }]);
+  });
+});
+
+// I2 — fonte única da duração de um ciclo de missão (online e offline chamam a mesma função).
+describe('actionTimestampMs', () => {
+  test('ação 0 cai em MISSION_START_DELAY_MS (sem fator)', () => {
+    expect(actionTimestampMs(0)).toBe(MISSION_START_DELAY_MS);
+  });
+
+  test('ação i soma i intervalos de ação a partir do delay inicial', () => {
+    expect(actionTimestampMs(3)).toBe(MISSION_START_DELAY_MS + 3 * MISSION_ACTION_INTERVAL_MS);
+  });
+
+  test('durationFactor escala o timestamp inteiro (Legado train_duration)', () => {
+    expect(actionTimestampMs(3, 0.5)).toBe(Math.floor((MISSION_START_DELAY_MS + 3 * MISSION_ACTION_INTERVAL_MS) * 0.5));
+  });
+});
+
+describe('computeCycleDurationMs', () => {
+  test('n ações: última ação + delay de encerramento (sem fator no encerramento)', () => {
+    const n = 5;
+    const esperado = actionTimestampMs(n - 1) + MISSION_FINISH_DELAY_MS;
+    expect(computeCycleDurationMs(n)).toBe(esperado);
+  });
+
+  test('0 ações cai no piso de 1 (nunca duração negativa ou zero)', () => {
+    expect(computeCycleDurationMs(0)).toBe(computeCycleDurationMs(1));
+  });
+
+  test('durationFactor reduz o trecho agendado, mas não o delay de encerramento', () => {
+    const n = 4;
+    const factor = 0.5;
+    const esperado = actionTimestampMs(n - 1, factor) + MISSION_FINISH_DELAY_MS;
+    expect(computeCycleDurationMs(n, factor)).toBe(esperado);
   });
 });
