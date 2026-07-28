@@ -81,4 +81,20 @@ describe('useMissions', () => {
     );
     expect(result.current.selectionModalVisible).toBe(false);
   });
+
+  test('handleConfirmMission propaga o loop recebido para o dispatch', () => {
+    const { result } = renderHook(() => useMissions(), { wrapper });
+
+    act(() => {
+      result.current.openSelectionModal('m1', 1);
+    });
+
+    act(() => {
+      result.current.handleConfirmMission('m1', ['h1'], undefined, { mode: 'endless' });
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'START_MISSION', loop: { mode: 'endless' } })
+    );
+  });
 });

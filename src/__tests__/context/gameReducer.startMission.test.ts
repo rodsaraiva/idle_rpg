@@ -24,6 +24,25 @@ test('START_MISSION assigns heroes and creates active mission', () => {
   expect(next.heroes[0].currentTask).toBe(HeroTask.MISSION);
 });
 
+// Regressão: fecha o ponta-a-ponta do START_MISSION → o `loop` despachado precisa
+// chegar intacto na missão criada (Task 4 vai passar planos reais aqui, não só endless).
+test('START_MISSION com loop propaga o plano para a missão criada', () => {
+  const hero = createHero('h1', HeroTask.IDLE);
+  const state = { ...initialGameState, heroes: [hero], activeMissions: [], gold: 0 };
+  const next = gameReducer(state, {
+    type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'], now: Date.now(),
+    loop: { mode: 'endless' },
+  });
+  expect(next.activeMissions![0].loop).toEqual({ mode: 'endless' });
+});
+
+test('START_MISSION sem loop não atribui plano à missão criada', () => {
+  const hero = createHero('h1', HeroTask.IDLE);
+  const state = { ...initialGameState, heroes: [hero], activeMissions: [], gold: 0 };
+  const next = gameReducer(state, { type: 'START_MISSION', templateId: 'mission_1', heroIds: ['h1'], now: Date.now() });
+  expect(next.activeMissions![0].loop).toBeUndefined();
+});
+
 test('COMPLETE_MISSION adds reward and releases heroes', () => {
   const hero = createHero('h1', HeroTask.MISSION);
   const activeMission = { id: 'm1', templateId: 'mission_1', heroIds: ['h1'], startedAt: Date.now() };
