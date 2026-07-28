@@ -43,6 +43,7 @@ export interface ProcessMissionsResult {
   weeklyBossDefeated: boolean;
   weeklyBossTemplateId: string | undefined;
   completedLoops: LoopSummary[];
+  perHeroGold: Record<string, number>;
 }
 
 /** Processa o progresso das missões ativas. */
@@ -160,7 +161,13 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
 
   completed.forEach((c) => {
     const n = c.mission.heroIds.length || 1;
-    const per = Math.floor(c.reward / n);
+    // Ouro final (pantheon → Legado → Evento) — a MESMA base que a carteira (goldGained) e
+    // o tally do loop (ouroDoCiclo) já usam. O contador por herói (perHeroGold) tinha ficado
+    // pra trás usando o reward cru: o offline (I3) já credita o valor final por herói, e essa
+    // divergência é justamente o que quebrava a paridade que esta task existe pra fechar
+    // (task 10, Important 1 — contador de exibição, sem efeito de gameplay, mas errado).
+    const rewardFinal = computeFinalGold(c.reward, state);
+    const per = Math.floor(rewardFinal / n);
 
     // Aplica as baixas ao HP dos heróis independente de a missão estar em loop
     c.mission.heroIds.forEach((hid: string) => {
@@ -183,7 +190,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
 
     // O acumulado do loop é montado antes de decidir se ele continua — o resumo final
     // (em qualquer desfecho) precisa do tally já com o ciclo atual dentro.
-    const ouroDoCiclo = c.mission.loop ? computeFinalGold(c.reward, state) : 0;
+    const ouroDoCiclo = c.mission.loop ? rewardFinal : 0;
     const tally = c.mission.loop
       ? accumulateTally(c.mission.loopTally, {
           gold: ouroDoCiclo,
@@ -211,7 +218,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
       planAllowsAnotherCycle(planoAvancado, now);
 
     if (podeRepetir) {
-      goldGained += computeFinalGold(c.reward, state);
+      goldGained += rewardFinal;
       const tpl = MISSIONS.find(t => t.id === c.mission.templateId);
       if (tpl) {
         // Pega os heróis sobreviventes para o próximo ciclo
@@ -316,7 +323,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
       }
 
       // Conclusão normal: libera os heróis para IDLE
-      goldGained += computeFinalGold(c.reward, state);
+      goldGained += rewardFinal;
       c.mission.heroIds.forEach((hid: string) => {
         const idx = currentHeroes.findIndex((hh) => hh.id === hid);
         if (idx >= 0) {
@@ -344,6 +351,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
     weeklyBossDefeated: weeklyBossCompletedThisTick,
     weeklyBossTemplateId,
     completedLoops,
+    perHeroGold,
   };
 }
 

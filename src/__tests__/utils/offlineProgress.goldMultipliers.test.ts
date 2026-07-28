@@ -124,3 +124,97 @@ describe('I3 — paridade de ouro online × offline (computeFinalGold)', () => {
     expect(resumoOffline.goldGained).not.toBe(floorDoTotalIngenuo);
   });
 });
+
+// Important 1 (revisão da task 10) — o contador perHeroGold (exibição "quanto este herói
+// rendeu") tinha ficado pra trás: o online usava o reward cru (per = floor(c.reward / n)) e
+// nunca sequer aplicava o resultado ao estado (processMissions calculava mas não devolvia
+// perHeroGold — tickHandler.ts não lia esse campo). Fixado: o online agora credita o valor
+// final (computeFinalGold) e realmente aplica ao estado, igual ao offline (que já fazia isso
+// desde a I3).
+describe('Important 1 — paridade de perHeroGold online × offline (valor final, não cru)', () => {
+  test('missão avulsa, 3 heróis: cada herói recebe o mesmo em processMissions e em calculateOfflineProgress', () => {
+    const REWARD = 100;
+    const now = Date.now();
+    const heroes = [heroi('h1'), heroi('h2'), heroi('h3')];
+    const heroIds = heroes.map((h) => h.id);
+
+    const missaoOnline: ActiveMission = {
+      id: 'm1', templateId: TPL.id, heroIds,
+      startedAt: now - 1000, finishAt: now - 1, scheduledActions: [], enemiesState: [],
+      precomputedOutcome: outcome(REWARD),
+    };
+    const estadoOnline = estadoComBonus({ heroes, activeMissions: [missaoOnline] });
+    const resultadoOnline = processMissions(estadoOnline, heroes, now);
+
+    const startedAtOffline = now - 1 - TPL.durationMs;
+    const missaoOffline: ActiveMission = {
+      id: 'm1', templateId: TPL.id, heroIds,
+      startedAt: startedAtOffline, scheduledActions: [], enemiesState: [],
+      precomputedOutcome: outcome(REWARD),
+    };
+    const estadoOffline = estadoComBonus({
+      heroes, lastSavedAt: startedAtOffline, activeMissions: [missaoOffline],
+    });
+    const resumoOffline = calculateOfflineProgress(estadoOffline)!;
+
+    const rewardFinal = computeFinalGold(REWARD, estadoOnline);
+    const perEsperado = Math.floor(rewardFinal / heroIds.length);
+    // Prova que não é mais o reward cru dividido (o bug que o revisor achou).
+    expect(perEsperado).not.toBe(Math.floor(REWARD / heroIds.length));
+
+    for (const hid of heroIds) {
+      expect(resultadoOnline.perHeroGold[hid]).toBe(perEsperado);
+      expect(resumoOffline.newState!.perHeroGold![hid]).toBe(perEsperado);
+    }
+  });
+
+  test('loop de N ciclos, 2 heróis: perHeroGold acumulado bate entre N conclusões online e o offline em lote', () => {
+    const REWARD = 10;
+    const CICLOS = 3;
+    const now = Date.now();
+    const heroes = [heroi('h1'), heroi('h2')];
+    const heroIds = heroes.map((h) => h.id);
+    // 20% de pantheon: floor(10*1.2) = 12, divisível por 2 heróis sem sobra — isola a
+    // paridade da FÓRMULA (cru → final) sem misturar com o resíduo de arredondamento por
+    // herói que apareceria comparando N floors por ciclo (online) com 1 floor do total
+    // multiplicado por ciclos (offline) quando a divisão não é exata — isso é uma divergência
+    // à parte, não pedida nesta rodada (ver task-10-report.md).
+    const bonusIsolado = (over: Partial<GameState>): GameState => ({
+      gold: 0, heroes: [], heroesRecruited: 1, lastSavedAt: Date.now(), activeMissions: [],
+      pantheonBonuses: { goldPercent: 20, atkPercent: 0, hpPercent: 0 },
+      activeEvent: null,
+      ...over,
+    } as GameState);
+
+    // ONLINE: 3 conclusões sucessivas, cada uma partindo do perHeroGold acumulado da anterior
+    // — é assim que tickHandler.ts encadeia state.perHeroGold entre ticks reais.
+    let perHeroAcumulado: Record<string, number> = {};
+    for (let i = 0; i < CICLOS; i++) {
+      const missao: ActiveMission = {
+        id: `m${i}`, templateId: TPL.id, heroIds,
+        startedAt: now - 1000, finishAt: now - 1, scheduledActions: [], enemiesState: [],
+        precomputedOutcome: outcome(REWARD),
+      };
+      const estado = bonusIsolado({ heroes, activeMissions: [missao], perHeroGold: perHeroAcumulado });
+      const resultado = processMissions(estado, heroes, now);
+      perHeroAcumulado = resultado.perHeroGold;
+    }
+
+    const decorrido = TPL.durationMs * CICLOS + 1;
+    const missaoLoop: ActiveMission = {
+      id: 'mloop', templateId: TPL.id, heroIds,
+      startedAt: now - decorrido, scheduledActions: [], enemiesState: [],
+      precomputedOutcome: outcome(REWARD),
+      loop: { mode: 'times', remaining: CICLOS, total: CICLOS },
+    };
+    const estadoOffline = bonusIsolado({
+      heroes, lastSavedAt: now - decorrido, activeMissions: [missaoLoop],
+    });
+    const resumoOffline = calculateOfflineProgress(estadoOffline)!;
+
+    for (const hid of heroIds) {
+      expect(perHeroAcumulado[hid]).toBe(18); // floor(10*1.2/2) = 6 por ciclo × 3 ciclos
+      expect(resumoOffline.newState!.perHeroGold![hid]).toBe(perHeroAcumulado[hid]);
+    }
+  });
+});

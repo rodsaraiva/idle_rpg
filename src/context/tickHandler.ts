@@ -155,6 +155,7 @@ export function handleTick(state: GameState, now: number): GameState {
     weeklyBossDefeated,
     weeklyBossTemplateId,
     completedLoops,
+    perHeroGold,
   } = processMissions(currentState, heroesAfterRegen, now);
 
   trackMissionCompletions(newResults);
@@ -185,6 +186,10 @@ export function handleTick(state: GameState, now: number): GameState {
     // um resumo antigo que o jogador já não espera ver. Por isso o cap é pelo FIM da fila
     // (slice(-5)) — slice(0, 5) cortaria os 5 mais antigos e descartaria os novos.
     completedLoops: [...(currentState.completedLoops ?? []), ...completedLoops].slice(-5),
+    // processMissions já calculava perHeroGold por herói, mas o valor nunca saía da função —
+    // o contador de "quanto este herói rendeu" (MissionHeroRow) só era atualizado pelo
+    // caminho offline. Achado ao investigar a paridade do Important 1 (task 10, revisão).
+    perHeroGold,
   };
 
   if (Object.keys(materialDrops).length > 0) {
