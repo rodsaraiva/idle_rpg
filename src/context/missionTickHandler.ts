@@ -329,6 +329,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
       templateId: c.mission.templateId,
       totalEnemies,
       activeSynergies: c.mission.activeSynergies,
+      fromLoop: !!c.mission.loop,
     };
   });
 

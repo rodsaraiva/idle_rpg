@@ -160,7 +160,9 @@ export function handleTick(state: GameState, now: number): GameState {
   trackMissionCompletions(newResults);
 
   const existingResults = currentState.recentMissionResults ? [...currentState.recentMissionResults] : [];
-  const updatedResults = [...newResults, ...existingResults].slice(0, 10);
+  // Ciclos de loop não abrem o modal de resultado individual — só a apresentação muda,
+  // contagem/conquistas/quests/analytics abaixo seguem usando newResults inteiro.
+  const updatedResults = [...newResults.filter((r) => !r.fromLoop), ...existingResults].slice(0, 10);
 
   // Track completed mission count and unique template IDs for achievements
   const completedMissionCount = (currentState.completedMissionCount ?? 0) + newResults.length;
