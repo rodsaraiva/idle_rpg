@@ -23,3 +23,10 @@ test('save sem activeMissions migra sem quebrar', () => {
   const novo: any = migrateState({ _version: 13, gold: 0, heroes: [] });
   expect(novo._version).toBe(CURRENT_VERSION);
 });
+
+test('activeMissions corrompido (não-array) não lança — migração devolve o save intacto', () => {
+  const antigo: any = { _version: 13, gold: 5, heroes: [], activeMissions: 'corrompido' };
+  const novo: any = migrateState(antigo);
+  expect(novo._version).toBe(CURRENT_VERSION);
+  expect(novo.activeMissions).toBe('corrompido');
+});

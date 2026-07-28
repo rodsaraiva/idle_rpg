@@ -121,9 +121,11 @@ const migrations: Record<number, (data: any) => any> = {
   14: (data) => {
     // Version 14: loop de missão vira plano (times/until/endless). O booleano
     // antigo só sabia "repetir para sempre" — é essa a leitura honesta do save.
-    for (const m of data.activeMissions ?? []) {
-      if (m.looping) m.loop = { mode: 'endless' };
-      delete m.looping;
+    if (Array.isArray(data.activeMissions)) {
+      for (const m of data.activeMissions) {
+        if (m.looping) m.loop = { mode: 'endless' };
+        delete m.looping;
+      }
     }
     return data;
   },
