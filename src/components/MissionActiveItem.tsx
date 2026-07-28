@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function MissionActiveItem({ mission, onWatch }: Props) {
-  const { state } = useGame();
+  const { state, dispatch } = useGame();
   const template = MISSIONS.find((t) => t.id === mission.templateId);
   const heroes = state.heroes.filter((h) => mission.heroIds.includes(h.id));
   const [highlighted, setHighlighted] = useState<string | null>(null);
@@ -40,14 +40,38 @@ export function MissionActiveItem({ mission, onWatch }: Props) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{template?.name ?? mission.templateId}</Text>
-        <TouchableOpacity 
-          style={styles.watchButton} 
-          onPress={() => onWatch?.(mission.id)}
-        >
-          <Icon name="eye" size={14} color={theme.colors.goldBright} />
-          <Text style={styles.watchButtonText}> Assistir</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          {mission.loop && !mission.loopRecalled ? (
+            <TouchableOpacity
+              style={styles.watchButton}
+              onPress={() => dispatch({ type: 'RECALL_MISSION_LOOP', missionId: mission.id })}
+              accessibilityLabel="Recolher heróis ao fim do ciclo"
+            >
+              <Icon name="shield" size={14} color={theme.colors.goldBright} />
+              <Text style={styles.watchButtonText}> Recolher</Text>
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity
+            style={styles.watchButton}
+            onPress={() => onWatch?.(mission.id)}
+          >
+            <Icon name="eye" size={14} color={theme.colors.goldBright} />
+            <Text style={styles.watchButtonText}> Assistir</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {mission.loop ? (
+        <Text style={styles.loopStatus}>
+          {mission.loopRecalled
+            ? 'voltando ao fim do ciclo'
+            : mission.loop.mode === 'times'
+            ? `×${mission.loop.remaining} restantes`
+            : mission.loop.mode === 'until'
+            ? `até ${new Date(mission.loop.endsAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+            : '∞'}
+        </Text>
+      ) : null}
 
       <View style={styles.battleHeader}>
         <Text style={styles.battleHeaderText}>Aliados</Text>
@@ -128,9 +152,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 6,
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 6,
+  },
   title: {
     fontWeight: '600',
     color: theme.colors.textPrimary,
+  },
+  loopStatus: {
+    ...theme.type.caption,
+    color: theme.colors.textMuted,
+    marginBottom: 6,
   },
   watchButton: {
     backgroundColor: theme.colors.surfaceRaised,

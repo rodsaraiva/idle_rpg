@@ -174,7 +174,10 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
     // Assim um plano criado com remaining: 3 roda exatamente 3 ciclos (sem off-by-one).
     const planoAvancado = c.mission.loop ? advanceLoopPlan(c.mission.loop) : undefined;
     const podeRepetir =
-      !!planoAvancado && c.outcome.success && planAllowsAnotherCycle(planoAvancado, now);
+      !!planoAvancado &&
+      c.outcome.success &&
+      !c.mission.loopRecalled &&
+      planAllowsAnotherCycle(planoAvancado, now);
 
     if (podeRepetir) {
       goldGained += computeFinalGold(c.reward, state);

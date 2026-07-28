@@ -166,6 +166,7 @@ export type GameAction =
   | { type: 'START_MISSION'; templateId: string; heroIds: string[]; heroPositions?: Record<string, number>; now: number; loop?: LoopPlan }
   | { type: 'COMPLETE_MISSION'; missionId: string; reward: number }
   | { type: 'DISMISS_MISSION_RESULT'; missionId: string }
+  | { type: 'RECALL_MISSION_LOOP'; missionId: string }
   | { type: 'FORGE_EQUIPMENT'; tier: number; equipmentType: 'weapon' | 'armor' | 'accessory'; now: number }
   | { type: 'COLLECT_EQUIPMENT'; equipmentId: string }
   | { type: 'EQUIP_ITEM'; heroId: string; equipmentId: string }

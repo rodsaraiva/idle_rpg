@@ -92,3 +92,11 @@ test('modo por tempo continua enquanto o prazo não chegou', () => {
   expect(r.activeMissions).toHaveLength(1);
   expect(r.activeMissions[0].loop).toEqual({ mode: 'until', endsAt: agora + 60_000 });
 });
+
+test('loop recolhido termina o ciclo atual e não reinicia', () => {
+  const st = estado([missaoConcluida({ mode: 'endless' }, { loopRecalled: true })]);
+  const r = processMissions(st, st.heroes, Date.now());
+
+  expect(r.activeMissions).toHaveLength(0);
+  expect(r.newHeroes[0].currentTask).toBe(HeroTask.IDLE);
+});
