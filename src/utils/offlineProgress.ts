@@ -10,6 +10,7 @@ import { WEEKLY_BOSS_POOL, bossToMissionTemplate } from '../constants/weeklyBoss
 import { calcMissionReward } from './missionMath';
 import { computePointsFromMs } from './trainingMath';
 import { createGuaranteedEquipment } from '../context/equipmentHandler';
+import { computeFinalGold } from './rewards';
 
 /**
  * O resumo é gerado a partir de 1 tick (500ms) de ausência, então um reload trivial
@@ -201,7 +202,10 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
           : possiveis;
         const cycles = Math.min(possiveis, teto);
 
-        const total = reward * cycles;
+        // Mesmo multiplicador do online (pantheon → Legado → Evento), aplicado POR CICLO
+        // antes de somar — floor por ciclo diverge de floor do total (ver computeFinalGold).
+        const rewardPorCiclo = computeFinalGold(reward, savedState);
+        const total = rewardPorCiclo * cycles;
         creditPerHero(total);
         additionalGold += total;
 
@@ -242,8 +246,9 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
           });
         }
       } else {
-        creditPerHero(reward);
-        additionalGold += reward;
+        const rewardFinal = computeFinalGold(reward, savedState);
+        creditPerHero(rewardFinal);
+        additionalGold += rewardFinal;
         // missão não-loop encerra: heróis voltam a IDLE, não re-empurra a missão
         m.heroIds.forEach((hid: string) => {
           const idx = newHeroes.findIndex((hh) => hh.id === hid);
