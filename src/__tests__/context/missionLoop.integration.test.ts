@@ -133,3 +133,31 @@ test('recolher gera resumo com motivo recalled', () => {
 
   expect(r.completedLoops[0].reason).toBe('recalled');
 });
+
+test('sobreviventes insuficientes geram resumo com motivo casualties', () => {
+  const st = estado([missaoConcluida({ mode: 'endless' }, {
+    precomputedOutcome: {
+      reward: 100, rounds: 1, actions: [], log: [], success: true,
+      casualties: [{ heroId: 'h1', hpLost: 500, hpAfter: 0 }], enemyCasualties: 1,
+    },
+  })]);
+  const r = processMissions(st, st.heroes, Date.now());
+
+  expect(r.completedLoops).toHaveLength(1);
+  expect(r.completedLoops[0].reason).toBe('casualties');
+  expect(r.newHeroes[0].currentTask).toBe(HeroTask.IDLE);
+});
+
+test('derrota no ciclo gera resumo com motivo failed', () => {
+  const st = estado([missaoConcluida({ mode: 'endless' }, {
+    precomputedOutcome: {
+      reward: 0, rounds: 1, actions: [], log: [], success: false,
+      casualties: [], enemyCasualties: 0,
+    },
+  })]);
+  const r = processMissions(st, st.heroes, Date.now());
+
+  expect(r.completedLoops).toHaveLength(1);
+  expect(r.completedLoops[0].reason).toBe('failed');
+  expect(r.newHeroes[0].currentTask).toBe(HeroTask.IDLE);
+});
