@@ -26,3 +26,8 @@ test('missão inexistente é no-op de referência', () => {
   const antes = estado();
   expect(handleRecallMissionLoop(antes, 'inexistente')).toBe(antes);
 });
+
+test('recolher missão já recolhida é no-op de referência', () => {
+  const antes = handleRecallMissionLoop(estado(), 'm1');
+  expect(handleRecallMissionLoop(antes, 'm1')).toBe(antes);
+});
