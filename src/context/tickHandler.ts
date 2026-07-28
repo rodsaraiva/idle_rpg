@@ -182,8 +182,9 @@ export function handleTick(state: GameState, now: number): GameState {
     completedMissionCount,
     completedMissionIds,
     // Novos entram no fim: dispensar o resumo mais recente não deve trazer de volta
-    // um resumo antigo que o jogador já não espera ver.
-    completedLoops: [...(currentState.completedLoops ?? []), ...completedLoops].slice(0, 5),
+    // um resumo antigo que o jogador já não espera ver. Por isso o cap é pelo FIM da fila
+    // (slice(-5)) — slice(0, 5) cortaria os 5 mais antigos e descartaria os novos.
+    completedLoops: [...(currentState.completedLoops ?? []), ...completedLoops].slice(-5),
   };
 
   if (Object.keys(materialDrops).length > 0) {

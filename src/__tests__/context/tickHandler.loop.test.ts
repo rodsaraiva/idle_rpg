@@ -73,4 +73,26 @@ describe('tickHandler — ciclo de loop não abre modal de resultado', () => {
 
     expect(next.completedLoops?.map((r) => r.missionId)).toEqual(['antigo', 'm1']);
   });
+
+  test('overflow: com 5 resumos pendentes, o 6º entra e o mais ANTIGO sai (cap pelo início, não pelo fim)', () => {
+    // Regressão: slice(0, 5) cortava pelo fim e descartava o resumo NOVO — o 6º loop
+    // concluído nunca aparecia (o ouro entrava, só o card se perdia). O cap certo é slice(-5).
+    const antigos = Array.from({ length: 5 }, (_, i) => ({
+      missionId: `antigo_${i}`, templateId: TPL.id, heroIds: ['hOld'],
+      tally: { cycles: 1, gold: 10, materials: {}, casualties: [] },
+      reason: 'completed' as const,
+    }));
+    const estadoComPendente: GameState = {
+      ...estadoComLoopConcluido(),
+      completedLoops: antigos,
+    };
+
+    const next = handleTick(estadoComPendente, AGORA);
+
+    expect(next.completedLoops).toHaveLength(5);
+    // antigo_0 é o mais antigo — sai. m1 (o novo) entra no fim.
+    expect(next.completedLoops?.map((r) => r.missionId)).toEqual([
+      'antigo_1', 'antigo_2', 'antigo_3', 'antigo_4', 'm1',
+    ]);
+  });
 });
