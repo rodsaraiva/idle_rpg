@@ -82,12 +82,12 @@ export function GameProvider({ children }: GameProviderProps) {
       try {
         const savedState = await loadGameState();
         if (savedState) {
+          // Hidratar SEMPRE antes de qualquer coisa: o autosave começa a rodar assim que
+          // isLoaded vira true e gravaria o initialGameState por cima do save real.
+          // O resumo offline é só um adicional a ser aplicado quando o jogador der ciente.
+          dispatch({ type: 'LOAD_STATE', state: savedState });
           const summary = calculateOfflineProgress(savedState);
-          if (summary) {
-            setOfflineSummary(summary);
-          } else {
-            dispatch({ type: 'LOAD_STATE', state: savedState });
-          }
+          if (summary) setOfflineSummary(summary);
         }
       } catch (error) {
         if (error instanceof CorruptSaveError) {
