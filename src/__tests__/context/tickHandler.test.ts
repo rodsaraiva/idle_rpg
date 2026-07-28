@@ -92,6 +92,59 @@ describe('gold bonus via pantheonBonuses', () => {
   });
 });
 
+// Review da task 10 (rodada 2): os testes de perHeroGold em offlineProgress.goldMultipliers.test.ts
+// chamam processMissions() direto — cobrem a FÓRMULA (valor final, não cru) mas não a
+// CANALIZAÇÃO até o estado (ProcessMissionsResult.perHeroGold → tickHandler.ts →
+// stateAfterTick). Essa canalização já ficou quebrada em silêncio por mais de um mês antes
+// desta task (git blame: commit 4c3d8bb4, 2026-06-21) — sem um teste via handleTick, uma
+// refatoração futura do tickHandler pode voltar a descartar o campo e nada acusa.
+describe('perHeroGold chega ao estado via handleTick (canalização, não só a fórmula)', () => {
+  test('handleTick aplica perHeroGold ao estado após uma missão concluir', () => {
+    const now = new Date(2026, 5, 15).getTime(); // mesma data determinística dos outros testes de tick deste arquivo
+    const hero = createHero({ id: 'h1', currentTask: HeroTask.MISSION });
+    const allAchievementIds = [
+      'recruit_1', 'recruit_5', 'recruit_10',
+      'gold_100', 'gold_1000',
+      'mission_first', 'mission_10', 'mission_50',
+      'forge_1', 'forge_5',
+      'boss_slayer',
+    ];
+    const state = {
+      ...initialGameState,
+      gold: 0,
+      heroes: [hero],
+      unlockedAchievements: allAchievementIds,
+      pantheonBonuses: { goldPercent: 10, atkPercent: 0, hpPercent: 0 },
+      activeMissions: [
+        {
+          id: 'test-mission',
+          templateId: 'mission_1',
+          heroIds: ['h1'],
+          startedAt: now - 100000,
+          finishAt: now - 1000,
+          scheduledActions: [],
+          enemiesState: [],
+          precomputedOutcome: {
+            reward: 100,
+            rounds: 5,
+            actions: [],
+            log: [],
+            success: true,
+            casualties: [],
+            enemyCasualties: 2,
+          },
+        },
+      ],
+    } as any;
+
+    const next = handleTick(state, now);
+
+    // 100 * 1.10 = 110 (valor final, não os 100 crus) — e o campo TEM que existir em `next`,
+    // não só ter sido calculado dentro de processMissions.
+    expect(next.perHeroGold?.['h1']).toBe(110);
+  });
+});
+
 describe('invariante de referência do tick (base para otimização getUnlockedSkills)', () => {
   function makeIdleHeroAtFullHp(id: string) {
     return {
