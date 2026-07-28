@@ -1,4 +1,4 @@
-import { LOTTIE_ASSETS, IMAGE_ASSETS } from '../../constants/assets';
+import { LOTTIE_ASSETS } from '../../constants/assets';
 
 describe('assets', () => {
   test('LOTTIE_ASSETS tem as 6 chaves esperadas', () => {
@@ -11,9 +11,5 @@ describe('assets', () => {
     for (const key of Object.keys(LOTTIE_ASSETS)) {
       expect((LOTTIE_ASSETS as Record<string, unknown>)[key]).toBeTruthy();
     }
-  });
-
-  test('IMAGE_ASSETS.VILLAGE_MAP resolve', () => {
-    expect(IMAGE_ASSETS.VILLAGE_MAP).toBeTruthy();
   });
 });

@@ -36,7 +36,3 @@ export const LOTTIE_ASSETS = {
   FORGE_COMPLETE: require('../../assets/lottie/forge_complete.json'),
   RECRUIT: require('../../assets/lottie/recruit.json'),
 };
-
-export const IMAGE_ASSETS = {
-  VILLAGE_MAP: require('../../assets/village_map.png'),
-};

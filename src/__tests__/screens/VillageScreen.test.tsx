@@ -64,39 +64,22 @@ describe('VillageScreen', () => {
     expect(HOTSPOTS.map((h) => h.screen).sort()).toEqual([...ROTAS].sort());
   });
 
-  test('coordenadas relativas estão em 0..1', () => {
-    for (const h of HOTSPOTS) {
-      expect(h.x).toBeGreaterThanOrEqual(0);
-      expect(h.x).toBeLessThanOrEqual(1);
-      expect(h.y).toBeGreaterThanOrEqual(0);
-      expect(h.y).toBeLessThanOrEqual(1);
-    }
-  });
-
   test('renderiza sem throw', () => {
     const { toJSON } = render(wrapper(<VillageScreen />));
     expect(toJSON()).toBeTruthy();
   });
 
-  test('tap em cada hotspot navega para a rota correta', () => {
-    const { getByTestId } = render(wrapper(<VillageScreen />));
-    // Simula o onLayout do ImageBackground para revelar os hotspots
-    fireEvent(getByTestId('village-map-image'), 'layout', {
-      nativeEvent: { layout: { width: 300, height: 200 } },
-    });
-    for (const h of HOTSPOTS) {
-      mockNavigate.mockClear();
-      fireEvent.press(getByTestId(`hotspot-${h.screen}`));
-      expect(mockNavigate).toHaveBeenCalledWith(h.screen);
-    }
+  test('expõe um destino por rota, sem depender de imagem de mapa', () => {
+    const { getAllByTestId } = render(wrapper(<VillageScreen />));
+    expect(getAllByTestId(/^village-/)).toHaveLength(12);
   });
 
-  test('com erro de imagem, renderiza o fallback grid sem perder navegação', () => {
-    const { getByTestId, getAllByTestId } = render(wrapper(<VillageScreen />));
-    fireEvent(getByTestId('village-map-image'), 'error');
-    // fallback expõe um botão por rota
-    expect(getAllByTestId(/^fallback-/)).toHaveLength(12);
-    fireEvent.press(getByTestId('fallback-Ferreiro'));
-    expect(mockNavigate).toHaveBeenCalledWith('Ferreiro');
+  test('tap em cada destino navega para a rota correta', () => {
+    const { getByTestId } = render(wrapper(<VillageScreen />));
+    for (const h of HOTSPOTS) {
+      mockNavigate.mockClear();
+      fireEvent.press(getByTestId(`village-${h.screen}`));
+      expect(mockNavigate).toHaveBeenCalledWith(h.screen);
+    }
   });
 });

@@ -11,15 +11,19 @@
 > save apagado a cada abertura, consent LGPD competindo com o FTUE, e resumo offline
 > montado só na GuildScreen (ver commits `1629b09`, `3bee2ff`, `a3c7ba3`).
 >
-> **Cuidado com screenshot:** o browser do Playwright MCP usado aqui devolve tiles
-> velhos de sessões anteriores — apareceram cards de heróis que não existiam no DOM.
-> Para validar, conferir via DOM/estilos computados (`browser_evaluate`) e tratar o
-> pixel como indício, não prova. Validação de *aparência* segue pendente de device real.
+> **A Vila mostrava um print da UI antiga.** `assets/village_map.png` nunca foi um mapa:
+> era um screenshot da tela de Treino pré-"Reino" (fundo navy, "Petra #66"/"Jareth #48"),
+> commitado com nome de asset em `35d00b1` e usado como `ImageBackground` da Vila pelo
+> SPEC 3. Removido; a Vila virou a lista de destinos no DS (era o fallback já existente).
+> Lição de método: os pixels não apareciam no `innerText`/`outerHTML` porque eram imagem —
+> DOM limpo não prova tela limpa. Screenshot **é** prova; conferir os dois.
 
 O que ainda precisa de olho humano em emulador iOS/Android:
 
 - **SPEC 2/3 (Design System + Redesign):** conferir as 11 telas no DS "Reino" — contraste, hierarquia, densidade, dark-first. Validar que nenhum token quebrou layout em telas pequenas.
-- **SPEC 3 — Vila-mapa:** calibrar as coordenadas dos 8 hotspots sobre `village_map.png` (foram estimadas, não medidas no device).
+- **SPEC 3 — Vila-mapa: precisa da arte.** O mapa saiu do ar (o asset era um print da UI antiga).
+  Para voltar: ilustração de mapa medieval de verdade + coordenadas medidas sobre ela — as antigas
+  eram estimativas nunca calibradas. Enquanto não houver arte, a Vila é lista de destinos no DS.
 - **SPEC 3 — Lottie:** há placeholders de animação a trocar por assets finais.
 - **SPEC 5 — funil FTUE (Task 16):** rodar o fluxo recrutar → treinar → 1ª missão → coletar; confirmar spotlight/coach mark alinhando com os alvos reais (`registerTarget`) e o cronômetro `ftue_first_mission_started`.
 - **SPEC 7 — tela de Legado (`LegacyScreen`):** confirmar no emulador que a árvore de upgrades renderiza com tokens do DS "Reino", pontos disponíveis calculados corretamente e botão de compra desabilitado sem pontos.
