@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Modal, StyleSheet, TouchableOpacity } from 'react-native';
 import { useGame } from '../hooks/useGame';
 import { theme } from '../theme';
 import { MISSIONS } from '../constants/missions';
 import { MissionResultModal } from './MissionResultModal';
+import { LoopStopReason } from '../types';
 
-const MOTIVO: Record<string, string> = {
+const MOTIVO: Record<LoopStopReason, string> = {
   completed: 'loop concluído',
   recalled: 'heróis recolhidos',
   casualties: 'parou por baixas',
@@ -15,10 +16,19 @@ const MOTIVO: Record<string, string> = {
 
 /** Montado na raiz: um loop pode terminar com o jogador em qualquer tela. */
 export function LoopSummaryGate(): React.ReactElement | null {
-  const { state, dispatch } = useGame();
+  const { state, dispatch, offlineSummary } = useGame();
   const [vendoCombate, setVendoCombate] = useState(false);
   const resumo = state.completedLoops?.[0];
-  if (!resumo) return null;
+
+  // Reseta ao trocar de resumo: senão o combate do resumo anterior fica na tela
+  // quando um segundo loop termina enquanto o jogador ainda olha o primeiro.
+  useEffect(() => {
+    setVendoCombate(false);
+  }, [resumo?.missionId]);
+
+  // Não empilha sobre o modal offline: quem fechou o app com o resumo pendente
+  // vê o offline primeiro e o loop só depois de dispensá-lo.
+  if (!resumo || offlineSummary != null) return null;
 
   const template = MISSIONS.find((m) => m.id === resumo.templateId);
   const { tally } = resumo;
@@ -48,15 +58,18 @@ export function LoopSummaryGate(): React.ReactElement | null {
               Materiais ▸ {materiais.map(([m, q]) => `${m} ×${q}`).join(', ')}
             </Text>
           ) : null}
-          {baixas.map((c) => {
-            const hero = state.heroes.find((h) => h.id === c.heroId);
-            const pct = hero?.hpMax ? Math.round((c.hpAfter / hero.hpMax) * 100) : 0;
-            return (
-              <Text key={c.heroId} style={styles.linha}>
-                Baixas ▸ {hero?.name ?? c.heroId} ({pct}% HP)
-              </Text>
-            );
-          })}
+          {baixas.length > 0 ? (
+            <Text style={styles.linha}>
+              Baixas ▸{' '}
+              {baixas
+                .map((c) => {
+                  const hero = state.heroes.find((h) => h.id === c.heroId);
+                  const pct = hero?.hpMax ? Math.round((c.hpAfter / hero.hpMax) * 100) : 0;
+                  return `${hero?.name ?? c.heroId} (${pct}% HP)`;
+                })
+                .join(', ')}
+            </Text>
+          ) : null}
 
           {tally.lastResult ? (
             <TouchableOpacity onPress={() => setVendoCombate(true)} accessibilityLabel="Ver último combate">
