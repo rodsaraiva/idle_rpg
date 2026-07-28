@@ -205,10 +205,7 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         creditPerHero(total);
         additionalGold += total;
 
-        // 'endless' nunca esgota (não tem teto real — teto aqui só espelha possiveis).
-        // Nos demais, o plano esgota assim que os ciclos rodados alcançam o teto —
-        // "cycles < possiveis" deixava passar batido o caso cycles === teto === possiveis
-        // (plano consumido inteiro sem sobrar tempo pra mais um ciclo).
+        // 'endless' nunca esgota; nos demais, o plano esgota assim que os ciclos rodados alcançam o teto.
         const planoEsgotou = m.loopRecalled || (m.loop.mode !== 'endless' && cycles >= teto);
         if (planoEsgotou) {
           // plano acabou antes do tempo disponível: heróis voltam, como missão avulsa.
