@@ -44,7 +44,10 @@ describe('tickHandler', () => {
 describe('gold bonus via pantheonBonuses', () => {
   test('handleTick aplica goldPercent do panteão sobre reward da missão', () => {
     // Configurar missão já concluída (finishAt no passado) com precomputedOutcome.reward = 100
-    const now = Date.now();
+    // `now` fixo: handleTick chama refreshActiveEvent, que injeta o evento sazonal do mês corrente.
+    // Junho/2026 (seed 202606) → event_forge_festival, que só tem forgeHastePct — assim o evento
+    // não multiplica a recompensa e o assert isola o bônus do panteão.
+    const now = new Date(2026, 5, 15).getTime();
     const missionId = 'test-mission';
     const hero = createHero({ id: 'h1', currentTask: HeroTask.MISSION });
     // Pre-unlocar todas as conquistas para evitar gold extra de achievements no tick
