@@ -1,4 +1,6 @@
 import { calculateOfflineProgress } from '../../utils/offlineProgress';
+import { processMissions } from '../../context/missionTickHandler';
+import { computeFinalGold } from '../../utils/rewards';
 import { MISSIONS } from '../../constants/missions';
 import { computeCycleDurationMs } from '../../utils/missionLoop';
 import { GameState, Hero, HeroTask, LoopPlan, ActiveMission } from '../../types';
@@ -230,4 +232,56 @@ test('loop "times" com combate de derrota também credita só 1 ciclo, mesmo com
   expect(resumo.newState!.activeMissions).toHaveLength(0);
   expect(resumo.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
   expect(resumo.newState!.heroes[0].hpCurrent).toBe(300);
+});
+
+test('loop com combate de derrota (paridade): offline credita exatamente o que a única conclusão online creditaria, com panteão aplicado — não o reward cru', () => {
+  // Review da Task 11: os dois testes acima afirmam contra REWARD_POR_CICLO num estado sem
+  // multiplicador — provam "1 ciclo, não N", mas não que o ouro daquele ciclo passa por
+  // computeFinalGold no caminho de derrota. Mesmo padrão de offlineProgress.goldMultipliers.test.ts
+  // (Task 10): roda os dois motores sobre o MESMO estado e compara, em vez de número mágico.
+  const REWARD = 9; // floor(9*1.4) = 12 ≠ 9 — só discrimina um mutante se o multiplicador de fato mexer no valor
+  const now = Date.now();
+  const heroi1 = heroi();
+  const outcomeFalho = {
+    reward: REWARD, rounds: 1, actions: [], log: [],
+    success: false, casualties: [{ heroId: 'h1', hpLost: 380, hpAfter: 120 }], enemyCasualties: 0,
+  };
+  const estadoComPanteao = (over: Partial<GameState>): GameState => ({
+    gold: 0, heroes: [], heroesRecruited: 1, lastSavedAt: Date.now(), activeMissions: [],
+    pantheonBonuses: { goldPercent: 40, atkPercent: 0, hpPercent: 0 },
+    activeEvent: null,
+    ...over,
+  } as GameState);
+
+  // ONLINE: 1 conclusão com outcome de derrota — mesmo com loop 'endless' no plano,
+  // processMissions não repete porque exige outcome.success (missionTickHandler.ts:214-218).
+  const missaoOnline: ActiveMission = {
+    id: 'm1', templateId: MISSIONS_0.id, heroIds: ['h1'],
+    startedAt: now - 1000, finishAt: now - 1, scheduledActions: [], enemiesState: [],
+    precomputedOutcome: outcomeFalho, loop: { mode: 'endless' },
+  };
+  const estadoOnline = estadoComPanteao({ heroes: [heroi1], activeMissions: [missaoOnline] });
+  const resultadoOnline = processMissions(estadoOnline, [heroi1], now);
+
+  // OFFLINE: mesma missão, mesmo outcome, mas decorrido cobre 10 ciclos possíveis — sem a
+  // checagem de success, offline creditaria 10x; a paridade só vale se ele parar em 1.
+  const decorrido = CICLO * 10;
+  const missaoOffline: ActiveMission = {
+    id: 'm1', templateId: MISSIONS_0.id, heroIds: ['h1'],
+    startedAt: now - decorrido, scheduledActions: [], enemiesState: [],
+    precomputedOutcome: outcomeFalho, loop: { mode: 'endless' },
+  };
+  const estadoOffline = estadoComPanteao({
+    heroes: [heroi1], lastSavedAt: now - decorrido, activeMissions: [missaoOffline],
+  });
+  const resumoOffline = calculateOfflineProgress(estadoOffline)!;
+
+  // Confirma que o bônus realmente está em jogo (não passaria com mult=1 por acidente).
+  expect(computeFinalGold(REWARD, estadoOnline)).toBe(12);
+  expect(resultadoOnline.goldGained).toBe(12);
+  expect(resumoOffline.goldGained).toBe(resultadoOnline.goldGained);
+
+  expect(resumoOffline.newState!.activeMissions).toHaveLength(0);
+  expect(resumoOffline.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
+  expect(resumoOffline.newState!.heroes[0].hpCurrent).toBe(resultadoOnline.newHeroes[0].hpCurrent);
 });
