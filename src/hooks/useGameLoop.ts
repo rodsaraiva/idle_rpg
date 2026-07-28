@@ -7,19 +7,26 @@ interface UseGameLoopProps {
   tickIntervalMs?: number;
   onTick: () => void;
   stateRef: React.MutableRefObject<any>;
+  /**
+   * Suspende só o TICK (não o autosave). Usado enquanto há um resumo offline pendente:
+   * o modal cobre a tela inteira e bloqueia toques, então nada fica visivelmente parado —
+   * e evita tickar por cima do save cru enquanto o jogador não dá ciente (ver I1, task 10).
+   */
+  paused?: boolean;
 }
 
-export function useGameLoop({ 
-  isLoaded, 
-  tickIntervalMs, 
-  onTick, 
-  stateRef 
+export function useGameLoop({
+  isLoaded,
+  tickIntervalMs,
+  onTick,
+  stateRef,
+  paused = false,
 }: UseGameLoopProps) {
-  
+
   // Game loop tick
   useEffect(() => {
-    if (!isLoaded) return;
-    
+    if (!isLoaded || paused) return;
+
     const tickMs = tickIntervalMs ?? TICK_INTERVAL_MS;
 
     const tickInterval = setInterval(() => {
@@ -27,7 +34,7 @@ export function useGameLoop({
     }, tickMs);
 
     return () => clearInterval(tickInterval);
-  }, [isLoaded, tickIntervalMs, onTick]);
+  }, [isLoaded, tickIntervalMs, onTick, paused]);
 
   // Auto-save
   useEffect(() => {

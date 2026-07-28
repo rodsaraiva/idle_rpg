@@ -70,4 +70,62 @@ describe('useGameLoop', () => {
     expect(saveGameState).toHaveBeenCalledTimes(1);
     expect(saveGameState).toHaveBeenCalledWith(stateRef.current);
   });
+
+  // I1 (task 10) — resumo offline pendente suspende o TICK, não o autosave.
+  describe('paused (resumo offline pendente)', () => {
+    test('não chama onTick enquanto paused, mesmo com isLoaded true', () => {
+      const onTick = jest.fn();
+      const stateRef = { current: { gold: 10 } };
+
+      renderHook(() => useGameLoop({
+        isLoaded: true,
+        tickIntervalMs: 1000,
+        onTick,
+        stateRef,
+        paused: true,
+      }));
+
+      jest.advanceTimersByTime(5000);
+      expect(onTick).not.toHaveBeenCalled();
+    });
+
+    test('autosave continua rodando mesmo com o tick pausado', () => {
+      const onTick = jest.fn();
+      const stateRef = { current: { gold: 10 } };
+
+      renderHook(() => useGameLoop({
+        isLoaded: true,
+        onTick,
+        stateRef,
+        paused: true,
+      }));
+
+      jest.advanceTimersByTime(5000); // AUTO_SAVE_INTERVAL_MS default
+      expect(saveGameState).toHaveBeenCalledTimes(1);
+      expect(onTick).not.toHaveBeenCalled();
+    });
+
+    test('volta a tickar assim que paused vira false (dar ciente do resumo)', () => {
+      const onTick = jest.fn();
+      const stateRef = { current: { gold: 10 } };
+
+      const { rerender } = renderHook(
+        (props: { paused: boolean }) => useGameLoop({
+          isLoaded: true,
+          tickIntervalMs: 1000,
+          onTick,
+          stateRef,
+          paused: props.paused,
+        }),
+        { initialProps: { paused: true } }
+      );
+
+      jest.advanceTimersByTime(3000);
+      expect(onTick).not.toHaveBeenCalled();
+
+      rerender({ paused: false });
+      jest.advanceTimersByTime(1000);
+      expect(onTick).toHaveBeenCalledTimes(1);
+    });
+  });
 });

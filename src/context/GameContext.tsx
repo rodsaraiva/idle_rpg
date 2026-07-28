@@ -74,6 +74,10 @@ export function GameProvider({ children }: GameProviderProps) {
     tickIntervalMs: state.tickIntervalMs,
     onTick: handleTick,
     stateRef,
+    // Resumo offline pendente = modal bloqueante cobrindo a tela inteira: suspende o tick
+    // (não o load, que já roda incondicional acima) pra não processar missões/treino/regen
+    // sobre o save cru enquanto o jogador não dá ciente (ver I1, task 10).
+    paused: offlineSummary != null,
   });
 
   // Initialization: Load state and check offline progress
