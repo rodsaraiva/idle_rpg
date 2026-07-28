@@ -1496,7 +1496,10 @@ Em `src/utils/offlineProgress.ts`, trocar o bloco `if (m.looping)` (~189) por `i
         const teto =
           m.loopRecalled ? 1
           : m.loop.mode === 'times' ? m.loop.remaining
-          : m.loop.mode === 'until' ? Math.max(0, Math.floor((m.loop.endsAt - startedAt) / template.durationMs))
+          // `ceil` com piso 1: o motor online conta os ciclos que COMEÇAM antes do prazo,
+          // e o ciclo em voo sempre completa. `floor` subcreditava — e zerava quando o
+          // último ciclo era mais curto que a duração da missão.
+          : m.loop.mode === 'until' ? Math.max(1, Math.ceil((m.loop.endsAt - startedAt) / template.durationMs))
           : possiveis;
         const cycles = Math.min(possiveis, teto);
 ```
@@ -1508,7 +1511,9 @@ E o resto do bloco:
         creditPerHero(total);
         additionalGold += total;
 
-        const planoEsgotou = cycles < possiveis || m.loopRecalled;
+        // `cycles >= teto`, e não `cycles < possiveis`: o plano pode se esgotar exatamente
+        // na janela offline, sobrando um resto menor que um ciclo.
+        const planoEsgotou = m.loopRecalled || (m.loop.mode !== 'endless' && cycles >= teto);
         if (planoEsgotou) {
           // plano acabou antes do tempo disponível: heróis voltam, como missão avulsa
           m.heroIds.forEach((hid: string) => {
