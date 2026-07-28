@@ -15,7 +15,7 @@
 - Idioma de código, comentários e mensagens de commit: **pt-BR**.
 - `npx tsc --noEmit` tem que passar com **0 erros** ao fim de cada task (o tsconfig tem `noUnusedLocals`/`noUnusedParameters` — import ou variável órfã quebra o build).
 - Suíte: `./node_modules/.bin/jest --config jest.unit.config.js --runInBand`. Nenhuma task pode deixar a suíte vermelha.
-- Proibido `any` — usar `unknown` + narrowing (regra de `.claude/rules/typescript.md`).
+- Proibido `any` em código de produção — usar `unknown` + narrowing (regra de `.claude/rules/typescript.md`). Em fixture de teste, seguir o padrão que já existe no repo (`state: {...} as any` no `GameContext.Provider`, ver `HeroCard.test.tsx:32`).
 - Comentário só para o *porquê* não-trivial. Nada de comentário óbvio.
 - Cada task termina em **um commit** com mensagem explicando o porquê.
 - Ao fim de cada task que mexe em UI, validar no browser: `npx expo start --web --port 8081` (rodar em background pelo runner da sessão; `nohup ... & disown` morre com exit 144).
@@ -542,7 +542,8 @@ test('plano de 3 vezes roda 3 ciclos e para — sem off-by-one', () => {
     missoes = r.activeMissions.map((m) => ({
       ...missaoConcluida(m.loop), id: m.id, loopTally: m.loopTally,
     }));
-    if (missoes.length > 0) restantes.push((missoes[0].loop as any).remaining);
+    const plano = missoes[0]?.loop;
+    if (plano?.mode === 'times') restantes.push(plano.remaining);
   }
 
   // ciclo 1 deixa remaining 2, ciclo 2 deixa 1, ciclo 3 encerra
@@ -1412,10 +1413,8 @@ import { GameState, Hero, HeroTask, LoopPlan, ActiveMission } from '../../types'
 
 const MISSIONS_0 = MISSIONS[0];
 
-/** Recompensa base do template, sem bônus — o estado de teste não tem panteão/legado. */
-function reward(template: typeof MISSIONS_0): number {
-  return 100;
-}
+/** Recompensa fixada no precomputedOutcome — o estado de teste não tem panteão/legado. */
+const REWARD_POR_CICLO = 100;
 
 function heroi(): Hero {
   return {
@@ -1435,7 +1434,7 @@ function estadoComLoop(loop: LoopPlan, decorridoMs: number, over: Partial<Active
       id: 'm1', templateId: MISSIONS_0.id, heroIds: ['h1'],
       startedAt: agora - decorridoMs, scheduledActions: [], enemiesState: [],
       precomputedOutcome: {
-        reward: reward(MISSIONS_0), rounds: 1, actions: [], log: [],
+        reward: REWARD_POR_CICLO, rounds: 1, actions: [], log: [],
         success: true, casualties: [], enemyCasualties: 1,
       },
       loop, ...over,
@@ -1444,7 +1443,7 @@ function estadoComLoop(loop: LoopPlan, decorridoMs: number, over: Partial<Active
 }
 ```
 
-Ajustar `reward()` para o valor que o `precomputedOutcome` acima fixa (100) caso o cálculo real do template divirja — o que importa nos asserts é a proporção entre ciclos.
+O que importa nos asserts é a proporção entre ciclos, não o valor absoluto.
 
 ```ts
 test('loop de 2 vezes credita no máximo 2 ciclos e libera os heróis', () => {
@@ -1456,7 +1455,7 @@ test('loop de 2 vezes credita no máximo 2 ciclos e libera os heróis', () => {
 
   expect(resumo.newState.activeMissions).toHaveLength(0);
   expect(resumo.newState.heroes[0].currentTask).toBe(HeroTask.IDLE);
-  expect(resumo.goldGained).toBe(reward(template) * 2);
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO * 2);
 });
 
 test('loop recolhido credita 1 ciclo e encerra', () => {
@@ -1466,7 +1465,7 @@ test('loop recolhido credita 1 ciclo e encerra', () => {
   const resumo = calculateOfflineProgress(estado)!;
 
   expect(resumo.newState.activeMissions).toHaveLength(0);
-  expect(resumo.goldGained).toBe(reward(template));
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO);
 });
 
 test('loop endless continua armado', () => {
