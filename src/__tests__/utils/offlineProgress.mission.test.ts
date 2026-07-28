@@ -162,6 +162,26 @@ describe('calculateOfflineProgress — missões (startedAt + durationMs)', () =>
     expect(summary.goldGained).toBeGreaterThan(0);
   });
 
+  test('não-loop, fracassada: credita 1x reward (igual ao online), aplica baixas e libera o herói', () => {
+    // Task 11: o offline ignorava outcome.success e nunca aplicava baixas — aqui a missão só
+    // roda 1 vez de qualquer forma (não-loop), então o bug de multiplicação não se manifesta;
+    // o que faltava era a baixa (ver caso de loop pro efeito de ordem de grandeza).
+    const now = Date.now();
+    const startedAt = now - 1 - DUR;
+    const mission = makeMission({
+      startedAt,
+      precomputedOutcome: {
+        reward: 5, rounds: 1, actions: [], log: [], success: false,
+        casualties: [{ heroId: 'h1', hpLost: 50, hpAfter: 0 }], enemyCasualties: 0,
+      },
+    });
+    const summary = calculateOfflineProgress(makeState({ elapsedSinceSavedMs: 1 + DUR, mission }))!;
+    expect(summary.goldGained).toBe(5);
+    expect(summary.newState!.activeMissions!.length).toBe(0);
+    expect(summary.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
+    expect(summary.newState!.heroes[0].hpCurrent).toBe(0);
+  });
+
   test('boss semanal: templateId só em WEEKLY_BOSS_POOL, isWeeklyBoss true → resolve via bossToMissionTemplate, credita gold, herói a IDLE', () => {
     const boss = WEEKLY_BOSS_POOL[0]; // wb_hydra, durationMs 180_000, minHeroes 4
     const now = Date.now();

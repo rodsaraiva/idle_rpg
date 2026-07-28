@@ -218,7 +218,11 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
           : m.loop.mode === 'times' ? m.loop.remaining
           : m.loop.mode === 'until' ? Math.max(1, Math.ceil((m.loop.endsAt - startedAt) / cycleDurationMs))
           : possiveis;
-        const cycles = Math.min(possiveis, teto);
+        // Paridade com o online: o outcome pré-computado é o do PRIMEIRO ciclo, e o motor
+        // online exige success pra repetir o loop (planAllowsAnotherCycle). Se esse ciclo
+        // fracassou, os demais nunca teriam rodado — creditar só 1, não o tempo offline inteiro.
+        const outcomeFalhou = m.precomputedOutcome?.success === false;
+        const cycles = outcomeFalhou ? 1 : Math.min(possiveis, teto);
 
         // Mesmo multiplicador do online (pantheon → Legado → Evento), aplicado POR CICLO
         // antes de somar — floor por ciclo diverge de floor do total (ver computeFinalGold).
@@ -227,9 +231,19 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         creditPerHero(total);
         additionalGold += total;
 
-        // 'endless' nunca esgota; nos demais, o plano esgota assim que os ciclos rodados alcançam o teto.
-        const planoEsgotou = m.loopRecalled || (m.loop.mode !== 'endless' && cycles >= teto);
+        // 'endless' nunca esgota; nos demais, o plano esgota assim que os ciclos rodados alcançam o
+        // teto. Derrota esgota sempre, mesmo 'endless' — sem success não há por que repetir.
+        const planoEsgotou = outcomeFalhou || m.loopRecalled || (m.loop.mode !== 'endless' && cycles >= teto);
         if (planoEsgotou) {
+          if (outcomeFalhou) {
+            // Baixas do ciclo perdido: o online aplica isso incondicionalmente antes de decidir
+            // se repete (missionTickHandler.ts:172-182). Aqui só no caminho de derrota — aplicar
+            // baixas também em vitória offline é escopo maior, que esta task não cobre.
+            m.precomputedOutcome!.casualties.forEach((c) => {
+              const idx = newHeroes.findIndex((hh) => hh.id === c.heroId);
+              if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], hpCurrent: c.hpAfter };
+            });
+          }
           // plano acabou antes do tempo disponível: heróis voltam, como missão avulsa.
           // Nenhum LoopSummary é emitido aqui — decisão 5 da spec: o ouro entra no
           // resumo de progresso offline que já existe.
@@ -267,6 +281,15 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
         const rewardFinal = computeFinalGold(reward, savedState);
         creditPerHero(rewardFinal);
         additionalGold += rewardFinal;
+
+        // Baixas do ciclo perdido — mesmo tratamento do ramo em loop (só na derrota).
+        if (m.precomputedOutcome?.success === false) {
+          m.precomputedOutcome.casualties.forEach((c) => {
+            const idx = newHeroes.findIndex((hh) => hh.id === c.heroId);
+            if (idx >= 0) newHeroes[idx] = { ...newHeroes[idx], hpCurrent: c.hpAfter };
+          });
+        }
+
         // missão não-loop encerra: heróis voltam a IDLE, não re-empurra a missão
         m.heroIds.forEach((hid: string) => {
           const idx = newHeroes.findIndex((hh) => hh.id === hid);

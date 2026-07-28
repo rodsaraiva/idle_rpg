@@ -193,3 +193,41 @@ test('loop que encerra offline (plano esgota) não precisa carregar loopTally �
 
   expect(resumo.newState!.activeMissions).toHaveLength(0);
 });
+
+// --- Task 11: derrota fecha o loop no ciclo que fracassou, igual ao online ---
+
+test('loop "endless" com combate de derrota credita 1 ciclo (não os N que o tempo offline caberia), aplica baixas e libera o herói', () => {
+  // 'endless' é o pior caso: sem outcomeFalhou, nunca esgotaria — e 10 ciclos possíveis
+  // tornam a diferença "ordem de grandeza", não off-by-one (ver brief, verificação por mutação).
+  const decorrido = CICLO * 10;
+  const estado = estadoComLoop({ mode: 'endless' }, decorrido, {
+    precomputedOutcome: {
+      reward: REWARD_POR_CICLO, rounds: 1, actions: [], log: [],
+      success: false, casualties: [{ heroId: 'h1', hpLost: 500, hpAfter: 0 }], enemyCasualties: 0,
+    },
+  });
+
+  const resumo = calculateOfflineProgress(estado)!;
+
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO); // 1 ciclo, igual ao online — não 10
+  expect(resumo.newState!.activeMissions).toHaveLength(0); // loop não é re-armado
+  expect(resumo.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
+  expect(resumo.newState!.heroes[0].hpCurrent).toBe(0); // baixa do ciclo perdido aplicada
+});
+
+test('loop "times" com combate de derrota também credita só 1 ciclo, mesmo com remaining alto', () => {
+  const decorrido = CICLO * 8;
+  const estado = estadoComLoop({ mode: 'times', remaining: 5, total: 5 }, decorrido, {
+    precomputedOutcome: {
+      reward: REWARD_POR_CICLO, rounds: 1, actions: [], log: [],
+      success: false, casualties: [{ heroId: 'h1', hpLost: 200, hpAfter: 300 }], enemyCasualties: 0,
+    },
+  });
+
+  const resumo = calculateOfflineProgress(estado)!;
+
+  expect(resumo.goldGained).toBe(REWARD_POR_CICLO);
+  expect(resumo.newState!.activeMissions).toHaveLength(0);
+  expect(resumo.newState!.heroes[0].currentTask).toBe(HeroTask.IDLE);
+  expect(resumo.newState!.heroes[0].hpCurrent).toBe(300);
+});
