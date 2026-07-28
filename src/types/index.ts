@@ -112,6 +112,8 @@ export interface GameState {
   perHeroGold?: Record<string, number>;
   // recent mission results to show in UI
   recentMissionResults?: MissionResult[];
+  /** Loops encerrados aguardando ciente do jogador. */
+  completedLoops?: LoopSummary[];
   // achievements system
   unlockedAchievements?: string[]; // achievement IDs
   completedMissionCount?: number; // total missions completed (for achievement tracking)
@@ -198,6 +200,33 @@ export interface MissionAction {
   toPosition?: number;
 }
 
+/** Quantos ciclos um loop de missão ainda deve rodar. */
+export type LoopPlan =
+  | { mode: 'times'; remaining: number; total: number }
+  | { mode: 'until'; endsAt: number }
+  | { mode: 'endless' };
+
+/** Acumulado de um loop, carregado de ciclo em ciclo. */
+export interface LoopTally {
+  cycles: number;
+  gold: number;
+  materials: Record<string, number>;
+  casualties: { heroId: string; hpAfter: number }[];
+  lastResult?: MissionResult;
+}
+
+export type LoopStopReason = 'completed' | 'recalled' | 'casualties' | 'failed' | 'error';
+
+/** Resumo pronto para a UI, emitido quando o loop termina. */
+export interface LoopSummary {
+  missionId: string;
+  templateId: string;
+  heroIds: string[];
+  tally: LoopTally;
+  plannedCycles?: number;
+  reason: LoopStopReason;
+}
+
 export interface ActiveMission {
   id: string;
   templateId: string;
@@ -231,6 +260,9 @@ export interface ActiveMission {
   precomputedOutcome?: MissionOutcome;
   // whether this mission auto-repeats on completion
   looping?: boolean;
+  loop?: LoopPlan;
+  loopRecalled?: boolean;
+  loopTally?: LoopTally;
   // whether this is the weekly boss encounter (no migration needed — transient runtime state)
   isWeeklyBoss?: boolean;
 }
@@ -251,6 +283,8 @@ export interface MissionResult extends MissionOutcome {
   templateId: string;
   totalEnemies?: number;
   activeSynergies?: string[];
+  /** Ciclo de loop: não deve abrir o modal de resultado individual. */
+  fromLoop?: boolean;
 }
 
 /** Resumo do progresso offline aplicado ao carregar o save */ 
