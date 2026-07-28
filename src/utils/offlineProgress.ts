@@ -232,7 +232,9 @@ export function calculateOfflineProgress(savedState: GameState): OfflineSummaryF
             cycles: (m.loopTally?.cycles ?? 0) + cycles,
             gold: (m.loopTally?.gold ?? 0) + total,
             materials: { ...(m.loopTally?.materials ?? {}) },
-            casualties: m.loopTally?.casualties ?? [],
+            // Clona: sem isso o array ficaria compartilhado por referência entre newState
+            // e previousState, igual ao que missionTickHandler.ts:182-184 evita no caminho online.
+            casualties: [...(m.loopTally?.casualties ?? [])],
             lastResult: m.loopTally?.lastResult,
           };
           newActiveMissions.push({

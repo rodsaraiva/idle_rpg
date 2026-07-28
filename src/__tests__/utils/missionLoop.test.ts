@@ -57,9 +57,9 @@ describe('accumulateTally', () => {
     expect(t.lastResult?.missionId).toBe('m1');
   });
 
-  test('soma ouro, funde materiais e substitui o último resultado', () => {
+  test('soma ouro, funde materiais, une baixas e substitui o último resultado', () => {
     const primeiro = accumulateTally(undefined, {
-      gold: 100, materials: { couro: 2, ferro: 1 }, casualties: [], result: resultado(),
+      gold: 100, materials: { couro: 2, ferro: 1 }, casualties: [{ heroId: 'h1', hpAfter: 0 }], result: resultado(),
     });
     const segundo = accumulateTally(primeiro, {
       gold: 50, materials: { couro: 3 }, casualties: [{ heroId: 'h2', hpAfter: 0 }],
@@ -68,14 +68,49 @@ describe('accumulateTally', () => {
     expect(segundo.cycles).toBe(2);
     expect(segundo.gold).toBe(150);
     expect(segundo.materials).toEqual({ couro: 5, ferro: 1 });
-    expect(segundo.casualties).toEqual([{ heroId: 'h2', hpAfter: 0 }]);
+    expect(segundo.casualties).toEqual([{ heroId: 'h1', hpAfter: 0 }, { heroId: 'h2', hpAfter: 0 }]);
     expect(segundo.lastResult?.missionId).toBe('m2');
   });
 
+  test('herói caído num ciclo anterior sobrevive no acumulado quando o ciclo seguinte não tem baixas', () => {
+    const primeiro = accumulateTally(undefined, {
+      gold: 10, materials: {}, casualties: [{ heroId: 'h1', hpAfter: 0 }], result: resultado(),
+    });
+    const segundo = accumulateTally(primeiro, {
+      gold: 10, materials: {}, casualties: [], result: resultado(),
+    });
+    expect(segundo.casualties).toEqual([{ heroId: 'h1', hpAfter: 0 }]);
+  });
+
+  test('mesmo herói baixado em dois ciclos mantém o hpAfter mais recente, sem duplicar', () => {
+    const primeiro = accumulateTally(undefined, {
+      gold: 10, materials: {}, casualties: [{ heroId: 'h1', hpAfter: 20 }], result: resultado(),
+    });
+    const segundo = accumulateTally(primeiro, {
+      gold: 10, materials: {}, casualties: [{ heroId: 'h1', hpAfter: 5 }], result: resultado(),
+    });
+    expect(segundo.casualties).toEqual([{ heroId: 'h1', hpAfter: 5 }]);
+  });
+
+  test('união preserva baixas de heróis diferentes em ciclos diferentes', () => {
+    const primeiro = accumulateTally(undefined, {
+      gold: 10, materials: {}, casualties: [{ heroId: 'h1', hpAfter: 0 }], result: resultado(),
+    });
+    const segundo = accumulateTally(primeiro, {
+      gold: 10, materials: {}, casualties: [{ heroId: 'h2', hpAfter: 12 }], result: resultado(),
+    });
+    expect(segundo.casualties).toEqual([{ heroId: 'h1', hpAfter: 0 }, { heroId: 'h2', hpAfter: 12 }]);
+  });
+
   test('não muta o acumulado anterior', () => {
-    const primeiro = accumulateTally(undefined, { gold: 10, materials: { couro: 1 }, casualties: [], result: resultado() });
-    accumulateTally(primeiro, { gold: 10, materials: { couro: 1 }, casualties: [], result: resultado() });
+    const primeiro = accumulateTally(undefined, {
+      gold: 10, materials: { couro: 1 }, casualties: [{ heroId: 'h1', hpAfter: 0 }], result: resultado(),
+    });
+    accumulateTally(primeiro, {
+      gold: 10, materials: { couro: 1 }, casualties: [{ heroId: 'h1', hpAfter: 7 }], result: resultado(),
+    });
     expect(primeiro.gold).toBe(10);
     expect(primeiro.materials).toEqual({ couro: 1 });
+    expect(primeiro.casualties).toEqual([{ heroId: 'h1', hpAfter: 0 }]);
   });
 });
