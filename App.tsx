@@ -5,6 +5,7 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import { FeedbackLayer } from './src/components/FeedbackLayer';
 import { ConsentGate } from './src/components/ConsentGate';
 import { OfflineSummaryGate } from './src/components/OfflineSummaryGate';
+import { LoopSummaryGate } from './src/components/LoopSummaryModal';
 import { useReinoFonts } from './src/theme/fonts';
 import { OnboardingProvider } from './src/onboarding/OnboardingProvider';
 import { OnboardingOverlay } from './src/onboarding/OnboardingOverlay';
@@ -19,6 +20,8 @@ export default function App() {
         <ConsentGate />
         {/* Resumo offline na raiz: o app abre na Vila, não na Guilda */}
         <OfflineSummaryGate />
+        {/* Resumo de loop na raiz pelo mesmo motivo: o loop pode terminar em qualquer tela */}
+        <LoopSummaryGate />
         <OnboardingProvider>
           <AppNavigator />
           <FeedbackLayer />

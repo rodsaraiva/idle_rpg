@@ -28,7 +28,7 @@ import {
 } from './equipmentHandler';
 import { claimDailyQuest } from './dailyQuestHandler';
 import { handleFuseHeroes } from './pantheonHandler';
-import { handleRecallMissionLoop } from './missionLoopHandler';
+import { handleRecallMissionLoop, handleDismissLoopSummary } from './missionLoopHandler';
 import { claimWeeklyQuest } from './weeklyHandler';
 import { buyLegacyUpgrade } from './legacyHandler';
 import { TICK_INTERVAL_MS, TRAIN_INFLATION_FACTOR } from '../constants/game';
@@ -70,6 +70,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'RECALL_MISSION_LOOP':
       return handleRecallMissionLoop(state, action.missionId);
+
+    case 'DISMISS_LOOP_SUMMARY':
+      return handleDismissLoopSummary(state, action.missionId);
 
     case 'COMPLETE_MISSION':
       return handleCompleteMission(state, action.missionId, action.reward);

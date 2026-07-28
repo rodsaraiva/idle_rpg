@@ -9,10 +9,17 @@ import { emit, FEEDBACK_EVENTS } from '../services/feedback';
 import { lightTap, successNotification } from '../services/haptics';
 import { LOTTIE_ASSETS } from '../constants/assets';
 import { Icon } from './ui/Icon';
+import { MissionResult } from '../types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export function MissionResultModal() {
+interface Props {
+  result?: MissionResult;
+  onDismiss?: () => void;
+}
+
+/** Sem props, lê `recentMissionResults` do estado — é como a MissionsScreen usa hoje. */
+export function MissionResultModal({ result: resultProp, onDismiss }: Props = {}) {
   const { state, dispatch } = useGame();
   const results = state.recentMissionResults ?? [];
   const [displayedLog, setDisplayedLog] = useState<string[]>([]);
@@ -22,7 +29,7 @@ export function MissionResultModal() {
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const confettiRef = useRef<LottieView>(null);
 
-  const result = results[0] ?? null;
+  const result = resultProp ?? results[0] ?? null;
 
   useEffect(() => {
     if (!result) {
@@ -100,7 +107,7 @@ export function MissionResultModal() {
 
   const handleClose = () => {
     runnerRef.current?.stop();
-    dispatch({ type: 'DISMISS_MISSION_RESULT', missionId: result.missionId });
+    (onDismiss ?? (() => dispatch({ type: 'DISMISS_MISSION_RESULT', missionId: result.missionId })))();
   };
 
   const handleSkip = () => {

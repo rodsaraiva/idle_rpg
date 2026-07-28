@@ -167,6 +167,7 @@ export type GameAction =
   | { type: 'COMPLETE_MISSION'; missionId: string; reward: number }
   | { type: 'DISMISS_MISSION_RESULT'; missionId: string }
   | { type: 'RECALL_MISSION_LOOP'; missionId: string }
+  | { type: 'DISMISS_LOOP_SUMMARY'; missionId: string }
   | { type: 'FORGE_EQUIPMENT'; tier: number; equipmentType: 'weapon' | 'armor' | 'accessory'; now: number }
   | { type: 'COLLECT_EQUIPMENT'; equipmentId: string }
   | { type: 'EQUIP_ITEM'; heroId: string; equipmentId: string }

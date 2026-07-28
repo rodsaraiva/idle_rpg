@@ -100,3 +100,33 @@ test('loop recolhido termina o ciclo atual e não reinicia', () => {
   expect(r.activeMissions).toHaveLength(0);
   expect(r.newHeroes[0].currentTask).toBe(HeroTask.IDLE);
 });
+
+test('loop encerrado emite resumo com ciclos, ouro e motivo', () => {
+  const st = estado([missaoConcluida({ mode: 'times', remaining: 1, total: 3 }, {
+    loopTally: { cycles: 2, gold: 200, materials: { couro: 1 }, casualties: [] },
+  })]);
+  const r = processMissions(st, st.heroes, Date.now());
+
+  expect(r.completedLoops).toHaveLength(1);
+  const resumo = r.completedLoops[0];
+  expect(resumo.reason).toBe('completed');
+  expect(resumo.plannedCycles).toBe(3);
+  expect(resumo.tally.cycles).toBe(3);
+  expect(resumo.tally.gold).toBeGreaterThan(200);
+  expect(resumo.tally.lastResult).toBeDefined();
+});
+
+test('loop que continua não emite resumo e carrega o acumulado adiante', () => {
+  const st = estado([missaoConcluida({ mode: 'times', remaining: 3, total: 3 })]);
+  const r = processMissions(st, st.heroes, Date.now());
+
+  expect(r.completedLoops).toHaveLength(0);
+  expect(r.activeMissions[0].loopTally?.cycles).toBe(1);
+});
+
+test('recolher gera resumo com motivo recalled', () => {
+  const st = estado([missaoConcluida({ mode: 'endless' }, { loopRecalled: true })]);
+  const r = processMissions(st, st.heroes, Date.now());
+
+  expect(r.completedLoops[0].reason).toBe('recalled');
+});

@@ -1,4 +1,4 @@
-import { GameState, HeroTask, Hero, ActiveMission, MissionOutcome, MissionResult, ClassId } from '../types';
+import { GameState, HeroTask, Hero, ActiveMission, MissionOutcome, MissionResult, ClassId, LoopSummary } from '../types';
 import { analytics } from '../services/analytics';
 import {
   MISSION_FINISH_DELAY_MS,
@@ -18,7 +18,7 @@ import { legacyDurationMultiplier } from '../constants/legacyUpgrades';
 import { computeFinalGold } from '../utils/rewards';
 import { getActiveSynergies } from '../constants/synergies';
 import { bossToMissionTemplate } from './bossTemplate';
-import { planAllowsAnotherCycle, advanceLoopPlan } from '../utils/missionLoop';
+import { planAllowsAnotherCycle, advanceLoopPlan, accumulateTally } from '../utils/missionLoop';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ProcessMissionsResult {
@@ -29,6 +29,7 @@ export interface ProcessMissionsResult {
   materialDrops: Record<string, number>;
   weeklyBossDefeated: boolean;
   weeklyBossTemplateId: string | undefined;
+  completedLoops: LoopSummary[];
 }
 
 /** Processa o progresso das missões ativas. */
@@ -146,6 +147,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
   const materialDrops: Record<string, number> = {};
   let weeklyBossCompletedThisTick = false;
   let weeklyBossTemplateId: string | undefined;
+  const completedLoops: LoopSummary[] = [];
 
   completed.forEach((c) => {
     const n = c.mission.heroIds.length || 1;
@@ -169,6 +171,25 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
         materialDrops[mat] = (materialDrops[mat] ?? 0) + qty;
       }
     }
+
+    // O acumulado do loop é montado antes de decidir se ele continua — o resumo final
+    // (em qualquer desfecho) precisa do tally já com o ciclo atual dentro.
+    const ouroDoCiclo = c.mission.loop ? computeFinalGold(c.reward, state) : 0;
+    const tally = c.mission.loop
+      ? accumulateTally(c.mission.loopTally, {
+          gold: ouroDoCiclo,
+          materials: c.outcome.materialDrops ?? {},
+          // Clona os objetos de baixa aqui: accumulateTally guarda o array por referência,
+          // e casualties do outcome não deve ficar acoplado a nada que o motor mexa depois.
+          casualties: c.outcome.casualties.map((x) => ({ heroId: x.heroId, hpAfter: x.hpAfter })),
+          result: {
+            ...c.outcome,
+            missionId: c.mission.id,
+            templateId: c.mission.templateId,
+            activeSynergies: c.mission.activeSynergies,
+          } as MissionResult,
+        })
+      : undefined;
 
     // O plano só é avaliado depois do ciclo terminar: avança primeiro, decide depois.
     // Assim um plano criado com remaining: 3 roda exatamente 3 ciclos (sem off-by-one).
@@ -219,6 +240,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
               heroPositions: c.mission.heroPositions,
               startedAt: now,
               loop: planoAvancado,
+              loopTally: tally,
               healerBuffMultiplier,
               rogueRngBonus,
               activeSynergies: activeSynergyNames.length > 0 ? activeSynergyNames : undefined,
@@ -228,6 +250,16 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
             });
           } catch {
             // Se o cálculo da batalha falhar, encerra o loop e libera os heróis
+            if (c.mission.loop && tally) {
+              completedLoops.push({
+                missionId: c.mission.id,
+                templateId: c.mission.templateId,
+                heroIds: c.mission.heroIds,
+                tally,
+                plannedCycles: c.mission.loop.mode === 'times' ? c.mission.loop.total : undefined,
+                reason: 'error',
+              });
+            }
             c.mission.heroIds.forEach((hid: string) => {
               const idx = currentHeroes.findIndex((hh) => hh.id === hid);
               if (idx >= 0) {
@@ -237,6 +269,16 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
           }
         } else {
           // Not enough surviving heroes to continue — release them
+          if (c.mission.loop && tally) {
+            completedLoops.push({
+              missionId: c.mission.id,
+              templateId: c.mission.templateId,
+              heroIds: c.mission.heroIds,
+              tally,
+              plannedCycles: c.mission.loop.mode === 'times' ? c.mission.loop.total : undefined,
+              reason: 'casualties',
+            });
+          }
           c.mission.heroIds.forEach((hid: string) => {
             const idx = currentHeroes.findIndex((hh) => hh.id === hid);
             if (idx >= 0) {
@@ -250,6 +292,17 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
       if (c.mission.isWeeklyBoss && c.outcome.success) {
         weeklyBossCompletedThisTick = true;
         weeklyBossTemplateId = c.mission.templateId;
+      }
+
+      if (c.mission.loop && tally) {
+        completedLoops.push({
+          missionId: c.mission.id,
+          templateId: c.mission.templateId,
+          heroIds: c.mission.heroIds,
+          tally,
+          plannedCycles: c.mission.loop.mode === 'times' ? c.mission.loop.total : undefined,
+          reason: !c.outcome.success ? 'failed' : c.mission.loopRecalled ? 'recalled' : 'completed',
+        });
       }
 
       // Normal completion: release heroes to IDLE
@@ -287,6 +340,7 @@ export function processMissions(state: GameState, heroes: Hero[], now: number): 
     materialDrops,
     weeklyBossDefeated: weeklyBossCompletedThisTick,
     weeklyBossTemplateId,
+    completedLoops,
   };
 }
 
