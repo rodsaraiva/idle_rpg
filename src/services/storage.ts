@@ -3,7 +3,7 @@ import { GameState, DEFAULT_NOTIFICATION_PREFS } from '../types';
 
 const STORAGE_KEY = '@idle_rpg_game_state';
 const BACKUP_KEY = '@idle_rpg_game_state.bak';
-export const CURRENT_VERSION = 13; // Incremented for migrations
+export const CURRENT_VERSION = 14; // Incremented for migrations
 
 interface SaveData extends GameState {
   _version: number;
@@ -116,6 +116,15 @@ const migrations: Record<number, (data: any) => any> = {
   13: (data) => {
     // Version 13: consentimento LGPD. Analytics opt-in, indeciso por default (SPEC 9).
     if (data.consent === undefined) data.consent = { analytics: false, decided: false, decidedAt: 0 };
+    return data;
+  },
+  14: (data) => {
+    // Version 14: loop de missão vira plano (times/until/endless). O booleano
+    // antigo só sabia "repetir para sempre" — é essa a leitura honesta do save.
+    for (const m of data.activeMissions ?? []) {
+      if (m.looping) m.loop = { mode: 'endless' };
+      delete m.looping;
+    }
     return data;
   },
 };
