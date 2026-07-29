@@ -86,11 +86,15 @@ condições, em qualquer caminho e a qualquer momento.
 | Campo | Terreno alto | Alcance +1 para heróis RANGED | 1 |
 | Inimigos | Bando | Duplica um inimigo da composição base | 2 |
 | Inimigos | Elite | Um inimigo com +50% HP | 3 |
-| Inimigos | Veterano | Um inimigo ganha skill do `ENEMY_SKILL_POOL` respeitando `minDifficulty` | 3 |
+| Inimigos | Veteranos | Encontro sobe 1 de dificuldade, o que solta mais skill do `ENEMY_SKILL_POOL` | 3 |
 
 Onde a condição diz "um inimigo", o alvo sai do mesmo hash do bloco (`índice = hash % n`), não de
 `Math.random` — duas guildas no mesmo bloco veem o mesmo inimigo marcado, e o offline concorda com
 o online sem precisar guardar nada.
+
+"Veteranos" é por encontro, não por inimigo, porque `assignEnemySkills(missionDifficulty, isBoss, rng)`
+(`src/constants/enemySkills.ts:28`) distribui skills olhando a dificuldade da missão inteira. Marcar
+um inimigo individual exigiria mexer no motor — fica para depois, se a condição provar valor.
 
 Cada condição declara `rewardMultiplier`. Total = produto, com teto (`MAX_CONDITION_MULTIPLIER`)
 para duas condições fortes não explodirem a economia.
